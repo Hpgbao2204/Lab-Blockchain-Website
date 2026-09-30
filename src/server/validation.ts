@@ -52,12 +52,31 @@ export const postInput = z.object({
   pinned: z.boolean().default(false),
 });
 
+const httpUrl = z
+  .string()
+  .trim()
+  .max(2000)
+  .url("Enter a full link starting with https://")
+  .refine((u) => /^https?:\/\//i.test(u), "Only http(s) links are allowed");
+
+export const linkKinds = ["overleaf", "github", "drive", "paper", "other"] as const;
+export const linkInput = z.object({
+  url: httpUrl,
+  label: optionalText(120),
+  /** detected from the URL when omitted */
+  kind: z.enum(linkKinds).optional(),
+  taskId: z.string().uuid().optional().nullable(),
+});
+
 export const taskInput = z.object({
   title: text(200),
   description: optionalText(5000),
   dueDate: isoDate,
   priority: z.enum(["low", "normal", "high"]).default("normal"),
   assigneeIds: z.array(z.string().uuid()).max(100).default([]),
+  venue: optionalText(200),
+  /** e.g. the Overleaf project and the call for papers, attached when the task is created */
+  links: z.array(linkInput.omit({ taskId: true })).max(10).default([]),
 });
 export const taskPatch = z.object({
   title: text(200).optional(),
@@ -65,7 +84,10 @@ export const taskPatch = z.object({
   dueDate: isoDate.optional(),
   priority: z.enum(["low", "normal", "high"]).optional(),
   status: z.enum(["todo", "doing", "review", "done"]).optional(),
+  venue: optionalText(200),
   assigneeIds: z.array(z.string().uuid()).max(100).optional(),
 });
 
 export const commentInput = z.object({ body: text(3000) });
+
+export const monthParam = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");

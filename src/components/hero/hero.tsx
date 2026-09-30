@@ -17,7 +17,7 @@ export function Hero() {
     <HeroShell>
       <p className="eyebrow">
         <span className="dot" />
-        Blockchain research group
+        Blockchain research group · UIT – VNU-HCM
       </p>
       <h1 id="hero-title" className="hero-name" aria-label="Blockchainist">
         <span className="line" aria-hidden>

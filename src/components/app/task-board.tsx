@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarClock, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, MessageSquare, Paperclip, Plus, Target, Trash2 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { addDays, bucketFor, formatDay, formatStamp, weekStart, type WeekBucket } from "@/lib/weeks";
 import { Initials } from "./initials";
+import { AddResource, Resources, type WallFile, type WallLink } from "./resources";
 
 export interface BoardTask {
   id: string;
@@ -13,6 +14,7 @@ export interface BoardTask {
   description: string | null;
   dueDate: string;
   priority: "low" | "normal" | "high";
+  venue: string | null;
   status: "todo" | "doing" | "review" | "done";
   assignees: { id: string; name: string }[];
   commentCount: number;
@@ -38,7 +40,19 @@ const COLUMNS: { key: WeekBucket[]; label: string; c: string }[] = [
 const PRIORITY = { high: "var(--color-red)", normal: "var(--color-yellow)", low: "var(--color-line)" };
 const STATUS_BG = { todo: "var(--color-paper-2)", doing: "var(--color-blue)", review: "var(--color-orange)", done: "var(--color-teal)" };
 
-export function TaskBoard(props: { groupId: string; tasks: BoardTask[]; members: Member[]; me: string; canManage: boolean; today: string }) {
+interface BoardProps {
+  groupId: string;
+  tasks: BoardTask[];
+  members: Member[];
+  me: string;
+  canManage: boolean;
+  today: string;
+  targetVenue: string | null;
+  links: WallLink[];
+  files: WallFile[];
+}
+
+export function TaskBoard(props: BoardProps) {
   const { tasks, today } = props;
   const [creating, setCreating] = useState(false);
   const start = weekStart(today);
@@ -76,9 +90,12 @@ export function TaskBoard(props: { groupId: string; tasks: BoardTask[]; members:
   );
 }
 
-function TaskCard({ task, me, canManage, today }: { task: BoardTask; me: string; canManage: boolean; today: string }) {
+function TaskCard({ task, me, canManage, today, groupId, links, files }: BoardProps & { task: BoardTask }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [attach, setAttach] = useState(false);
+  const myLinks = links.filter((l) => l.taskId === task.id);
+  const myFiles = files.filter((f) => f.taskId === task.id);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const canMove = canManage || !task.assignees.length || task.assignees.some((a) => a.id === me);
@@ -106,6 +123,14 @@ function TaskCard({ task, me, canManage, today }: { task: BoardTask; me: string;
         <span className={overdue ? "font-bold text-red" : ""}>{overdue ? `Overdue · ${formatDay(task.dueDate)}` : formatDay(task.dueDate)}</span>
         {task.priority !== "normal" && <span>· {task.priority}</span>}
       </div>
+      {task.venue && (
+        <p>
+          <span className="venue" title="Target venue">
+            <Target size={12} aria-hidden /> {task.venue}
+          </span>
+        </p>
+      )}
+      <Resources links={myLinks} files={myFiles} me={me} canManage={canManage} small />
       <div className="flex items-center gap-2">
         {task.assignees.length ? (
           <span className="avatars">
@@ -136,6 +161,11 @@ function TaskCard({ task, me, canManage, today }: { task: BoardTask; me: string;
         <button type="button" className="mono flex items-center gap-1 text-xs underline-offset-2 hover:underline" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
           <MessageSquare size={13} aria-hidden /> {task.commentCount} comment{task.commentCount === 1 ? "" : "s"}
         </button>
+        {canMove && (
+          <button type="button" className="mono flex items-center gap-1 text-xs underline-offset-2 hover:underline" onClick={() => setAttach((v) => !v)} aria-expanded={attach}>
+            <Paperclip size={13} aria-hidden /> attach
+          </button>
+        )}
         {canManage && (
           <button
             type="button"
@@ -151,6 +181,7 @@ function TaskCard({ task, me, canManage, today }: { task: BoardTask; me: string;
           </button>
         )}
       </div>
+      {attach && <AddResource groupId={groupId} taskId={task.id} small />}
       {error && <p className="error">{error}</p>}
       {open && <Comments taskId={task.id} />}
     </article>
@@ -212,7 +243,7 @@ function Comments({ taskId }: { taskId: string }) {
   );
 }
 
-function NewTask({ groupId, members, today, onDone }: { groupId: string; members: Member[]; today: string; onDone: () => void }) {
+function NewTask({ groupId, members, today, targetVenue, onDone }: BoardProps & { onDone: () => void }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -234,6 +265,11 @@ function NewTask({ groupId, members, today, onDone }: { groupId: string; members
               dueDate: f.get("dueDate"),
               priority: f.get("priority"),
               assigneeIds: f.getAll("assignees"),
+              venue: f.get("venue"),
+              links: [
+                { url: f.get("overleaf"), label: "Overleaf", kind: "overleaf" },
+                { url: f.get("link"), label: f.get("linkLabel") },
+              ].filter((l) => typeof l.url === "string" && l.url.trim()),
             },
           });
           onDone();
@@ -264,6 +300,22 @@ function NewTask({ groupId, members, today, onDone }: { groupId: string; members
       <label className="label md:col-span-2">
         Details <span className="hint">optional</span>
         <textarea className="field" name="description" maxLength={5000} />
+      </label>
+      <label className="label">
+        Submit to <span className="hint">journal or conference</span>
+        <input className="field" name="venue" maxLength={200} defaultValue={targetVenue ?? ""} placeholder="e.g. IEEE TDSC, ACM CCS 2027" />
+      </label>
+      <label className="label">
+        Overleaf <span className="hint">optional</span>
+        <input className="field" name="overleaf" type="url" placeholder="https://www.overleaf.com/project/…" />
+      </label>
+      <label className="label">
+        Other link <span className="hint">GitHub, Drive, call for papers…</span>
+        <input className="field" name="link" type="url" placeholder="https://" />
+      </label>
+      <label className="label">
+        Link label <span className="hint">optional</span>
+        <input className="field" name="linkLabel" maxLength={120} placeholder="e.g. Call for papers" />
       </label>
       <fieldset className="label md:col-span-2">
         <legend>

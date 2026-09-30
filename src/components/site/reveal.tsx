@@ -7,10 +7,11 @@ interface RevealProps {
   className?: string;
   delay?: number;
   as?: "div" | "li";
+  style?: React.CSSProperties;
 }
 
 /** Fades/slides children in once they scroll into view. */
-export function Reveal({ children, className = "", delay = 0, as: Tag = "div" }: RevealProps) {
+export function Reveal({ children, className = "", delay = 0, as: Tag = "div", style }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -28,7 +29,7 @@ export function Reveal({ children, className = "", delay = 0, as: Tag = "div" }:
     return () => io.disconnect();
   }, []);
   return (
-    <Tag ref={ref as React.Ref<never>} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <Tag ref={ref as React.Ref<never>} className={`reveal ${className}`} style={{ ...style, transitionDelay: `${delay}ms` }}>
       {children}
     </Tag>
   );

@@ -33,11 +33,13 @@ Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác o
 - `groups(id, name, description, paper_title, target_venue, submission_deadline, period, status active|archived, created_by)`: một nhóm thường là một paper/đợt.
 - `group_members(group_id, user_id, role lead|member)`
 - `posts(id, group_id, author_id, kind note|announcement, body, pinned)`
-- `tasks(id, group_id, created_by, title, description, due_date, priority low|normal|high, status todo|doing|review|done)`
+- `tasks(id, group_id, created_by, title, description, due_date, priority low|normal|high, status todo|doing|review|done, venue, completed_at)`
 - `task_assignees(task_id, user_id)`: rỗng = cả nhóm
 - `comments(id, group_id, post_id?, task_id?, author_id, body)`: đúng một trong hai target
+- `links(id, group_id, task_id?, kind overleaf|github|drive|paper|other, url, label, added_by)`: không có task = link của cả nhóm (admin/lead); link trên task: người làm task đó
+- `attachments(id, group_id, task_id?, uploader_id, filename, mime, size, storage_key)`: bytes ở storage (`src/server/storage`), không nằm trong DB
 
-Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`, `attachments` (file lưu ở object storage, URL ký).
+Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`.
 
 Đổi schema: sửa `schema.ts` → `npm run db:generate` → commit SQL mới trong `drizzle/`.
 
@@ -47,8 +49,14 @@ Thành công `{ data, meta? }`, lỗi `{ error: { code, message, details? } }`. 
 
 - Public: `stats`, `research`, `research/:slug`, `publications?q&kind&year&area&limit`, `members`, `pioneers`, `health`, `me` (null khi chưa đăng nhập).
 - Auth: `POST auth/login`, `POST auth/logout`, `POST auth/change-password`.
-- Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST), `groups/:id/posts` (GET/POST), `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
-- Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`.
+- Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST, kèm `venue`, `links`), `groups/:id/posts` (GET/POST), `groups/:id/links` (GET/POST), `DELETE links/:id`, `groups/:id/attachments` (GET, POST multipart), `GET|DELETE attachments/:id`, `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
+- Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`, `admin/reports?month&format=csv`, `admin/digest` (GET xem trước, POST gửi).
+- Cron: `GET cron/weekly-digest` (header `Authorization: Bearer $CRON_SECRET`, `?dryRun`).
+
+## Việc nền
+
+- Email thứ Hai: `services/digest.ts` dựng danh sách (quá hạn + trong tuần, giao cho mình hoặc cả nhóm), `server/mail.ts` gửi qua Resend nếu có `RESEND_API_KEY` + `MAIL_FROM`, không thì không gửi gì.
+- Báo cáo tháng: `services/reports.ts`; "xong trong tháng" dựa vào `tasks.completed_at` (ghi khi chuyển sang done, xoá khi mở lại).
 
 ## Thư mục
 
@@ -57,7 +65,7 @@ src/app/                 trang public, /login, /account/password, /app (dashboar
 src/components/          site, hero (3D), pubs, app (board, feed, admin), dev
 src/lib/content          dữ liệu public (tĩnh, sẽ chuyển sang DB)
 src/lib/weeks.ts         tính tuần / bucket deadline (giờ Việt Nam)
-src/server/              db (schema, client), auth (password, sessions, current), services, validation
+src/server/              db (schema, client), auth, services, storage (file), jobs (email thứ Hai), mail, validation
 scripts/                 seed.ts, sync-publications.mjs, fetch-pioneers.mjs
 drizzle/                 migration SQL
 ```

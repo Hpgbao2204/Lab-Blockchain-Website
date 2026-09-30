@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { PageHead, SectionHead } from "@/components/site/page-head";
-import { listPeople } from "@/lib/content";
+import Link from "next/link";
+import { listPeople, listResearchAreas } from "@/lib/content";
+import { Reveal } from "@/components/site/reveal";
 
 export const metadata: Metadata = { title: "People", description: "The people behind Blockchainist." };
 
@@ -9,11 +11,12 @@ export default function PeoplePage() {
   const people = listPeople();
   const pis = people.filter((p) => p.role === "pi");
   const members = people.filter((p) => p.role === "member");
+  const areas = new Map(listResearchAreas().map((a) => [a.slug, a]));
 
   return (
     <div className="wrap page">
       <PageHead eyebrow="People" title={<>The <span className="hl">team</span></>}>
-        Researchers and students working on trustworthy blockchain systems.
+        Researchers and students at UIT – VNU-HCM working on trustworthy blockchain systems.
       </PageHead>
 
       {pis.map((p) => (
@@ -58,6 +61,48 @@ export default function PeoplePage() {
             <span>Member profiles, with optional CVs, are being prepared and will appear here once the roster is imported.</span>
           </p>
         )}
+        {members.some((m) => m.sample) && (
+          <p className="note mb-6">
+            <b>Sample</b>
+            <span>These are placeholder profiles that show the layout. The real roster replaces them soon.</span>
+          </p>
+        )}
+        <ul className="grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+          {members.map((m, i) => {
+            const first = m.areas?.map((a) => areas.get(a)).find(Boolean);
+            const initials = m.name
+              .split(/\s+/)
+              .slice(-2)
+              .map((w) => w[0])
+              .join("");
+            return (
+              <Reveal as="li" key={m.slug} delay={(i % 3) * 60} className="card grid content-start gap-3 p-5" style={{ "--c": `var(--color-${first?.accent ?? "yellow"})` } as React.CSSProperties}>
+                <div className="flex items-center gap-3">
+                  <span className="member-mark" aria-hidden>
+                    {initials}
+                  </span>
+                  <div className="grid gap-0.5">
+                    <h3 className="text-lg font-bold leading-tight">{m.name}</h3>
+                    <p className="mono text-xs text-ink-2">{m.title}</p>
+                  </div>
+                  {m.sample && <span className="tag ml-auto self-start">sample</span>}
+                </div>
+                <p className="text-sm text-ink-2">{m.bio}</p>
+                <ul className="chips">
+                  {m.areas?.map((a) =>
+                    areas.get(a) ? (
+                      <li key={a}>
+                        <Link href={`/research/${a}`} className="no-underline hover:underline">
+                          {areas.get(a)!.title}
+                        </Link>
+                      </li>
+                    ) : null,
+                  )}
+                </ul>
+              </Reveal>
+            );
+          })}
+        </ul>
       </section>
     </div>
   );

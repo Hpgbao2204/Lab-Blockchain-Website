@@ -9,7 +9,10 @@ export function Footer() {
         <div>
           <Brand />
           <p className="motto mt-5">building trust in a trustless world</p>
-          <p className="max-w-sm text-sm text-muted">Blockchainist researches cross-chain interoperability, zero-knowledge proofs and decentralized identity.</p>
+          <p className="max-w-sm text-sm text-muted">
+            <b className="text-ink">University of Information Technology – VNU-HCM</b>, Ho Chi Minh City, Vietnam.
+          </p>
+          <p className="mt-2 max-w-sm text-sm text-muted">Blockchainist researches cross-chain interoperability, zero-knowledge proofs and decentralized identity.</p>
         </div>
         <nav aria-label="Footer" className="grid content-start gap-1.5 text-sm">
           <p className="eyebrow mb-1">Explore</p>

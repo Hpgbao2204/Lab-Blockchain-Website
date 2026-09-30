@@ -6,7 +6,7 @@ import { Footer } from "@/components/site/footer";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: "Blockchainist · Blockchain Research Group", template: "%s · Blockchainist" },
-  description: "Blockchainist is a blockchain research group working on cross-chain interoperability, zero-knowledge proofs, decentralized identity and smart contract security.",
+  description: "Blockchainist is a blockchain research group at UIT – VNU-HCM working on cross-chain interoperability, zero-knowledge proofs, decentralized identity and smart contract security.",
   icons: { icon: "/favicon.svg" },
   openGraph: { siteName: "Blockchainist", type: "website" },
 };
