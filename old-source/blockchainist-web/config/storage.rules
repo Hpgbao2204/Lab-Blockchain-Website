@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow uploads to applications folder
+    match /applications/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.resource.size < 10 * 1024 * 1024 && 
+                     request.resource.contentType.matches('.*/(pdf|doc|docx)');
+    }
+    
+    // Allow uploads to images folder for avatars, etc.
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+                     request.resource.size < 5 * 1024 * 1024 &&
+                     request.resource.contentType.matches('image/.*');
+    }
+  }
+}

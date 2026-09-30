@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ | Nhóm Nghiên cứu Blockchain, Mạng & Bảo mật</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="src/css/styles.css">
+
+    <!-- Firebase SDKs - Compatible version (no Storage) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- File config -->
+    <script src="config/firebase-config.js"></script>
+    
+    <!-- Cloudinary Configuration -->
+    <script src="config/cloudinary-config.js"></script>
+    
+    <!-- Cloudinary Storage Solution -->
+    <script src="src/js/cloudinary-storage.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- AOS - Animate on Scroll Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Tùy chỉnh font chữ mặc định và một số màu sắc */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a; /* Nền đen sâu hơn một chút */
+        }
+        
+        /* Hiệu ứng gradient cho tiêu đề */
+        .text-gradient {
+            background: linear-gradient(90deg, #38bdf8, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        /* Container cho animation 3D */
+        #hero-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Đảm bảo nội dung nằm trên animation */
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Tùy chỉnh thanh cuộn */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+        
+        /* Tùy chỉnh cho input file */
+        .file-input-label {
+            cursor: pointer;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #374151;
+            color: white;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        .file-input-label:hover {
+            background-color: #4b5563;
+        }
+        .file-input {
+            display: none;
+        }
+        
+        /* Logo styling */
+        .logo-img {
+            filter: brightness(1.1);
+            transition: transform 0.2s ease;
+        }
+        .logo-img:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+
+    <!-- Header / Navbar -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-gray-900/50 backdrop-blur-sm transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#home" class="text-2xl font-bold text-white flex items-center gap-3">
+                <img src="src/assets/icons/logo.png" alt="Logo" class="h-10 w-auto logo-img">
+            </a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#research" class="hover:text-sky-400 transition-colors">Nghiên cứu</a>
+                <a href="#team" class="hover:text-sky-400 transition-colors">Thành viên</a>
+                <a href="#publications" class="hover:text-sky-400 transition-colors">Công bố</a>
+                <a href="#join" class="hover:text-sky-400 transition-colors">Tuyển dụng</a>
+                <a href="#contact" class="hover:text-sky-400 transition-colors">Liên hệ</a>
+            </nav>
+            <button class="md:hidden" id="mobile-menu-button">
+                <i data-lucide="menu" class="text-white"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 flex flex-col space-y-4">
+            <a href="#research" class="hover:text-sky-400 transition-colors">Nghiên cứu</a>
+            <a href="#team" class="hover:text-sky-400 transition-colors">Thành viên</a>
+            <a href="#publications" class="hover:text-sky-400 transition-colors">Công bố</a>
+            <a href="#join" class="hover:text-sky-400 transition-colors">Tuyển dụng</a>
+            <a href="#contact" class="hover:text-sky-400 transition-colors">Liên hệ</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- 1. Hero Section -->
+        <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+            <div id="hero-animation"></div>
+            <div class="container mx-auto px-6">
+                <div class="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
+                    <!-- Logo Section - Left -->
+                    <div class="flex justify-center lg:justify-end -mt-16" data-aos="fade-right">
+                        <img src="src/assets/icons/logo.png" alt="Logo" class="h-48 md:h-56 lg:h-64 w-auto object-contain logo-img">
+                    </div>
+                    
+                    <!-- Content Section - Right -->
+                    <div class="text-center" data-aos="fade-left">
+                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-6 -mt-6">
+                            KIẾN TẠO TƯƠNG LAI SỐ
+                        </h1>
+                        <p class="text-lg md:text-xl lg:text-2xl font-light text-gray-300 mb-8 max-w-2xl mx-auto">
+                            <span class="text-gradient font-medium">Phi tập trung - An toàn - Thông minh.</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- CTA Button - Center Bottom -->
+                <div class="text-center -mt-60 pb-20" data-aos="zoom-in" data-aos-delay="600">
+                    <a href="#research" class="inline-block bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105">
+                        Khám Phá Ngay
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Research Areas Section -->
+        <section id="research" class="py-20 bg-black">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white">Lĩnh Vực Nghiên Cứu</h2>
+                    <p class="text-lg text-gray-400 mt-2">Các định hướng chính mà chúng tôi đang theo đuổi và phát triển.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 1 -->
+                    <div class="bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-700" data-aos="fade-up">
+                        <i data-lucide="cuboid" class="w-12 h-12 text-sky-400 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-2">Blockchain & Hợp đồng thông minh</h3>
+                        <p class="text-gray-400">Nghiên cứu các thuật toán đồng thuận mới, tối ưu hóa hiệu năng và ứng dụng hợp đồng thông minh trong tài chính, chuỗi cung ứng.</p>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-700" data-aos="fade-up" data-aos-delay="200">
+                        <i data-lucide="shield" class="w-12 h-12 text-green-400 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-2">Bảo mật Mạng & An ninh mạng</h3>
+                        <p class="text-gray-400">Phân tích lỗ hổng, phát hiện xâm nhập bằng AI, và xây dựng các giải pháp phòng thủ chủ động cho hệ thống mạng hiện đại.</p>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-700" data-aos="fade-up" data-aos-delay="400">
+                        <i data-lucide="wifi" class="w-12 h-12 text-purple-400 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-2">Mạng Thế hệ mới (5G/6G) & IoT</h3>
+                        <p class="text-gray-400">Khám phá kiến trúc mạng 6G, tối ưu hóa giao thức cho thiết bị IoT, và đảm bảo an toàn cho hàng tỷ kết nối trong tương lai.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Team Section -->
+        <section id="team" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white">Thành Viên Nhóm</h2>
+                    <p class="text-lg text-gray-400 mt-2">Những con người đầy nhiệt huyết và đam mê nghiên cứu.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Member Card -->
+                    <div class="text-center" data-aos="zoom-in">
+                        <img src="https://placehold.co/400x400/1f2937/a78bfa?text=GS" alt="GS. TS. Nguyễn Văn A" class="w-40 h-40 mx-auto rounded-full mb-4 border-4 border-purple-500">
+                        <h3 class="text-xl font-bold text-white">GS. TS. Nguyễn Văn A</h3>
+                        <p class="text-purple-400">Trưởng nhóm</p>
+                    </div>
+                    <!-- Member Card -->
+                    <div class="text-center" data-aos="zoom-in" data-aos-delay="150">
+                        <img src="https://placehold.co/400x400/1f2937/38bdf8?text=NCS" alt="NCS. Trần Thị B" class="w-40 h-40 mx-auto rounded-full mb-4 border-4 border-sky-500">
+                        <h3 class="text-xl font-bold text-white">NCS. Trần Thị B</h3>
+                        <p class="text-sky-400">Nghiên cứu sinh</p>
+                    </div>
+                    <!-- Member Card -->
+                    <div class="text-center" data-aos="zoom-in" data-aos-delay="300">
+                        <img src="https://placehold.co/400x400/1f2937/34d399?text=SV" alt="SV. Lê Minh C" class="w-40 h-40 mx-auto rounded-full mb-4 border-4 border-green-500">
+                        <h3 class="text-xl font-bold text-white">SV. Lê Minh C</h3>
+                        <p class="text-green-400">Nghiên cứu viên</p>
+                    </div>
+                    <!-- Member Card -->
+                    <div class="text-center" data-aos="zoom-in" data-aos-delay="450">
+                        <img src="https://placehold.co/400x400/1f2937/f472b6?text=SV" alt="SV. Phạm Thị D" class="w-40 h-40 mx-auto rounded-full mb-4 border-4 border-pink-500">
+                        <h3 class="text-xl font-bold text-white">SV. Phạm Thị D</h3>
+                        <p class="text-pink-400">Thực tập sinh</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Publications Section -->
+        <section id="publications" class="py-20 bg-black">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white">Công Bố Khoa Học</h2>
+                    <p class="text-lg text-gray-400 mt-2">Các công trình nghiên cứu tiêu biểu của nhóm.</p>
+                </div>
+                <div id="publications-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Publications will be loaded dynamically from Firebase -->
+                    <div class="text-center py-8 col-span-full">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-400 mx-auto"></div>
+                        <p class="text-gray-400 mt-2">Đang tải công bố...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Publication Detail Modal -->
+        <div id="publication-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75 flex items-center justify-center p-4">
+            <div class="bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Chi Tiết Bài Báo</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-white">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div id="modal-content" class="p-6">
+                    <!-- Modal content will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 5. Join Us Section -->
+        <section id="join" class="py-20">
+            <div class="container mx-auto px-6">
+                 <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div data-aos="fade-right">
+                        <h2 class="text-4xl font-bold text-white mb-4">Gia Nhập Cùng Chúng Tôi!</h2>
+                        <p class="text-lg text-gray-400 mb-6">Chúng tôi luôn tìm kiếm những tài năng trẻ đam mê khám phá và không ngại thử thách. Hãy trở thành một phần của nhóm để cùng nhau tạo ra những công nghệ đột phá, định hình tương lai của thế giới số.</p>
+                         <ul class="space-y-3">
+                            <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-400 mr-3"></i> Môi trường nghiên cứu năng động, sáng tạo.</li>
+                            <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-400 mr-3"></i> Cơ hội tham gia các dự án quốc tế.</li>
+                            <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-400 mr-3"></i> Hướng dẫn bởi các chuyên gia hàng đầu.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-lg border border-gray-700" data-aos="fade-left">
+                        <h3 class="text-2xl font-bold text-white mb-6">Các Hướng Nghiên Cứu Đang Tuyển</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <i data-lucide="flask-conical" class="w-6 h-6 text-sky-400 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="font-semibold text-white">Tối ưu hiệu năng Blockchain cho thiết bị IoT.</h4>
+                                    <p class="text-sm text-gray-400">Nghiên cứu Sharding, State Channels trên nền tảng tài nguyên hạn chế.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <i data-lucide="flask-conical" class="w-6 h-6 text-sky-400 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="font-semibold text-white">Phân tích và phát hiện tấn công trên mạng 5G sử dụng AI.</h4>
+                                    <p class="text-sm text-gray-400">Áp dụng Federated Learning để bảo vệ quyền riêng tư trong khi huấn luyện mô hình.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <i data-lucide="flask-conical" class="w-6 h-6 text-sky-400 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="font-semibold text-white">Xây dựng DApp cho quản lý chuỗi cung ứng minh bạch.</h4>
+                                    <p class="text-sm text-gray-400">Sử dụng Hyperledger Fabric và hợp đồng thông minh để theo dõi nguồn gốc sản phẩm.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Contact Form Section -->
+        <section id="contact" class="py-20 bg-black">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white">Liên Hệ & Ứng Tuyển</h2>
+                    <p class="text-lg text-gray-400 mt-2">Gửi thông tin của bạn cho chúng tôi, chúng tôi sẽ phản hồi sớm nhất.</p>
+                </div>
+                <form class="max-w-2xl mx-auto" data-aos="fade-up">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="name" class="block mb-2 text-sm font-medium text-gray-300">Họ và tên *</label>
+                            <input type="text" id="name" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block mb-2 text-sm font-medium text-gray-300">Email *</label>
+                            <input type="email" id="email" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5" required>
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="school" class="block mb-2 text-sm font-medium text-gray-300">Trường & Ngành học</label>
+                            <input type="text" id="school" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5">
+                        </div>
+                        <div>
+                            <label for="phone" class="block mb-2 text-sm font-medium text-gray-300">Số điện thoại</label>
+                            <input type="tel" id="phone" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                         <label for="message" class="block mb-2 text-sm font-medium text-gray-300">Thư ngỏ / Lời nhắn</label>
+                         <textarea id="message" rows="4" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-105">Gửi Hồ Sơ</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Member Profile Modal -->
+<div id="member-profile-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="sticky top-0 bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-white">Profile khoa học</h2>
+            <button id="close-profile-modal" class="text-gray-400 hover:text-white p-2">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="p-6">
+            <!-- Loading State -->
+            <div id="profile-loading" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400 mx-auto mb-4"></div>
+                <p class="text-gray-400">Đang tải profile...</p>
+            </div>
+            
+            <!-- Profile Content -->
+            <div id="profile-content" class="hidden">
+                <!-- Header Section -->
+                <div class="flex flex-col md:flex-row gap-6 mb-8">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0 text-center md:text-left">
+                        <img id="profile-avatar" src="" alt="" class="w-32 h-32 rounded-full mx-auto md:mx-0 mb-4 border-4 border-sky-500">
+                        <div class="space-y-2">
+                            <a id="profile-google-scholar" href="" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full text-sm transition-colors">
+                                <i data-lucide="graduation-cap" class="w-4 h-4 inline mr-1"></i>Google Scholar
+                            </a>
+                            <a id="profile-orcid" href="" target="_blank" class="inline-block bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full text-sm transition-colors ml-2">
+                                <i data-lucide="user-check" class="w-4 h-4 inline mr-1"></i>ORCID
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Basic Info -->
+                    <div class="flex-1">
+                        <h3 id="profile-name" class="text-3xl font-bold text-white mb-2"></h3>
+                        <p id="profile-nickname" class="text-xl text-sky-400 mb-2"></p>
+                        <p id="profile-role" class="text-lg text-gray-300 mb-4"></p>
+                        <p id="profile-bio" class="text-gray-400 leading-relaxed"></p>
+                    </div>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="border-b border-gray-700 mb-6">
+                    <nav class="flex space-x-8">
+                        <button class="profile-tab-btn active py-2 px-1 border-b-2 border-sky-500 text-sky-400 font-medium" data-tab="research">
+                            Hướng nghiên cứu
+                        </button>
+                        <button class="profile-tab-btn py-2 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium" data-tab="publications">
+                            Công bố khoa học
+                        </button>
+                        <button class="profile-tab-btn py-2 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium" data-tab="education">
+                            Học vấn & Thành tích
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="tab-contents">
+                    <!-- Research Tab -->
+                    <div id="profile-tab-research" class="profile-tab-content">
+                        <h4 class="text-xl font-bold text-white mb-4">Hướng nghiên cứu chính</h4>
+                        <div id="profile-research-interests" class="flex flex-wrap gap-2">
+                            <!-- Research interests will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Publications Tab -->
+                    <div id="profile-tab-publications" class="profile-tab-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-xl font-bold text-white">Công bố khoa học</h4>
+                            <span id="profile-publications-count" class="text-sm text-gray-400"></span>
+                        </div>
+                        <div id="profile-publications-list" class="space-y-4">
+                            <!-- Publications will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Education Tab -->
+                    <div id="profile-tab-education" class="profile-tab-content hidden">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Education -->
+                            <div>
+                                <h4 class="text-xl font-bold text-white mb-4">Học vấn</h4>
+                                <div id="profile-education" class="space-y-3">
+                                    <!-- Education will be loaded here -->
+                                </div>
+                            </div>
+                            
+                            <!-- Achievements -->
+                            <div>
+                                <h4 class="text-xl font-bold text-white mb-4">Thành tích & Giải thưởng</h4>
+                                <div id="profile-achievements" class="space-y-3">
+                                    <!-- Achievements will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-black border-t border-gray-800">
+        <div class="container mx-auto px-6 py-6 text-center text-gray-500">
+            <p>&copy; 2025 Nhóm Nghiên cứu Blockchain, Mạng & Bảo mật. All Rights Reserved.</p>
+            <p class="mt-2">
+                <a href="admin/admin.html" class="text-gray-600 hover:text-gray-400 text-xs" title="Admin Panel">⚙️</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Three.js for Hero Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- AOS - Animate on Scroll Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Main JavaScript -->
+    <script src="src/js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Khởi tạo AOS ---
+            AOS.init({
+                duration: 800,
+                once: true,
+            });
+
+            // --- Khởi tạo Lucide Icons ---
+            lucide.createIcons();
+            
+            // --- Xử lý Menu trên Mobile ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // --- Xử lý Accordion cho Publications ---
+            document.querySelectorAll('.toggle-abstract').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const isHidden = content.classList.contains('hidden');
+                    if (isHidden) {
+                        content.classList.remove('hidden');
+                        button.textContent = 'Ẩn Abstract';
+                    } else {
+                        content.classList.add('hidden');
+                        button.textContent = 'Xem Abstract';
+                    }
+                });
+            });
+            
+            // --- Xử lý Smooth Scroll cho các link menu ---
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    // Đóng menu mobile sau khi click
+                    if (!mobileMenu.classList.contains('hidden')) {
+                         mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            // --- Animation 3D cho Hero Section ---
+            let scene, camera, renderer, points, lines;
+            const container = document.getElementById('hero-animation');
+
+            function init() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.z = 250;
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setClearColor(0x000000, 0);
+                container.appendChild(renderer.domElement);
+                
+                // Tạo các node (điểm)
+                const particles = 300;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(particles * 3);
+                
+                for (let i = 0; i < particles * 3; i++) {
+                    positions[i] = (Math.random() - 0.5) * 500;
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const material = new THREE.PointsMaterial({
+                    color: 0x38bdf8, // Màu xanh sky
+                    size: 1.5,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                points = new THREE.Points(geometry, material);
+                scene.add(points);
+
+                // Tạo các đường nối
+                const lineMaterial = new THREE.LineBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.05
+                });
+                const lineGeometry = new THREE.BufferGeometry();
+                const linePositions = [];
+                const vertices = geometry.attributes.position.array;
+                
+                for(let i = 0; i < particles; i++) {
+                    for(let j = i + 1; j < particles; j++) {
+                        const dx = vertices[i*3] - vertices[j*3];
+                        const dy = vertices[i*3+1] - vertices[j*3+1];
+                        const dz = vertices[i*3+2] - vertices[j*3+2];
+                        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                        if(dist < 60) {
+                            linePositions.push(vertices[i*3], vertices[i*3+1], vertices[i*3+2]);
+                            linePositions.push(vertices[j*3], vertices[j*3+1], vertices[j*3+2]);
+                        }
+                    }
+                }
+
+                lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+                lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+                scene.add(lines);
+
+                window.addEventListener('resize', onWindowResize, false);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                points.rotation.x += 0.0001;
+                points.rotation.y += 0.0002;
+                lines.rotation.x += 0.0001;
+                lines.rotation.y += 0.0002;
+                
+                renderer.render(scene, camera);
+            }
+
+            function onWindowResize() {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+
+            if (container) {
+                init();
+                animate();
+            }
+        });
+    </script>
+</body>
+</html>
