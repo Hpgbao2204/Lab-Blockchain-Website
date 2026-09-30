@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Brand } from "./brand";
 import { siteLinks } from "./links";
@@ -10,6 +10,14 @@ import { siteLinks } from "./links";
 export function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    fetch("/api/v1/me", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((j) => setSignedIn(!!j?.data))
+      .catch(() => setSignedIn(false));
+  }, [pathname]);
+  const account = signedIn ? { href: "/app", label: "My wall" } : { href: "/login", label: "Sign in" };
   const current = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -24,8 +32,8 @@ export function Nav() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="btn btn-ink btn-sm max-sm:hidden" style={{ boxShadow: "3px 3px 0 var(--color-yellow)" }}>
-            Sign in
+          <Link href={account.href} className="btn btn-ink btn-sm max-sm:hidden" style={{ boxShadow: "3px 3px 0 var(--color-yellow)" }}>
+            {account.label}
           </Link>
           <button
             type="button"
@@ -41,7 +49,7 @@ export function Nav() {
       </div>
       {open && (
         <nav id="mobile-nav" aria-label="Main" className="wrap grid gap-2 pb-4 lg:hidden">
-          {[...siteLinks, { href: "/login", label: "Sign in" }].map((l) => (
+          {[...siteLinks, account].map((l) => (
             <Link
               key={l.href}
               href={l.href}

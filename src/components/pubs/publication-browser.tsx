@@ -53,7 +53,7 @@ export function PublicationBrowser({ initial, facets, areas }: Props) {
     };
   }, [kind, year, area, q]);
 
-  const kinds: (PublicationKind | "")[] = ["", "journal", "conference", "article"];
+  const kinds: (PublicationKind | "")[] = ["", ...(["journal", "conference", "article"] as const).filter((k) => facets.byKind[k] > 0)];
 
   return (
     <div className="grid gap-5">

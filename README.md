@@ -9,4 +9,10 @@ Trạng thái: **đang xây lại từ đầu**. Xem kế hoạch và milestone 
 
 Nội dung site: tiếng Anh. Trang: `/research`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers` (API công khai `/api/v1`).
 
-Stack dự kiến: Next.js + TypeScript + Tailwind v4, Supabase (Postgres/Auth/Storage), Three.js, Vercel.
+Stack: Next.js + TypeScript + Tailwind v4, Drizzle + Postgres (PGlite khi chạy local), Three.js.
+
+```bash
+npm install
+ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo   # admin + dữ liệu demo
+npm run dev                                                     # http://localhost:3000/login
+```

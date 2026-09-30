@@ -30,8 +30,8 @@ export function listPublications(query: PublicationQuery = {}): Publication[] {
     .filter((p) => !query.kind || p.kind === query.kind)
     .filter((p) => !query.year || p.year === query.year)
     .filter((p) => !query.area || p.areas.includes(query.area))
-    .filter((p) => !q || norm([p.name, p.title, p.venue ?? "", ...p.authors].join(" ")).includes(q))
-    .sort((a, b) => b.year - a.year);
+    .filter((p) => !q || norm([p.name ?? "", p.title, p.venue ?? "", ...p.authors].join(" ")).includes(q))
+    .sort((a, b) => b.year - a.year || PUBLICATION_KINDS.indexOf(a.kind) - PUBLICATION_KINDS.indexOf(b.kind));
   return query.limit ? rows.slice(0, query.limit) : rows;
 }
 
@@ -61,5 +61,5 @@ export function getStats() {
 
 export const doiUrl = (doi: string) => `https://doi.org/${doi}`;
 export const scholarSearchUrl = (p: Publication) =>
-  `https://scholar.google.com/scholar?q=${encodeURIComponent(`"${p.name}: ${p.title}"`)}`;
+  `https://scholar.google.com/scholar?q=${encodeURIComponent(`"${p.name ? `${p.name}: ` : ""}${p.title}"`)}`;
 export const publicationUrl = (p: Publication) => (p.doi ? doiUrl(p.doi) : scholarSearchUrl(p));

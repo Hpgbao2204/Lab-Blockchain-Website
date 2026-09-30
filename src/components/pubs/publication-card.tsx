@@ -1,8 +1,6 @@
-import type { Publication } from "@/data/publications";
+import { isPI, type Publication } from "@/data/publications";
 import { publicationUrl } from "@/lib/content";
 import { accentVar, kindAccent, kindLabel } from "@/components/site/accent";
-
-const PI = "TD Tran";
 
 export function PublicationCard({ pub, no }: { pub: Publication; no: number }) {
   const href = publicationUrl(pub);
@@ -18,7 +16,7 @@ export function PublicationCard({ pub, no }: { pub: Publication; no: number }) {
       </div>
       <h3 className="pub-title">
         <a href={href} target="_blank" rel="noopener noreferrer">
-          <span className="pub-name">{pub.name}</span>
+          {pub.name && <span className="pub-name">{pub.name}</span>}
           {pub.title}
         </a>
       </h3>
@@ -26,7 +24,7 @@ export function PublicationCard({ pub, no }: { pub: Publication; no: number }) {
         {pub.authors.map((a, i) => (
           <span key={`${a}-${i}`}>
             {i > 0 && ", "}
-            {a === PI ? (
+            {isPI(a) ? (
               <span className="pi" title="Principal investigator">
                 {a}
               </span>

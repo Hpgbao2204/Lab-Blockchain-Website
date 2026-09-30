@@ -9,7 +9,7 @@ export default function DevelopersPage() {
   return (
     <div className="wrap page">
       <PageHead eyebrow="Developers" title={<>Public <span className="hl">API</span></>}>
-        Every page on this site reads from the same versioned JSON API. You can use it too.
+        Every page on this site reads from the same versioned JSON API. Public endpoints are open; member and admin endpoints need a session.
       </PageHead>
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -17,15 +17,15 @@ export default function DevelopersPage() {
           <SectionHead id="endpoints" no={String(endpoints.length).padStart(2, "0")} title="Endpoints" />
           <ul className="grid gap-3">
             {endpoints.map((e) => (
-              <li key={`${e.method} ${e.path}`} className="card grid gap-1.5 p-4" style={{ boxShadow: "var(--shadow)", opacity: e.planned ? 0.7 : 1 }}>
+              <li key={`${e.method} ${e.path}`} className="card grid gap-1.5 p-4" style={{ boxShadow: "var(--shadow)" }}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="tag" style={{ "--c": e.method === "GET" ? "var(--color-lime)" : "var(--color-orange)" } as React.CSSProperties}>
+                  <span className="tag" style={{ "--c": e.method === "GET" ? "var(--color-lime)" : e.method === "POST" ? "var(--color-orange)" : "var(--color-blue)" } as React.CSSProperties}>
                     {e.method}
                   </span>
                   <code className="mono text-[13px] font-bold">{e.path}</code>
-                  {e.planned && (
-                    <span className="tag ml-auto" style={{ "--c": "var(--color-paper-2)" } as React.CSSProperties}>
-                      {e.planned}
+                  {e.auth && e.auth !== "public" && (
+                    <span className="tag ml-auto" style={{ "--c": e.auth === "admin" ? "var(--color-pink)" : "var(--color-yellow)" } as React.CSSProperties}>
+                      {e.auth}
                     </span>
                   )}
                 </div>

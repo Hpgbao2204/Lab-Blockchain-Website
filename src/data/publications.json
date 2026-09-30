@@ -1,0 +1,461 @@
+[
+  {
+    "id": "dynaguard",
+    "name": "DynaGuard",
+    "title": "A Dynamic Trust-Weighted Mechanism for BFT Attack Resilience in Cross-Shard Blockchain Networks",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Thinh Le",
+      "Van-Hau Pham"
+    ],
+    "venue": "Communications in Computer and Information Science (Computational Intelligence in Engineering Science)",
+    "doi": "10.1007/978-3-032-21631-1_10"
+  },
+  {
+    "id": "zkhc",
+    "name": "ZKHC",
+    "title": "A Privacy-Preserving Hybrid Blockchain Architecture for Scalable E-Voting",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Tran Hoang Hai",
+      "Quang Dai Hoang Phuc"
+    ],
+    "venue": "Communications in Computer and Information Science (Computational Intelligence in Engineering Science)",
+    "doi": "10.1007/978-3-032-21631-1_18"
+  },
+  {
+    "id": "scor-ahibe",
+    "name": "SCOR-AHIBE",
+    "title": "A Scalable Constant-Time Revocation Scheme for Privacy-Preserving Verifiable Credentials",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "Quoc Khanh Huynh",
+      "Nhat Nguyen Nguyen",
+      "Tuan-Dung Tran"
+    ],
+    "venue": "Communications in Computer and Information Science (Computational Intelligence in Engineering Science)",
+    "doi": "10.1007/978-3-032-21631-1_16"
+  },
+  {
+    "id": "zk-htlc",
+    "name": "zk-HTLC",
+    "title": "A formally verified defense against linkability attacks in trust-minimized cross-chain networks",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Bao Huynh",
+      "Van-Hau Pham"
+    ],
+    "venue": "Computer Networks",
+    "doi": "10.1016/j.comnet.2026.112780"
+  },
+  {
+    "id": "acheron",
+    "name": "Acheron",
+    "title": "A market-based multi-relay architecture for adaptive and secure cross-chain communication",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Quang Vu",
+      "Bao Huynh",
+      "Van-Hau Pham"
+    ],
+    "venue": "Internet of Things",
+    "doi": "10.1016/j.iot.2025.101836"
+  },
+  {
+    "id": "crossguard",
+    "name": "CrossGuard",
+    "title": "A multi-modal few-shot learning framework for detecting cross-chain smart contract vulnerabilities",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Khoi Le Quoc",
+      "Van-Hau Pham"
+    ],
+    "venue": "Cluster Computing",
+    "doi": "10.1007/s10586-026-06298-0"
+  },
+  {
+    "id": "crosstrust-iot",
+    "name": "CrossTrust-IoT",
+    "title": "An Adaptive Reinforcement Learning Framework for Cross-Chain Trust in Resource-Constrained IoT Networks",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Nguyen Tan Cam",
+      "Van-Hau Pham"
+    ],
+    "venue": "IEEE Internet of Things Journal",
+    "doi": "10.1109/jiot.2026.3671650"
+  },
+  {
+    "id": "verifiable-ai-reviewers",
+    "name": "Verifiable AI Reviewers",
+    "title": "Decentralized Skill Matching and Soulbound Reputation for Multi-Agent Peer Review",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "TM Trong",
+      "B Huynh",
+      "HN Nhi",
+      "TT Nguyen",
+      "NP Tai",
+      "N Minh",
+      "TD Tran",
+      "et al."
+    ],
+    "venue": "Intl. Conf. on Multimedia Analysis and Pattern Recognition (MAPR 2026)",
+    "doi": null
+  },
+  {
+    "id": "chainbook",
+    "name": "ChainBook",
+    "title": "Design and Evaluation of an On-Chain Order-Book DEX",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "Minh An Vo",
+      "Gia Bao Nguyen",
+      "Tuan-Dung Tran"
+    ],
+    "venue": "Communications in Computer and Information Science (Computational Intelligence in Engineering Science)",
+    "doi": "10.1007/978-3-032-21631-1_19"
+  },
+  {
+    "id": "shardtwin",
+    "name": "ShardTwin",
+    "title": "Domain-aware blockchain architecture for static digital twin orchestration in industrial cyber-physical systems",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Phuong-Dai Bui",
+      "Tuan-Dung Tran",
+      "Van-Hau Pham"
+    ],
+    "venue": "Internet of Things",
+    "doi": "10.1016/j.iot.2026.101964"
+  },
+  {
+    "id": "chronosrep",
+    "name": "ChronosRep",
+    "title": "Entropy-regularized evidence fusion and stochastic differential trust dynamics for decentralized identity intelligence",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Bao Huynh",
+      "Van-Hau Pham"
+    ],
+    "venue": "Information Sciences",
+    "doi": "10.1016/j.ins.2026.123323"
+  },
+  {
+    "id": "the-fire-tries-gold",
+    "name": "The fire tries gold",
+    "title": "Evaluating pre-trained language models for multi-label vulnerability detection in ethereum smart contracts",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Trung Kien Luu",
+      "Doan Minh Trung",
+      "Tuan-Dung Tran",
+      "Phan The Duy",
+      "Van-Hau Pham"
+    ],
+    "venue": "Journal of Systems and Software",
+    "doi": "10.1016/j.jss.2025.112642"
+  },
+  {
+    "id": "evolutionary-soft-computing-for-interpretable-ex",
+    "name": null,
+    "title": "Evolutionary soft computing for interpretable exploit generation in cross-chain bridges",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Van-Hau Pham"
+    ],
+    "venue": "Applied Soft Computing",
+    "doi": "10.1016/j.asoc.2026.116561"
+  },
+  {
+    "id": "edgetrust-shard",
+    "name": "EdgeTrust-Shard",
+    "title": "Hierarchical blockchain architecture for federated learning in cross-chain IoT ecosystems",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Van-Hau Pham"
+    ],
+    "venue": "Journal of Systems Architecture",
+    "doi": "10.1016/j.sysarc.2026.103701"
+  },
+  {
+    "id": "povichain",
+    "name": "PoVIChain",
+    "title": "Lightweight and verifiable cross-chain interoperability for heterogeneous edge networks",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Tam Truong Ha Huy",
+      "Van-Hau Pham"
+    ],
+    "venue": "Internet of Things",
+    "doi": "10.1016/j.iot.2026.101917"
+  },
+  {
+    "id": "splitsight",
+    "name": "SplitSight",
+    "title": "Multi-Dimensional Verification for Client-Side TLS Interception",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "Quang Nguyen Minh Vu",
+      "Quoc Tan Gia Pham",
+      "Vu Quang Phan",
+      "Toan Ngoc Khuong",
+      "Dung Tuan Tran"
+    ],
+    "venue": "Proceedings of the 2026 11th International Conference on Intelligent Information Technology",
+    "doi": "10.1145/3805862.3805952"
+  },
+  {
+    "id": "navigating-and-orchestrating-web-3-0-innovation",
+    "name": null,
+    "title": "Navigating and orchestrating Web 3.0 innovation challenges: A theory of cross-chain ecosystem strategy",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Van-Hau Pham"
+    ],
+    "venue": "Journal of Engineering and Technology Management",
+    "doi": "10.1016/j.jengtecman.2026.101988"
+  },
+  {
+    "id": "zk-interchain",
+    "name": "Zk-InterChain",
+    "title": "Privacy-preserving protocol for cross-chain interactions between consortium and public blockchains",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Trung-Kien Tran",
+      "Bao Huynh"
+    ],
+    "venue": "The Journal of Supercomputing",
+    "doi": "10.1007/s11227-026-08820-y"
+  },
+  {
+    "id": "fedvuln",
+    "name": "Fedvuln",
+    "title": "Scalable and privacy-preserving federated graph learning for smart contract vulnerability detection on parallel systems",
+    "year": 2026,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phuong-Dai Bui",
+      "Nguyen Tan Cam",
+      "Van-Hau Pham"
+    ],
+    "venue": "Future Generation Computer Systems",
+    "doi": "10.1016/j.future.2025.108264"
+  },
+  {
+    "id": "lotus",
+    "name": "Lotus",
+    "title": "A Hybrid Cross-Chain Framework for Privacy-Preserving Digital Identity",
+    "year": 2025,
+    "kind": "conference",
+    "authors": [
+      "TD Tran",
+      "HPG Bao",
+      "TM Trong",
+      "NT Cam",
+      "VH Pham"
+    ],
+    "venue": "24th Intl. Symposium on Communications and Information Technologies (ISCIT, IEEE)",
+    "doi": "10.1109/iscit67082.2025.11231625"
+  },
+  {
+    "id": "proof-of-merit",
+    "name": "Proof-of-Merit",
+    "title": "A Reputation-Weighted VRF-PoA Consensus and Governance for Educational Blockchains",
+    "year": 2025,
+    "kind": "conference",
+    "authors": [
+      "TD Tran",
+      "B Huynh",
+      "TM Trong",
+      "TT Nguyen",
+      "NN BK",
+      "VH Pham"
+    ],
+    "venue": "RIVF Intl. Conf. on Computing and Communication Technologies (IEEE)",
+    "doi": "10.1109/rivf68649.2025.11365043"
+  },
+  {
+    "id": "dave-cc",
+    "name": "DAVE-CC",
+    "title": "A decentralized, access-controlled, verifiable ecosystem for cross-chain academic credential management",
+    "year": 2025,
+    "kind": "journal",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Huynh Phan Gia Bao",
+      "Nguyen Tan Cam",
+      "Van-Hau Pham"
+    ],
+    "venue": "Journal of Information Security and Applications",
+    "doi": "10.1016/j.jisa.2025.104238"
+  },
+  {
+    "id": "zk-auction",
+    "name": "Zk-Auction",
+    "title": "A Cross-Blockchain System for Efficient Auctions combining Zero-Knowledge Proof and NFT",
+    "year": 2024,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phong Khuu Minh",
+      "Chuong Le Bao Dang",
+      "Cam Nguyen Tan",
+      "Van-Hau Pham"
+    ],
+    "venue": "Proceedings of the 2024 9th International Conference on Intelligent Information Technology",
+    "doi": "10.1145/3654522.3654589"
+  },
+  {
+    "id": "chainsniper",
+    "name": "ChainSniper",
+    "title": "A Machine Learning Approach for Auditing Cross-Chain Smart Contracts",
+    "year": 2024,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Kiet Anh Vo",
+      "Duy The Phan",
+      "Cam Nguyen Tan",
+      "Van-Hau Pham"
+    ],
+    "venue": "Proceedings of the 2024 9th International Conference on Intelligent Information Technology",
+    "doi": "10.1145/3654522.3654577"
+  },
+  {
+    "id": "medichain",
+    "name": "Medichain",
+    "title": "A Multi-chain Based System for Managing Prescription Medications Using Zero Knowledge Proofs",
+    "year": 2024,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Minh Tran Duc",
+      "Trang Le Tran Thuy",
+      "Phan The Duy",
+      "Nguyen Tan Cam",
+      "Van-Hau Pham"
+    ],
+    "venue": "Lecture Notes in Networks and Systems (Intl. Conf. on Intelligent Systems and Networks)",
+    "doi": "10.1007/978-981-97-5504-2_21"
+  },
+  {
+    "id": "midas",
+    "name": "MIDAS",
+    "title": "A Multi-chain Interoperable Data and Access System for Healthcare",
+    "year": 2024,
+    "kind": "conference",
+    "authors": [
+      "Bui Kim Ngan Nguyen",
+      "Binh Thuc Tram Nguyen",
+      "Tuan-Dung Tran",
+      "Phan The Duy",
+      "Van-Hau Pham"
+    ],
+    "venue": "Lecture Notes in Computer Science (Computational Data and Social Networks)",
+    "doi": "10.1007/978-981-97-0669-3_29"
+  },
+  {
+    "id": "crosscert",
+    "name": "CrossCert",
+    "title": "A Privacy-Preserving Cross-Chain System for Educational Credential Verification Using Zero-Knowledge Proof",
+    "year": 2024,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Phong Khuu Minh",
+      "Trang Le Tran Thuy",
+      "Phan The Duy",
+      "Nguyen Tan Cam",
+      "Van-Hau Pham"
+    ],
+    "venue": "LNICST (Industrial Networks and Intelligent Systems)",
+    "doi": "10.1007/978-3-031-67357-3_18"
+  },
+  {
+    "id": "fedchain-hunter",
+    "name": "FedChain-Hunter",
+    "title": "A reliable and privacy-preserving aggregation for federated threat hunting framework in SDN-based IIoT",
+    "year": 2023,
+    "kind": "journal",
+    "authors": [
+      "Phan The Duy",
+      "Nguyen Huu Quyen",
+      "Nghi Hoang Khoa",
+      "Tuan-Dung Tran",
+      "Van-Hau Pham"
+    ],
+    "venue": "Internet of Things",
+    "doi": "10.1016/j.iot.2023.100966"
+  },
+  {
+    "id": "contextual-language-model-and-transfer-learning",
+    "name": null,
+    "title": "Contextual Language Model and Transfer Learning for Reentrancy Vulnerability Detection in Smart Contracts",
+    "year": 2023,
+    "kind": "conference",
+    "authors": [
+      "Bằng Lê Hồng",
+      "Thắng Lê Đức",
+      "Trung Đoàn Minh",
+      "Dũng Trần Tuấn",
+      "Duy Phan Thế",
+      "Hậu Phạm Văn"
+    ],
+    "venue": "Proceedings of the 12th International Symposium on Information and Communication Technology",
+    "doi": "10.1145/3628797.3628945"
+  },
+  {
+    "id": "enhancing-blockchain-interoperability-through-si",
+    "name": null,
+    "title": "Enhancing Blockchain Interoperability Through Sidechain Integration and Valid-Time-Key Data Access Control",
+    "year": 2023,
+    "kind": "conference",
+    "authors": [
+      "Tuan-Dung Tran",
+      "Kiet Anh Vo",
+      "Nguyen Binh Thuc Tram",
+      "Ngan Nguyen Bui Kim",
+      "Phan The Duy",
+      "Van-Hau Pham"
+    ],
+    "venue": "LNDECT (Intelligence of Things: Technologies and Applications)",
+    "doi": "10.1007/978-3-031-46749-3_21"
+  }
+]

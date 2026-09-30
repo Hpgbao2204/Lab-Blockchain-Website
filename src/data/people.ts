@@ -22,6 +22,9 @@ export const people: Person[] = [
     photo: "/people/tran-tuan-dung.jpg",
     bio: "Leads Blockchainist. His research spans blockchain and smart contracts, network security, IoT and edge computing with digital twins, and AI for security and privacy.",
     interests: ["Blockchain & Smart Contracts", "Network Security", "IoT & Digital Twins", "AI Security & Privacy"],
-    links: [{ label: "Google Scholar", url: "https://scholar.google.com/citations?user=zaJ7ZE4AAAAJ" }],
+    links: [
+      { label: "Google Scholar", url: "https://scholar.google.com/citations?user=zaJ7ZE4AAAAJ" },
+      { label: "ORCID", url: "https://orcid.org/0000-0003-1156-7072" },
+    ],
   },
 ];

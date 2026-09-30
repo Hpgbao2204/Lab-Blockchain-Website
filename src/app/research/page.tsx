@@ -13,7 +13,7 @@ export default function ResearchPage() {
   return (
     <div className="wrap page">
       <PageHead eyebrow="Research directions" title={<>What we <span className="hl">work on</span></>}>
-        Five directions that share one goal: systems where no single party has to be trusted.
+        Six directions that share one goal: systems where no single party has to be trusted.
       </PageHead>
       <ul className="areas">
         {areas.map((a, i) => (

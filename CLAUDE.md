@@ -10,7 +10,7 @@ Bắt đầu mỗi session:
 
 Quy tắc:
 
-- Không đăng ký công khai; chỉ admin tạo tài khoản. Tường riêng tư bảo vệ bằng RLS + kiểm tra server.
-- Không commit secrets. `service_role` chỉ dùng server-side.
+- Không đăng ký công khai; chỉ admin tạo tài khoản. Tường riêng tư bảo vệ bằng kiểm tra quyền phía server (`src/server/services`), mỗi luật có test.
+- Không commit secrets (`DATABASE_URL`, mật khẩu admin). Chạy local không cần DB: PGlite tự tạo ở `.data/`.
 - Giao tiếp với chủ dự án bằng tiếng Việt; code, tên biến, commit bằng tiếng Anh.
-- Phát triển trên nhánh được giao cho session; không tạo PR nếu chưa được yêu cầu.
+- Phát triển trên nhánh được giao cho session. Chủ dự án đã uỷ quyền: tự push và mở PR (draft) khi xong một phần việc.

@@ -1,13 +1,16 @@
 /**
- * SAMPLE DATA until M3 syncs publications from ORCID into the database.
- * Titles, venues and DOIs are real outputs of the group; the list is hand-picked.
+ * Publications of the principal investigator, snapshot from Crossref (ORCID 0000-0003-1156-7072,
+ * `npm run sync:publications`) plus three IEEE/MAPR papers Crossref does not attribute yet.
+ * M3 moves this into the database and refreshes it on a schedule.
  */
+import raw from "./publications.json";
+
 export type PublicationKind = "journal" | "conference" | "article";
 
 export interface Publication {
   id: string;
-  /** short project name shown as the highlighted part of the title */
-  name: string;
+  /** short project name shown as the highlighted part of the title, when the title has one */
+  name: string | null;
   title: string;
   year: number;
   kind: PublicationKind;
@@ -18,93 +21,31 @@ export interface Publication {
   areas: string[];
 }
 
-export const publications: Publication[] = [
-  {
-    id: "zk-htlc",
-    name: "zk-HTLC",
-    title: "A formally verified defense against linkability attacks in trust-minimized cross-chain networks",
-    year: 2026,
-    kind: "journal",
-    authors: ["TD Tran", "B Huynh", "VH Pham"],
-    venue: "Computer Networks, 112780",
-    doi: null,
-    areas: ["cross-chain", "zero-knowledge", "smart-contract-security"],
-  },
-  {
-    id: "chronosrep",
-    name: "ChronosRep",
-    title: "Entropy-regularized evidence fusion and stochastic differential trust dynamics for decentralized identity intelligence",
-    year: 2026,
-    kind: "journal",
-    authors: ["TD Tran", "B Huynh", "VH Pham"],
-    venue: "Information Sciences, 123323",
-    doi: "10.1016/j.ins.2026.123323",
-    areas: ["identity"],
-  },
-  {
-    id: "verifiable-ai-reviewers",
-    name: "Verifiable AI Reviewers",
-    title: "Decentralized Skill Matching and Soulbound Reputation for Multi-Agent Peer Review",
-    year: 2026,
-    kind: "conference",
-    authors: ["TM Trong", "B Huynh", "HN Nhi", "TT Nguyen", "NP Tai", "N Minh", "TD Tran", "et al."],
-    venue: "Intl. Conf. on Multimedia Analysis and Pattern Recognition (MAPR 2026)",
-    doi: null,
-    areas: ["identity"],
-  },
-  {
-    id: "acheron",
-    name: "Acheron",
-    title: "A market-based multi-relay architecture for adaptive and secure cross-chain communication",
-    year: 2025,
-    kind: "journal",
-    authors: ["TD Tran", "Q Vu", "B Huynh", "VH Pham"],
-    venue: "Internet of Things, 101836",
-    doi: "10.1016/j.iot.2025.101836",
-    areas: ["cross-chain", "smart-contract-security"],
-  },
-  {
-    id: "dave-cc",
-    name: "DAVE-CC",
-    title: "A decentralized, access-controlled, verifiable ecosystem for cross-chain academic credential management",
-    year: 2025,
-    kind: "journal",
-    authors: ["TD Tran", "HPG Bao", "NT Cam", "VH Pham"],
-    venue: "Journal of Information Security and Applications 94, 104238",
-    doi: "10.1016/j.jisa.2025.104238",
-    areas: ["cross-chain", "identity"],
-  },
-  {
-    id: "zk-interchain",
-    name: "ZK-InterChain",
-    title: "Privacy-Preserving Protocol for Cross-Chain Interactions Between Consortium and Public Blockchains",
-    year: 2025,
-    kind: "article",
-    authors: ["TD Tran", "TT Kien", "B Huynh"],
-    venue: null,
-    doi: null,
-    areas: ["zero-knowledge", "cross-chain"],
-  },
-  {
-    id: "proof-of-merit",
-    name: "Proof-of-Merit",
-    title: "A Reputation-Weighted VRF-PoA Consensus and Governance for Educational Blockchains",
-    year: 2025,
-    kind: "conference",
-    authors: ["TD Tran", "B Huynh", "TM Trong", "TT Nguyen", "NN BK", "VH Pham"],
-    venue: "RIVF Intl. Conf. on Computing and Communication Technologies (IEEE)",
-    doi: "10.1109/rivf68649.2025.11365043",
-    areas: ["consensus", "identity"],
-  },
-  {
-    id: "lotus",
-    name: "Lotus",
-    title: "A Hybrid Cross-Chain Framework for Privacy-Preserving Digital Identity",
-    year: 2025,
-    kind: "conference",
-    authors: ["TD Tran", "HPG Bao", "TM Trong", "NT Cam", "VH Pham"],
-    venue: "24th Intl. Symposium on Communications and Information Technologies (ISCIT, IEEE)",
-    doi: "10.1109/iscit67082.2025.11231625",
-    areas: ["cross-chain", "identity", "zero-knowledge"],
-  },
+type RawPublication = Omit<Publication, "areas" | "kind"> & { kind: string; areas?: string[] };
+
+/** Title keywords that place a paper under a research direction (a paper can match several). */
+const AREA_RULES: [string, RegExp][] = [
+  ["cross-chain", /cross-chain|cross-blockchain|multi-chain|interoperab|sidechain|bridge|relay|htlc|interchain|cross-shard/i],
+  ["zero-knowledge", /zero[- ]knowledge|\bzk|privacy/i],
+  ["identity", /identity|credential|reputation|trust|soulbound|revocation/i],
+  ["smart-contract-security", /vulnerab|exploit|audit|reentrancy|smart contract|tls|attack|threat|linkability/i],
+  ["consensus", /consensus|bft|shard|governance|order-book|dex|e-voting|auction/i],
+  ["iot-ai", /iot|edge|federated|digital twin|cyber-physical|healthcare|medic|language model|machine learning|reinforcement|soft computing/i],
 ];
+
+export function tagAreas(p: Pick<Publication, "name" | "title">): string[] {
+  const text = `${p.name ?? ""} ${p.title}`;
+  return AREA_RULES.filter(([, re]) => re.test(text)).map(([slug]) => slug);
+}
+
+export const publications: Publication[] = (raw as RawPublication[]).map((p) => ({
+  ...p,
+  kind: p.kind as PublicationKind,
+  areas: p.areas ?? tagAreas(p),
+}));
+
+const PI_NAMES = /^(tuan[- ]dung tran|dung tuan tran|tran tuan dung|td tran|dung tran tuan)$/;
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+
+/** Author lists come in several spellings; this recognises the principal investigator in all of them. */
+export const isPI = (author: string) => PI_NAMES.test(fold(author));

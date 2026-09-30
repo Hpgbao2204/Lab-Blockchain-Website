@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Lock } from "lucide-react";
+import { LoginForm } from "@/components/app/login-form";
+import { getCurrentUser } from "@/server/auth/current";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+  if (user) redirect(user.mustChangePassword ? "/account/password" : "/app");
+
   return (
     <div className="wrap page grid place-items-center">
       <div className="card grid w-full max-w-[440px] gap-5 p-6 sm:p-8">
@@ -12,25 +18,10 @@ export default function LoginPage() {
         </span>
         <div>
           <h1 className="display text-3xl">Members area</h1>
-          <p className="mt-2 text-ink-2">Group walls and task boards for lab members. Accounts are created by the admin; there is no public sign-up.</p>
+          <p className="mt-2 text-ink-2">Group walls and weekly task boards. Accounts are created by the lab admin; there is no public sign-up.</p>
         </div>
-        <form className="grid gap-3" aria-describedby="login-note">
-          <label className="grid gap-1.5 text-sm font-bold">
-            Email
-            <input className="field" type="email" autoComplete="email" disabled />
-          </label>
-          <label className="grid gap-1.5 text-sm font-bold">
-            Password
-            <input className="field" type="password" autoComplete="current-password" disabled />
-          </label>
-          <button type="submit" className="btn btn-ink mt-2 justify-center opacity-60" disabled>
-            Sign in
-          </button>
-        </form>
-        <p id="login-note" className="note">
-          <b>Soon</b>
-          <span>Sign-in opens with the next milestone, once the database is connected.</span>
-        </p>
+        <LoginForm />
+        <p className="mono text-xs text-muted">Forgot your password? Ask the admin to reset it.</p>
       </div>
     </div>
   );

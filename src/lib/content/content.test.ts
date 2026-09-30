@@ -14,8 +14,10 @@ describe("content", () => {
     expect(all.map((p) => p.year)).toEqual([...all.map((p) => p.year)].sort((a, b) => b - a));
     expect(listPublications({ kind: "journal" }).every((p) => p.kind === "journal")).toBe(true);
     expect(listPublications({ year: 2026 }).every((p) => p.year === 2026)).toBe(true);
-    expect(listPublications({ area: "consensus" }).map((p) => p.id)).toEqual(["proof-of-merit"]);
+    expect(listPublications({ area: "consensus" }).map((p) => p.id)).toContain("proof-of-merit");
+    expect(listPublications().every((p) => p.areas.length > 0)).toBe(true);
     expect(listPublications({ q: "ACHERON" }).map((p) => p.id)).toEqual(["acheron"]);
+    expect(listPublications({ q: "tuan-dung tran" }).length).toBeGreaterThan(10);
     expect(listPublications({ limit: 2 })).toHaveLength(2);
   });
 
@@ -33,5 +35,13 @@ describe("content", () => {
   it("links to DOI when present, Scholar otherwise", () => {
     expect(publicationUrl(publications.find((p) => p.doi)!)).toMatch(/^https:\/\/doi\.org\//);
     expect(publicationUrl(publications.find((p) => !p.doi)!)).toMatch(/^https:\/\/scholar\.google\.com\//);
+  });
+});
+
+describe("isPI", () => {
+  it("recognises every spelling of the principal investigator", async () => {
+    const { isPI } = await import("@/data/publications");
+    for (const n of ["Tuan-Dung Tran", "Dung Tuan Tran", "TD Tran", "Dũng Trần Tuấn"]) expect(isPI(n), n).toBe(true);
+    expect(isPI("Van-Hau Pham")).toBe(false);
   });
 });

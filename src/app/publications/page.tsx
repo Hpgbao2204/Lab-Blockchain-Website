@@ -12,8 +12,8 @@ export default function PublicationsPage() {
         Journal and conference work from the group. The <span className="pi">underlined</span> author is the principal investigator.
       </PageHead>
       <p className="note mb-6">
-        <b>Sample</b>
-        <span>This list is curated by hand for now. It will sync automatically from ORCID once the database is live.</span>
+        <b>Source</b>
+        <span>Pulled from Crossref using the principal investigator&apos;s ORCID, plus a few IEEE papers. For citation counts see Google Scholar.</span>
       </p>
       <PublicationBrowser
         initial={listPublications()}

@@ -56,28 +56,33 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 |---|---|---|---|
 | M0 | Scaffold, tooling, CI (deploy Vercel hoãn theo yêu cầu) | S | ✅ xong (chạy localhost) |
 | M1 | Design system + hero 3D + shell public | M | ✅ xong; M1.5 redesign tiếng Anh + nhiều trang + API đọc |
-| M2 | DB schema, RLS, Auth, admin tạo user | L | ⬜ |
-| M3 | Public content: members/CV, publications (ORCID), awards | L | ⬜ |
-| M4 | Admin console | M | ⬜ |
-| M5 | Tường riêng tư theo nhóm/tháng | L | ⬜ |
+| M2 | DB schema, Auth, admin tạo user | L | ✅ xong (Drizzle + Postgres/PGlite, auth tự viết) |
+| M3 | Public content: members/CV, publications (ORCID), awards | L | 🟡 publications thật (30 bài, Crossref); members/CV/awards chưa |
+| M4 | Admin console | M | 🟡 tài khoản + nhóm xong; CMS nội dung public chưa |
+| M5 | Tường riêng tư theo nhóm/tháng | L | 🟡 wall + bảng việc theo tuần + comment xong; đính kèm file chưa |
 | M6 | Polish, SEO, a11y, hardening, bàn giao | M | ⬜ |
 | M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | ⬜ |
 
 Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
-**M1.5 (redesign, 30/09/2026):** theo yêu cầu chủ dự án, site viết lại **toàn tiếng Anh**, **style portfolio** (`docs/DESIGN.md`) và thành **app nhiều trang có API**:
-- Trang: `/`, `/research`, `/research/[slug]`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers`, `/login` (giữ chỗ).
-- API công khai `/api/v1`: `stats`, `research`, `research/:slug`, `publications` (q/kind/year/area/limit, zod), `members`, `pioneers`, `health`; lỗi theo envelope `{error:{code,message}}`, 404 JSON cho path lạ. Trang và API cùng đọc qua `src/lib/content` → M2/M3 chỉ cần thay module này bằng Supabase/ORCID.
-- Hero 3D giữ cảnh cross-chain, đặt trong cửa sổ terminal; log tiếng Anh.
+**Cập nhật 01/10/2026 (PR #3):**
+- Site tiếng Anh, style portfolio, nhiều trang + API `/api/v1` (xem `docs/DESIGN.md`, `docs/ARCHITECTURE.md`).
+- Logo mới: khối lập phương vàng/xanh viền mực (`public/brand/logo-mark.svg`, `logo-lockup.svg`, favicon). Logo PNG cũ (sai chính tả) đã bỏ.
+- Publications: 30 bài của thầy lấy từ Crossref theo ORCID + 3 bài IEEE/MAPR thêm tay (`src/data/publications.extra.json`), tự gắn hướng nghiên cứu theo từ khoá. Làm mới: `npm run sync:publications` (cần mạng tới api.crossref.org).
+- **Đổi stack DB/Auth**: Drizzle + Postgres (PGlite local), auth tự viết. Lý do trong `docs/ARCHITECTURE.md`.
+- Khu thành viên: `/login`, đổi mật khẩu bắt buộc, `/app` (việc của tôi, nhóm của tôi), `/app/groups/[id]` (bảng việc theo tuần: This week/Next week/Later/Done, hạn nộp paper đếm ngược, wall + announcement ghim, comment), `/admin` (tạo tài khoản + mật khẩu tạm, reset, vô hiệu, role; tạo/lưu trữ nhóm, gán thành viên/lead).
+
+**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `admin@blockchainist.local` / `admin-password-123` (demo member: `lead@`, `an@`, `binh@blockchainist.local` / `demo-password-123`).
 
 **Còn dở / cần quyết:**
-- Công bố là dữ liệu mẫu (8 bài lấy từ portfolio, M3 thay bằng ORCID + DB). Roster thành viên chờ dữ liệu thầy; trang People mới có PI (thông tin công khai như trên portfolio).
-- Logo gốc `public/logo.png` ghi sai "RESEACH TEAM": chỉ dùng khối lập phương (`public/brand/mark.png`) + chữ dựng bằng font. Cần báo thầy.
+- Deploy: cần một Postgres (khuyên Supabase hoặc Neon free, region Singapore) + Vercel. Đặt `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_NAME` vào environment secrets, không dán vào chat.
+- Email thật của thầy để tạo tài khoản admin đầu tiên.
+- Roster thành viên (tên, vai trò, ảnh, link) để làm trang People + CV.
 - Tên đơn vị (vd. "UIT — VNU-HCM") chưa đưa lên UI vì chưa xác nhận.
-- `/join` dùng mailto tới email PI (công khai trên portfolio) cho tới khi có form (M4).
-- Chưa đo Lighthouse / hiệu năng trên GPU thật; làm ở M6.
+- Đính kèm file trên wall cần object storage (Supabase Storage / Vercel Blob).
+- Chưa đo Lighthouse / hiệu năng 3D trên GPU thật.
 
-**Bước tiếp theo: M2** (cần Supabase từ danh sách trên).
+**Bước tiếp theo:** deploy (Postgres + Vercel), trang People/CV từ roster, CMS nội dung public trong /admin, đính kèm file, thông báo deadline qua email (M7).
 
 ## Milestones
 

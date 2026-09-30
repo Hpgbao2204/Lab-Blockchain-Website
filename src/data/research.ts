@@ -91,4 +91,19 @@ export const researchAreas: ResearchArea[] = [
     keywords: ["BFT", "PoA / VRF", "P2P"],
     accent: "violet",
   },
+  {
+    slug: "iot-ai",
+    title: "Blockchain for IoT, Edge & AI",
+    summary: "Trustworthy data and learning for IoT, edge networks and digital twins.",
+    overview: [
+      "Billions of constrained devices produce data that must be trusted without a central authority. We combine blockchains with edge computing, sharding and digital twins to make that data verifiable and its processing accountable.",
+      "On the AI side, we use federated and reinforcement learning to detect vulnerabilities and adapt trust across chains, and we study how blockchains can keep learning pipelines private and auditable.",
+    ],
+    questions: [
+      "How light can cross-chain verification be for resource-constrained devices?",
+      "Can federated learning find smart contract bugs without sharing code or data?",
+    ],
+    keywords: ["Edge", "Federated learning", "Digital twins"],
+    accent: "orange",
+  },
 ];
