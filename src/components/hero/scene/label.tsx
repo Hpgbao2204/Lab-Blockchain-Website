@@ -35,7 +35,7 @@ function paintLabel(texture: CanvasTexture, text: string, dot: string) {
   g.arc(30, H / 2 - 2, 7, 0, Math.PI * 2);
   g.fill();
   g.fillStyle = COLORS.ink;
-  g.font = '600 26px "Red Hat Mono Variable", ui-monospace, monospace';
+  g.font = '600 26px "JetBrains Mono", ui-monospace, monospace';
   g.textBaseline = "middle";
   g.fillText(text, 48, H / 2 - 1);
   texture.needsUpdate = true;

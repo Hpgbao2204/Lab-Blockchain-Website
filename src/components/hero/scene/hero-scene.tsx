@@ -24,10 +24,9 @@ function World({ frozen, pointer }: { frozen: boolean; pointer: React.RefObject<
   const size = useThree((s) => s.size);
   const aspect = size.width / size.height;
 
-  // Desktop: chains sit in the right-hand two thirds. Narrow screens: scaled down under the headline.
-  const wide = aspect >= 1.35;
-  const scale = wide ? Math.min(0.78, 0.5 + aspect * 0.1) : Math.min(0.85, Math.max(0.4, aspect * 0.95));
-  const basePos: [number, number, number] = wide ? [3.7, -0.5, 0] : [0.3, -2.3, 0];
+  // The scene lives in a framed card (roughly 5:4, 4:3.4 on phones): keep it centred and fit by width.
+  const scale = Math.min(0.92, Math.max(0.5, aspect * 0.72));
+  const basePos: [number, number, number] = [0.15, -0.1, 0];
 
   useFrame(() => {
     if (!group.current) return;
@@ -40,7 +39,7 @@ function World({ frozen, pointer }: { frozen: boolean; pointer: React.RefObject<
     <group ref={group} position={basePos} scale={scale} rotation={[0.06, -0.3, 0]}>
       <ChainLane party="alice" blockTime={7.4} baseHeight={4410} anchors={anchors} frozen={frozen} ghost={{ y: 5.4, z: -9, scale: 1.25 }} />
       <ChainLane party="bob" blockTime={9.1} baseHeight={770} anchors={anchors} frozen={frozen} ghost={{ y: -5.6, z: -9, scale: 1.25 }} />
-      <Sparkles count={frozen ? 0 : 70} scale={[18, 10, 7]} size={3.2} speed={0.25} opacity={0.55} color={COLORS.chainA} />
+      <Sparkles count={frozen ? 0 : 70} scale={[18, 10, 7]} size={3.2} speed={0.25} opacity={0.55} color={COLORS.yellow} />
       <ChainLane party="alice" blockTime={4.2} baseHeight={18420} anchors={anchors} frozen={frozen} />
       <ChainLane party="bob" blockTime={6.3} baseHeight={9730} anchors={anchors} frozen={frozen} />
       <Relay frozen={frozen} />
@@ -56,10 +55,10 @@ function Lights() {
     <>
       <ambientLight intensity={0.9} />
       <directionalLight position={[5, 8, 7]} intensity={1.5} />
-      <directionalLight position={[-6, -3, 4]} intensity={0.5} color="#b9c8ff" />
+      <directionalLight position={[-6, -3, 4]} intensity={0.5} color="#ffe7b0" />
       <Environment resolution={256} frames={1}>
         <Lightformer form="rect" intensity={2.2} position={[0, 6, 6]} scale={[14, 4, 1]} color="#ffffff" />
-        <Lightformer form="rect" intensity={1.2} position={[-8, 1, 3]} scale={[4, 8, 1]} color="#cfdcff" />
+        <Lightformer form="rect" intensity={1.2} position={[-8, 1, 3]} scale={[4, 8, 1]} color="#d6e6ff" />
         <Lightformer form="rect" intensity={1.0} position={[8, -1, 3]} scale={[4, 8, 1]} color="#ffe2c4" />
         <Lightformer form="ring" intensity={1.2} position={[0, -6, 4]} scale={8} color="#ffffff" />
       </Environment>

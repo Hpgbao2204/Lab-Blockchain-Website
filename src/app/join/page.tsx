@@ -1,8 +1,70 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/site/coming-soon";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { PageHead, SectionHead } from "@/components/site/page-head";
 
-export const metadata: Metadata = { title: "Gia nhập" };
+export const metadata: Metadata = { title: "Join", description: "Join the Blockchainist research group." };
+
+const perks = [
+  { t: "Real research", d: "Work on problems that end up in journals and conferences, not toy projects.", c: "var(--color-yellow)" },
+  { t: "Close mentoring", d: "Monthly groups, clear tasks and regular feedback from the principal investigator.", c: "var(--color-blue)" },
+  { t: "Deep skills", d: "Cryptography, protocol design, smart contracts and formal reasoning.", c: "var(--color-teal)" },
+];
+
+const steps = [
+  { t: "Read a few papers", d: "Pick one or two publications that interest you and read them properly." },
+  { t: "Send a short note", d: "Tell us who you are, what caught your eye and what you would like to try." },
+  { t: "Have a chat", d: "We talk about your background and agree on a first small task." },
+  { t: "Get an account", d: "Members get a login to the private group wall. There is no public sign-up." },
+];
 
 export default function JoinPage() {
-  return <ComingSoon title="Gia nhập nhóm" note="Biểu mẫu ứng tuyển sẽ sớm có mặt. Trong lúc chờ, hãy theo dõi công bố mới của nhóm." />;
+  return (
+    <div className="wrap page">
+      <PageHead eyebrow="Join the lab" title={<>Build trust with <span className="hl">us</span></>}>
+        We welcome motivated students who enjoy hard problems in trust, privacy and distributed systems.
+      </PageHead>
+
+      <ul className="grid gap-4 md:grid-cols-3">
+        {perks.map((p) => (
+          <li key={p.t} className="area" style={{ "--c": p.c } as React.CSSProperties}>
+            <h3>{p.t}</h3>
+            <p>{p.d}</p>
+          </li>
+        ))}
+      </ul>
+
+      <section className="section" aria-labelledby="how">
+        <SectionHead id="how" no="01" title="How to apply" />
+        <ol className="grid gap-4 md:grid-cols-2">
+          {steps.map((s, i) => (
+            <li key={s.t} className="card flex gap-4 p-5" style={{ boxShadow: "var(--shadow)" }}>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-ink bg-yellow font-extrabold [font-family:var(--font-display)]">{i + 1}</span>
+              <div>
+                <h3 className="font-bold">{s.t}</h3>
+                <p className="text-sm text-ink-2">{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="section">
+        <div className="card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between" style={{ background: "var(--color-yellow)" }}>
+          <div>
+            <h2 className="display text-[clamp(22px,2.6vw,30px)]">Ready to start?</h2>
+            <p className="mt-2 text-ink-2">An online application form is on the way. Until then, write to the principal investigator.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <a href="mailto:dungtrt@uit.edu.vn?subject=Joining%20Blockchainist" className="btn btn-ink">
+              Email the PI <ArrowRight size={17} aria-hidden />
+            </a>
+            <Link href="/publications" className="btn">
+              Read our papers
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

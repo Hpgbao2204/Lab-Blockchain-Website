@@ -30,14 +30,14 @@ export function drawBlockTexture(texture: CanvasTexture, height: number, accent:
   if (!ctx) return;
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.fillStyle = accent;
-  ctx.font = '600 22px "Red Hat Mono Variable", ui-monospace, monospace';
+  ctx.font = '600 22px "JetBrains Mono", ui-monospace, monospace';
   ctx.textBaseline = "top";
   ctx.fillText("BLOCK", 22, 22);
   ctx.fillStyle = COLORS.ink;
-  ctx.font = '700 54px "Bricolage Grotesque Variable", system-ui, sans-serif';
+  ctx.font = '800 46px "Unbounded", system-ui, sans-serif';
   ctx.fillText(`#${height}`, 20, 82);
   ctx.globalAlpha = 0.6;
-  ctx.font = '500 21px "Red Hat Mono Variable", ui-monospace, monospace';
+  ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
   ctx.fillText(`0x${fakeHash(height)}`, 22, 196);
   ctx.globalAlpha = 1;
   texture.needsUpdate = true;

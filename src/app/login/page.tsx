@@ -1,8 +1,28 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/site/coming-soon";
+import { redirect } from "next/navigation";
+import { Lock } from "lucide-react";
+import { LoginForm } from "@/components/app/login-form";
+import { getCurrentUser } from "@/server/auth/current";
 
-export const metadata: Metadata = { title: "Đăng nhập" };
+export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
-export default function LoginPage() {
-  return <ComingSoon title="Đăng nhập" note="Khu vực thành viên (tường nhóm, giao việc) sẽ mở ở giai đoạn tiếp theo. Tài khoản do quản trị viên cấp." />;
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+  if (user) redirect(user.mustChangePassword ? "/account/password" : "/app");
+
+  return (
+    <div className="wrap page grid place-items-center">
+      <div className="card grid w-full max-w-[440px] gap-5 p-6 sm:p-8">
+        <span className="grid h-12 w-12 place-items-center rounded-xl border-2 border-ink bg-yellow" aria-hidden>
+          <Lock size={22} />
+        </span>
+        <div>
+          <h1 className="display text-3xl">Members area</h1>
+          <p className="mt-2 text-ink-2">Group walls and weekly task boards. Accounts are created by the lab admin; there is no public sign-up.</p>
+        </div>
+        <LoginForm />
+        <p className="mono text-xs text-muted">Forgot your password? Ask the admin to reset it.</p>
+      </div>
+    </div>
+  );
 }

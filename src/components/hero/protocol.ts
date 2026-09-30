@@ -49,14 +49,14 @@ const chain = (p: Party) => (p === "alice" ? "Chain A" : "Chain B");
 export function describeStep(kind: StepKind, sender: Party, receiver: Party): { tag: string; text: string } {
   switch (kind) {
     case "lock":
-      return { tag: "lock", text: `${name(sender)} khoá 1.0 ◆ trên ${chain(sender)} · H(s)` };
+      return { tag: "lock", text: `${name(sender)} locks 1.0 ◆ on ${chain(sender)} · H(s)` };
     case "proof":
       return { tag: "proof", text: `${chain(sender)} → Relay · Merkle proof π` };
     case "verify":
-      return { tag: "verify", text: `Relay xác minh π ✓ → gửi sang ${chain(receiver)}` };
+      return { tag: "verify", text: `Relay verifies π ✓ → forwards to ${chain(receiver)}` };
     case "claim":
-      return { tag: "claim", text: `${name(receiver)} nhận 1.0 ◆ trên ${chain(receiver)} · lộ s` };
+      return { tag: "claim", text: `${name(receiver)} claims 1.0 ◆ on ${chain(receiver)} · reveals s` };
     case "ack":
-      return { tag: "ack", text: `ack(s) → ${chain(sender)} · ${name(sender)} được giải phóng` };
+      return { tag: "ack", text: `ack(s) → ${chain(sender)} · ${name(sender)} settled` };
   }
 }

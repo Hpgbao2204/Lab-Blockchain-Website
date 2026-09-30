@@ -7,4 +7,12 @@ Website của nhóm nghiên cứu Blockchain, Mạng & Bảo mật — `blockcha
 
 Trạng thái: **đang xây lại từ đầu**. Xem kế hoạch và milestone tại [`docs/ROADMAP.md`](docs/ROADMAP.md), kiến trúc tại [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), thiết kế tại [`docs/DESIGN.md`](docs/DESIGN.md).
 
-Stack dự kiến: Next.js + TypeScript + Tailwind v4, Supabase (Postgres/Auth/Storage), Three.js, Vercel.
+Nội dung site: tiếng Anh. Trang: `/research`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers` (API công khai `/api/v1`).
+
+Stack: Next.js + TypeScript + Tailwind v4, Drizzle + Postgres (PGlite khi chạy local), Three.js.
+
+```bash
+npm install
+ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo   # admin + dữ liệu demo
+npm run dev                                                     # http://localhost:3000/login
+```

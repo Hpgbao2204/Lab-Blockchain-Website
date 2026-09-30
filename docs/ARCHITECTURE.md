@@ -3,85 +3,61 @@
 ## Tổng quan
 
 ```
-Browser ── Next.js (Vercel) ──┬─ Server Components / Route Handlers  /api/v1/*
-                              └─ Supabase: Postgres (RLS) · Auth · Storage
-ORCID Public API ──► sync job (admin nút bấm + cron) ──► publications
+Browser ── Next.js (1 app) ──┬─ Server Components (đọc thẳng qua services)
+                             ├─ Route Handlers /api/v1/* (JSON, zod)
+                             └─ src/server/services ──► Drizzle ──► Postgres
+Crossref (theo ORCID PI) ──► npm run sync:publications ──► src/data/publications.json (M3: vào DB + cron)
 ```
 
-- Public pages render server-side từ DB (chỉ dữ liệu `published`), cache/ISR.
-- Mọi endpoint private chạy bằng **session của người dùng** (cookie qua `@supabase/ssr`) để **RLS** áp dụng. `service_role` chỉ dùng ở code server của admin (`/api/v1/admin/*`, script seed), không bao giờ gửi xuống client.
+**Quyết định 01/10/2026 (thay Supabase Auth + RLS):** dùng **Postgres bất kỳ + Drizzle ORM + auth tự viết** (scrypt, session lưu DB).
+- Chạy local không cần gì: không có `DATABASE_URL` thì app tự tạo **PGlite** (Postgres nhúng) ở `.data/` và chạy migration. Test dùng PGlite in-memory, nên CI kiểm tra được toàn bộ phân quyền mà không cần server DB.
+- Production: đặt `DATABASE_URL` (Supabase Postgres, Neon… đều được, dùng pooled URL) rồi `npm run db:migrate && npm run db:seed`.
+- Không phụ thuộc email/Supabase Auth: admin tạo tài khoản, hệ thống sinh mật khẩu tạm, người dùng bắt buộc đổi ở lần đăng nhập đầu.
+- Phân quyền nằm ở **một chỗ phía server**: `groupAccess()` trong `src/server/services/groups.ts` và các service gọi nó. Có test cho từng luật (`services.test.ts`).
 
 ## Phân quyền
 
 | Vai trò | Quyền |
 |---|---|
-| anon | Đọc nội dung public (members public, CV published, publications published, awards, settings public). Gửi form liên hệ (Turnstile). |
-| member | Đọc/ghi profile của mình; đọc tường của nhóm mình thuộc về; tạo comment; đổi trạng thái task được giao (hoặc task của cả nhóm); upload file vào nhóm mình. |
-| admin | Toàn quyền: tạo/sửa/vô hiệu user, tạo nhóm, gắn member, tạo post/task, quản lý nội dung public. |
+| visitor | Đọc trang public và API public. Không có đăng ký. |
+| member | Xem nhóm mình thuộc về (nhóm khác trả 404, không lộ là có tồn tại); viết note lên wall; comment task; đổi **trạng thái** task giao cho mình hoặc cho cả nhóm. |
+| lead (theo nhóm) | Như member + tạo/sửa/xoá task, giao việc, đăng announcement/ghim trong nhóm đó. |
+| admin | Toàn quyền: tạo/sửa/vô hiệu tài khoản, reset mật khẩu, đổi role, tạo/lưu trữ nhóm, gán thành viên và lead, xem mọi wall. |
 
-Helper SQL: `is_admin()`, `is_group_member(group_id)` (security definer, dùng trong policy).
+Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác origin, rate limit đăng nhập (in-memory), tài khoản còn mật khẩu tạm bị chặn mọi API trừ đổi mật khẩu, vô hiệu/reset xoá session.
 
-## Schema (Postgres) — bản thiết kế
+## Schema (`src/server/db/schema.ts`, migration trong `drizzle/`)
 
-Khoá chính `uuid` (`gen_random_uuid()`), có `created_at`/`updated_at` timestamptz.
+- `users(id, email unique, name, title, role admin|member, password_hash, must_change_password, active)`
+- `sessions(id = sha256(token), user_id, expires_at)`
+- `groups(id, name, description, paper_title, target_venue, submission_deadline, period, status active|archived, created_by)`: một nhóm thường là một paper/đợt.
+- `group_members(group_id, user_id, role lead|member)`
+- `posts(id, group_id, author_id, kind note|announcement, body, pinned)`
+- `tasks(id, group_id, created_by, title, description, due_date, priority low|normal|high, status todo|doing|review|done)`
+- `task_assignees(task_id, user_id)`: rỗng = cả nhóm
+- `comments(id, group_id, post_id?, task_id?, author_id, body)`: đúng một trong hai target
 
-**Người dùng & CV**
-- `profiles(id → auth.users, role 'admin'|'member', full_name, slug unique, title, avatar_url, bio, contact_email, links jsonb, is_public bool, is_active bool, must_change_password bool)`
-- `member_cvs(profile_id pk → profiles, headline, about, education jsonb, experience jsonb, skills text[], projects jsonb, published bool)`
+Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`, `attachments` (file lưu ở object storage, URL ký).
 
-**Nội dung public**
-- `publications(id, source 'orcid'|'manual', external_id, doi, title, authors text[], year, venue, type, url, abstract, is_featured, is_published, raw jsonb, unique(source, external_id))`
-- `publication_authors(publication_id, profile_id)` — liên kết tự động theo tên chuẩn hoá
-- `awards(id, title, year, description, image_url, link, sort_order, is_published)`
-- `site_settings(key pk, value jsonb)` — hero, research areas, stats override
-- `contact_messages(id, name, email, message, kind 'contact'|'join', status)`
+Đổi schema: sửa `schema.ts` → `npm run db:generate` → commit SQL mới trong `drizzle/`.
 
-**Tường riêng tư**
-- `groups(id, name, period date /* ngày đầu tháng */, description, status 'active'|'archived', created_by)`
-- `group_members(group_id, profile_id, role 'lead'|'member', primary key(group_id, profile_id))`
-- `posts(id, group_id, author_id, kind 'note'|'announcement', body, pinned)`
-- `tasks(id, group_id, created_by, title, description, due_date, priority, status 'todo'|'doing'|'review'|'done')`
-- `task_assignees(task_id, profile_id)` — rỗng = cả nhóm
-- `comments(id, group_id, post_id null, task_id null, author_id, body)` — check đúng một trong `post_id`/`task_id`
-- `attachments(id, group_id, uploader_id, post_id null, task_id null, storage_path, filename, mime, size)`
+## API `/api/v1` (JSON)
 
-Storage buckets: `avatars` (public), `public-assets` (public), `wall-files` (**private**, path `group_id/...`, policy theo `is_group_member`).
+Thành công `{ data, meta? }`, lỗi `{ error: { code, message, details? } }`. Danh sách đầy đủ ở `src/lib/api/catalog.ts` (hiện trên trang `/developers`).
 
-## API `/api/v1` (REST, JSON, zod-validated)
+- Public: `stats`, `research`, `research/:slug`, `publications?q&kind&year&area&limit`, `members`, `pioneers`, `health`, `me` (null khi chưa đăng nhập).
+- Auth: `POST auth/login`, `POST auth/logout`, `POST auth/change-password`.
+- Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST), `groups/:id/posts` (GET/POST), `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
+- Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`.
 
-Public (GET): `/members`, `/members/:slug`, `/publications`, `/awards`, `/stats`, `/settings`. `POST /contact`.
-
-Auth: `POST /auth/login`, `POST /auth/logout`, `POST /auth/change-password`, `GET /me`.
-
-Tường (member+): `GET /groups` (của tôi), `GET /groups/:id`, `GET|POST /groups/:id/posts`, `GET|POST /groups/:id/tasks`, `PATCH /tasks/:id` (member: chỉ `status`), `GET|POST /posts/:id/comments`, `POST /groups/:id/attachments` (signed upload URL).
-
-Admin: `POST|GET|PATCH /admin/users`, `POST /admin/users/:id/reset-password`, CRUD `/admin/{members,cvs,publications,awards,settings}`, `POST /admin/orcid/sync`, `POST /admin/members/import`, `POST|PATCH /admin/groups`, `PUT /admin/groups/:id/members`.
-
-Quy ước lỗi: `{ "error": { "code": "...", "message": "..." } }` với HTTP status đúng nghĩa. Có `openapi.json` sinh từ zod (M6).
-
-## Cấu trúc thư mục dự kiến
+## Thư mục
 
 ```
-src/
-  app/
-    (public)/           # /, /members, /publications, /join, /contact
-    (auth)/login
-    (app)/app/          # dashboard + tường (cần đăng nhập)
-    admin/
-    api/v1/...
-  components/ui|site|wall|admin|three
-  lib/ supabase/ orcid/ validation/ auth/ api/
-supabase/migrations/    # SQL + seed
-scripts/                # seed admin, import members
-docs/
+src/app/                 trang public, /login, /account/password, /app (dashboard, wall), /admin, api/v1
+src/components/          site, hero (3D), pubs, app (board, feed, admin), dev
+src/lib/content          dữ liệu public (tĩnh, sẽ chuyển sang DB)
+src/lib/weeks.ts         tính tuần / bucket deadline (giờ Việt Nam)
+src/server/              db (schema, client), auth (password, sessions, current), services, validation
+scripts/                 seed.ts, sync-publications.mjs, fetch-pioneers.mjs
+drizzle/                 migration SQL
 ```
-
-## ORCID sync
-
-1. `GET https://pub.orcid.org/v3.0/{orcid}/works` (Accept JSON) → danh sách work summaries.
-2. Lấy chi tiết từng `put-code` khi cần (DOI, tác giả, venue).
-3. Normalize (title, year, type, doi, url, authors) → upsert theo `(source='orcid', external_id=put-code)`; nếu trùng DOI thì gộp.
-4. Giữ nguyên `is_featured`/`is_published` do admin đặt; chỉ cập nhật metadata.
-5. Tuỳ chọn: enrich qua Crossref/OpenAlex theo DOI (venue, citation count).
-
-Code tham khảo (đã xoá khỏi nhánh hiện tại): `src/lib/orcid/{client,normalize}.ts` tại commit `a7c69da`.

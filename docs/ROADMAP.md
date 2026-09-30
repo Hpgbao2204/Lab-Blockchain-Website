@@ -46,7 +46,7 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 - [ ] **Danh sách core members** (thầy cung cấp): tối thiểu `họ tên, vai trò/chức danh, email, ảnh, link (scholar/orcid/github), có CV công khai không`. Định dạng CSV/Google Sheet đều được.
 - [ ] **Giải thưởng / thành tích** muốn khoe (hoặc để trống, admin nhập sau).
 - [ ] ORCID của thầy: `0000-0003-1156-7072` (lấy từ code cũ — xác nhận). ORCID Public API client id/secret nếu muốn sync ổn định (có thể bắt đầu không cần, dùng public API).
-- [ ] Ngôn ngữ: chỉ tiếng Việt hay song ngữ Việt/Anh?
+- [x] Ngôn ngữ: **chỉ tiếng Anh** (chốt 30/09/2026).
 - [ ] Tường có cần **upload file** không (ảnh/PDF, giới hạn dung lượng)? Mặc định: có, ≤ 10 MB/file.
 - [ ] Email gửi thông báo (Resend) — tuỳ chọn, để sau M6.
 
@@ -55,25 +55,34 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 | Milestone | Nội dung | Kích thước | Trạng thái |
 |---|---|---|---|
 | M0 | Scaffold, tooling, CI (deploy Vercel hoãn theo yêu cầu) | S | ✅ xong (chạy localhost) |
-| M1 | Design system + hero 3D + shell public | M | ✅ xong bản đầu (xem ghi chú) |
-| M2 | DB schema, RLS, Auth, admin tạo user | L | ⬜ |
-| M3 | Public content: members/CV, publications (ORCID), awards | L | ⬜ |
-| M4 | Admin console | M | ⬜ |
-| M5 | Tường riêng tư theo nhóm/tháng | L | ⬜ |
+| M1 | Design system + hero 3D + shell public | M | ✅ xong; M1.5 redesign tiếng Anh + nhiều trang + API đọc |
+| M2 | DB schema, Auth, admin tạo user | L | ✅ xong (Drizzle + Postgres/PGlite, auth tự viết) |
+| M3 | Public content: members/CV, publications (ORCID), awards | L | 🟡 publications thật (30 bài, Crossref); members/CV/awards chưa |
+| M4 | Admin console | M | 🟡 tài khoản + nhóm xong; CMS nội dung public chưa |
+| M5 | Tường riêng tư theo nhóm/tháng | L | 🟡 wall + bảng việc theo tuần + comment xong; đính kèm file chưa |
 | M6 | Polish, SEO, a11y, hardening, bàn giao | M | ⬜ |
 | M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | ⬜ |
 
 Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
-**M1 đã có:** nav kính, hero 3D cross-chain (Alice ↔ Bob + relay, log HTLC, nền chân dung tiền nhân duotone), ticker, hướng nghiên cứu, gallery tiền nhân có ghi công ảnh, công bố mẫu, CTA gia nhập, footer, stub `/login` và `/join`.
+**Cập nhật 01/10/2026 (PR #3):**
+- Site tiếng Anh, style portfolio, nhiều trang + API `/api/v1` (xem `docs/DESIGN.md`, `docs/ARCHITECTURE.md`).
+- Logo mới: khối lập phương vàng/xanh viền mực (`public/brand/logo-mark.svg`, `logo-lockup.svg`, favicon). Logo PNG cũ (sai chính tả) đã bỏ.
+- Publications: 30 bài của thầy lấy từ Crossref theo ORCID + 3 bài IEEE/MAPR thêm tay (`src/data/publications.extra.json`), tự gắn hướng nghiên cứu theo từ khoá. Làm mới: `npm run sync:publications` (cần mạng tới api.crossref.org).
+- **Đổi stack DB/Auth**: Drizzle + Postgres (PGlite local), auth tự viết. Lý do trong `docs/ARCHITECTURE.md`.
+- Khu thành viên: `/login`, đổi mật khẩu bắt buộc, `/app` (việc của tôi, nhóm của tôi), `/app/groups/[id]` (bảng việc theo tuần: This week/Next week/Later/Done, hạn nộp paper đếm ngược, wall + announcement ghim, comment), `/admin` (tạo tài khoản + mật khẩu tạm, reset, vô hiệu, role; tạo/lưu trữ nhóm, gán thành viên/lead).
 
-**Còn dở / cần quyết sau M1:**
-- Công bố và hướng nghiên cứu là bản mẫu (M3 thay bằng ORCID + DB); chưa có mục Thành viên (chờ dữ liệu thầy).
-- Logo gốc `public/logo.png` ghi sai chính tả "RESEACH TEAM": chỉ dùng phần khối lập phương (`public/brand/mark.png`) + chữ dựng bằng font. Cần xác nhận với thầy.
+**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `admin@blockchainist.local` / `admin-password-123` (demo member: `lead@`, `an@`, `binh@blockchainist.local` / `demo-password-123`).
+
+**Còn dở / cần quyết:**
+- Deploy: cần một Postgres (khuyên Supabase hoặc Neon free, region Singapore) + Vercel. Đặt `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_NAME` vào environment secrets, không dán vào chat.
+- Email thật của thầy để tạo tài khoản admin đầu tiên.
+- Roster thành viên (tên, vai trò, ảnh, link) để làm trang People + CV.
 - Tên đơn vị (vd. "UIT — VNU-HCM") chưa đưa lên UI vì chưa xác nhận.
-- Chưa đo Lighthouse / hiệu năng trên GPU thật (môi trường dev chỉ có render phần mềm); làm ở M6.
+- Đính kèm file trên wall cần object storage (Supabase Storage / Vercel Blob).
+- Chưa đo Lighthouse / hiệu năng 3D trên GPU thật.
 
-**Bước tiếp theo: M2** (cần Supabase từ danh sách trên).
+**Bước tiếp theo:** deploy (Postgres + Vercel), trang People/CV từ roster, CMS nội dung public trong /admin, đính kèm file, thông báo deadline qua email (M7).
 
 ## Milestones
 
@@ -83,7 +92,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 
 - [x] `create-next-app` (TS, App Router, Tailwind v4, ESLint), vitest, prettier.
 - [x] `.env.example` (Supabase, Turnstile, `NEXT_PUBLIC_SITE_URL`), `.gitignore` thêm `supabase/.temp`.
-- [x] Font: Bricolage Grotesque / Fraunces / Red Hat Mono qua `@fontsource-variable` (tự host, có tiếng Việt).
+- [x] Font: ban đầu Bricolage/Fraunces/Red Hat Mono; **M1.5 đổi sang Unbounded / Space Grotesk / JetBrains Mono** cho giống portfolio.
 - [x] CI (GitHub Actions): lint + typecheck + test + build.
 - [ ] Deploy lên Vercel, trỏ domain (hoãn, làm khi sẵn sàng).
 - **Xong khi**: `/` hiển thị trang placeholder trên domain thật, CI xanh.
@@ -114,7 +123,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 - [ ] Publications: sync ORCID (`lib/orcid`: fetch works → normalize → upsert theo `(source, external_id)`/DOI; tham khảo code cũ ở `a7c69da`), trang `/publications` có tìm kiếm/lọc năm/loại, bài nổi bật trên trang chủ. Liên kết tác giả ↔ profile theo tên chuẩn hoá.
 - [ ] Awards/thành tích + stats trang chủ tính từ DB.
 - [ ] Cron (Vercel Cron hoặc GitHub Actions) sync ORCID định kỳ + nút sync tay ở admin.
-- [ ] `GET /api/v1/{members,publications,awards,stats}` công khai, có cache.
+- [ ] `GET /api/v1/{members,publications,awards,stats}` công khai, có cache (đã có bản đọc dữ liệu tĩnh từ M1.5; chuyển sang DB).
 - **Xong khi**: trang chủ/publications chạy bằng dữ liệu thật, không còn placeholder.
 
 ### M4 — Admin console (M)
@@ -139,7 +148,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 - [ ] SEO (metadata, OG image, sitemap, robots; tường `noindex`), a11y pass, tối ưu ảnh.
 - [ ] Bảo mật: headers/CSP, rate limit login & form, audit RLS, kiểm tra không lộ service key.
 - [ ] Cron ping chống Supabase pause; hướng dẫn backup/export DB.
-- [ ] i18n (nếu chọn song ngữ).
+- [x] ~~i18n~~: không cần, site chỉ tiếng Anh.
 - [ ] README vận hành + hướng dẫn cho thầy (tạo user, tạo nhóm, sync ORCID).
 - **Xong khi**: checklist bàn giao hoàn tất, thầy dùng thử không cần hỗ trợ.
 

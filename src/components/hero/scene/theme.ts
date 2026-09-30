@@ -2,13 +2,14 @@ import { Vector3 } from "three";
 import type { Party } from "../protocol";
 
 export const COLORS = {
-  bg: "#eef2f9",
-  ink: "#0b1437",
-  chainA: "#2b6bff",
-  chainB: "#ff8a1f",
-  relay: "#7b4dff",
-  proof: "#0fc7a0",
-  glass: "#f3f6ff",
+  bg: "#fffdf8",
+  ink: "#16140f",
+  chainA: "#3d8bff",
+  chainB: "#ff8f42",
+  relay: "#a26bff",
+  proof: "#00c9b0",
+  yellow: "#ffc730",
+  glass: "#fffaf0",
 } as const;
 
 export const PARTY_COLOR: Record<Party, string> = { alice: COLORS.chainA, bob: COLORS.chainB };

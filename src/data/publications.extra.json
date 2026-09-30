@@ -1,0 +1,54 @@
+[
+  {
+    "id": "verifiable-ai-reviewers",
+    "name": "Verifiable AI Reviewers",
+    "title": "Decentralized Skill Matching and Soulbound Reputation for Multi-Agent Peer Review",
+    "year": 2026,
+    "kind": "conference",
+    "authors": [
+      "TM Trong",
+      "B Huynh",
+      "HN Nhi",
+      "TT Nguyen",
+      "NP Tai",
+      "N Minh",
+      "TD Tran",
+      "et al."
+    ],
+    "venue": "Intl. Conf. on Multimedia Analysis and Pattern Recognition (MAPR 2026)",
+    "doi": null
+  },
+  {
+    "id": "lotus",
+    "name": "Lotus",
+    "title": "A Hybrid Cross-Chain Framework for Privacy-Preserving Digital Identity",
+    "year": 2025,
+    "kind": "conference",
+    "authors": [
+      "TD Tran",
+      "HPG Bao",
+      "TM Trong",
+      "NT Cam",
+      "VH Pham"
+    ],
+    "venue": "24th Intl. Symposium on Communications and Information Technologies (ISCIT, IEEE)",
+    "doi": "10.1109/iscit67082.2025.11231625"
+  },
+  {
+    "id": "proof-of-merit",
+    "name": "Proof-of-Merit",
+    "title": "A Reputation-Weighted VRF-PoA Consensus and Governance for Educational Blockchains",
+    "year": 2025,
+    "kind": "conference",
+    "authors": [
+      "TD Tran",
+      "B Huynh",
+      "TM Trong",
+      "TT Nguyen",
+      "NN BK",
+      "VH Pham"
+    ],
+    "venue": "RIVF Intl. Conf. on Computing and Communication Technologies (IEEE)",
+    "doi": "10.1109/rivf68649.2025.11365043"
+  }
+]

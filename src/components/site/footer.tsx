@@ -1,24 +1,33 @@
 import Link from "next/link";
 import { Brand } from "./brand";
+import { siteLinks } from "./links";
 
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-white/50">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-8 px-5 py-12 sm:px-8 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-sm">
+    <footer className="footer">
+      <div className="wrap grid gap-8 py-10 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div>
           <Brand />
-          <p className="mt-4 text-sm leading-relaxed text-muted">
-            Nhóm nghiên cứu Blockchain, Mạng &amp; Bảo mật. Nghiên cứu liên chuỗi, riêng tư và định danh phi tập trung.
-          </p>
+          <p className="motto mt-5">building trust in a trustless world</p>
+          <p className="max-w-sm text-sm text-muted">Blockchainist researches cross-chain interoperability, zero-knowledge proofs and decentralized identity.</p>
         </div>
-        <div className="mono text-muted">
-          <p>© {new Date().getFullYear()} Blockchainist Research Team</p>
-          <p className="mt-2">
-            Chân dung nền: Wikimedia Commons (CC) —{" "}
-            <Link href="/#pioneers" className="underline decoration-line underline-offset-4 hover:text-ink">
-              xem ghi công
+        <nav aria-label="Footer" className="grid content-start gap-1.5 text-sm">
+          <p className="eyebrow mb-1">Explore</p>
+          {siteLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="w-fit underline-offset-4 hover:underline">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="grid content-start gap-2 text-sm text-muted">
+          <p className="eyebrow mb-1">Credits</p>
+          <p>
+            Pioneer portraits from Wikimedia Commons under open licenses.{" "}
+            <Link href="/pioneers" className="font-bold text-ink underline underline-offset-4">
+              See credits
             </Link>
           </p>
+          <p className="mono text-xs">© {new Date().getFullYear()} Blockchainist Research Group</p>
         </div>
       </div>
     </footer>

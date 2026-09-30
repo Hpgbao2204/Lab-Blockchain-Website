@@ -2,9 +2,16 @@
 
 import { useEffect, useRef } from "react";
 
+interface RevealProps {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  as?: "div" | "li";
+}
+
 /** Fades/slides children in once they scroll into view. */
-export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
+export function Reveal({ children, className = "", delay = 0, as: Tag = "div" }: RevealProps) {
+  const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -21,8 +28,8 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
     return () => io.disconnect();
   }, []);
   return (
-    <div ref={ref} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <Tag ref={ref as React.Ref<never>} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
-    </div>
+    </Tag>
   );
 }
