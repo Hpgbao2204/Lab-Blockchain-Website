@@ -15,7 +15,7 @@ Ràng buộc đã chốt với chủ dự án:
 
 - Có **tài khoản admin** cho thầy. **Chỉ admin tạo được account**; không có đăng ký công khai. Chưa đăng nhập thì không vào được phần private.
 - **Database miễn phí**.
-- UI cùng style với portfolio `hpgbao2204/hpgbao2204` (sáng, neo-brutalist, **3D blockchain** bằng Three.js). Xem `docs/DESIGN.md`.
+- UI sáng, blockchain, liên chuỗi, **3D** (Three.js/R3F), nền chân dung các tiền nhân; font riêng, không dùng lại font cũ. Xem `docs/DESIGN.md`.
 - Dữ liệu core members do thầy cung cấp (import từ CSV/JSON, không hard-code).
 - Backend phải là **API** (REST `/api/v1`), không chỉ là landing page.
 - Code cũ (Next.js + Firebase) đã xoá; còn ở commit `a7c69da` để tham khảo (ORCID client/normalize, Turnstile, Resend, zod validation).
@@ -25,8 +25,8 @@ Ràng buộc đã chốt với chủ dự án:
 | Lớp | Lựa chọn | Ghi chú |
 |---|---|---|
 | Web + API | Next.js (App Router) + TypeScript, Route Handlers `/api/v1/*` | 1 app duy nhất, dễ vận hành với 2 người |
-| Style | Tailwind CSS v4 + design tokens từ portfolio | |
-| 3D | `three` (import động, client only) | fallback khi không có WebGL / `prefers-reduced-motion` |
+| Style | Tailwind CSS v4 + tokens trong `globals.css` | |
+| 3D | `three` + `@react-three/fiber` + `@react-three/drei` (import động, client only) | fallback khi không có WebGL / `prefers-reduced-motion` |
 | DB + Auth + Storage | **Supabase** (Postgres + Auth + Storage, free tier) | RLS bảo vệ tường riêng tư |
 | Validation | zod | |
 | Test | vitest (+ Playwright smoke cho luồng chính) | |
@@ -54,8 +54,8 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 
 | Milestone | Nội dung | Kích thước | Trạng thái |
 |---|---|---|---|
-| M0 | Scaffold, tooling, deploy rỗng | S | ⬜ chưa làm |
-| M1 | Design system + hero 3D + shell public | M | ⬜ |
+| M0 | Scaffold, tooling, CI (deploy Vercel hoãn theo yêu cầu) | S | ✅ xong (chạy localhost) |
+| M1 | Design system + hero 3D + shell public | M | ✅ xong bản đầu (xem ghi chú) |
 | M2 | DB schema, RLS, Auth, admin tạo user | L | ⬜ |
 | M3 | Public content: members/CV, publications (ORCID), awards | L | ⬜ |
 | M4 | Admin console | M | ⬜ |
@@ -63,8 +63,17 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 | M6 | Polish, SEO, a11y, hardening, bàn giao | M | ⬜ |
 | M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | ⬜ |
 
-Cleanup đã xong: repo đã sạch, chỉ còn `LICENSE`, `public/` (logo, favicon, ảnh PI), tài liệu.
-**Bước tiếp theo: M0** (cần ít nhất Supabase + Vercel từ danh sách trên cho M2; M0–M1 làm được ngay không cần).
+Chạy thử: `npm install && npm run dev` → http://localhost:3000.
+
+**M1 đã có:** nav kính, hero 3D cross-chain (Alice ↔ Bob + relay, log HTLC, nền chân dung tiền nhân duotone), ticker, hướng nghiên cứu, gallery tiền nhân có ghi công ảnh, công bố mẫu, CTA gia nhập, footer, stub `/login` và `/join`.
+
+**Còn dở / cần quyết sau M1:**
+- Công bố và hướng nghiên cứu là bản mẫu (M3 thay bằng ORCID + DB); chưa có mục Thành viên (chờ dữ liệu thầy).
+- Logo gốc `public/logo.png` ghi sai chính tả "RESEACH TEAM": chỉ dùng phần khối lập phương (`public/brand/mark.png`) + chữ dựng bằng font. Cần xác nhận với thầy.
+- Tên đơn vị (vd. "UIT — VNU-HCM") chưa đưa lên UI vì chưa xác nhận.
+- Chưa đo Lighthouse / hiệu năng trên GPU thật (môi trường dev chỉ có render phần mềm); làm ở M6.
+
+**Bước tiếp theo: M2** (cần Supabase từ danh sách trên).
 
 ## Milestones
 
@@ -72,20 +81,20 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 
 ### M0 — Scaffold (S)
 
-- [ ] `create-next-app` (TS, App Router, Tailwind v4, ESLint), vitest, prettier.
-- [ ] `.env.example` (Supabase, Turnstile, `NEXT_PUBLIC_SITE_URL`), `.gitignore` thêm `supabase/.temp`.
-- [ ] Copy fonts OFL (Unbounded, Space Grotesk, JetBrains Mono) từ portfolio `scripts/fonts/` vào `public/fonts` hoặc `next/font/local`.
-- [ ] CI (GitHub Actions): lint + typecheck + test + build.
-- [ ] Deploy rỗng lên Vercel, trỏ domain.
+- [x] `create-next-app` (TS, App Router, Tailwind v4, ESLint), vitest, prettier.
+- [x] `.env.example` (Supabase, Turnstile, `NEXT_PUBLIC_SITE_URL`), `.gitignore` thêm `supabase/.temp`.
+- [x] Font: Bricolage Grotesque / Fraunces / Red Hat Mono qua `@fontsource-variable` (tự host, có tiếng Việt).
+- [x] CI (GitHub Actions): lint + typecheck + test + build.
+- [ ] Deploy lên Vercel, trỏ domain (hoãn, làm khi sẵn sàng).
 - **Xong khi**: `/` hiển thị trang placeholder trên domain thật, CI xanh.
 
 ### M1 — Design system + shell public (M)
 
-- [ ] Tokens (`docs/DESIGN.md`) → Tailwind theme + CSS variables.
-- [ ] Component nền: Button, Card, Badge, Nav (sticky + blur), Footer, Section heading, Stat tile.
-- [ ] **Hero 3D**: chuỗi block blockchain (Three.js, toon + outline), kéo xoay, lazy-load, fallback.
-- [ ] Trang chủ tĩnh với dữ liệu mẫu đánh dấu rõ (hero, hướng nghiên cứu, stats, publications nổi bật, members, CTA).
-- [ ] Responsive từ 360px; skip link; focus ring; tôn trọng `prefers-reduced-motion`.
+- [x] Tokens (`docs/DESIGN.md`) → Tailwind theme + CSS variables.
+- [x] Component nền: Nav kính, Footer, Section heading, Reveal, Brand (Button/Badge/Stat tile: làm khi cần ở M3–M5).
+- [x] **Hero 3D**: hai chuỗi, Alice/Bob/relay, gói tin HTLC, chân dung nền; lazy-load, fallback, reduced-motion.
+- [x] Trang chủ với dữ liệu mẫu (hero, hướng nghiên cứu, tiền nhân, publications, CTA). Members/stats: chờ M3.
+- [x] Responsive (đã kiểm tra 390/820/1440); skip link; focus ring; `prefers-reduced-motion`.
 - **Xong khi**: trang chủ đẹp, Lighthouse perf ≥ 90 mobile với hero 3D lazy.
 
 ### M2 — Database, Auth, admin tạo user (L)
@@ -144,4 +153,5 @@ Thông báo email (Resend), lịch/deadline view, tìm kiếm toàn tường, re
 - **1 app Next.js, API `/api/v1`**: ít thứ phải vận hành; versioned để tách backend sau nếu cần.
 - **Không đăng ký công khai, admin tạo user, mật khẩu tạm**: đúng yêu cầu thầy và không phụ thuộc email free tier.
 - **CV tuỳ chọn**: `member_cvs.published` quyết định có trang CV hay không.
+- **Font đổi hẳn** (Bricolage/Fraunces/Red Hat Mono) vì bộ Unbounded/Space Grotesk/JetBrains Mono của bản cũ trông "AI-generated".
 - **Xoá code cũ thay vì sửa**: theo yêu cầu "đập đi xây lại"; còn tham khảo được ở `a7c69da`.

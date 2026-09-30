@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/fraunces/full-italic.css";
+@import "@fontsource-variable/red-hat-mono/wght.css";
+
+/* Design tokens. Fonts are swappable here only (see docs/DESIGN.md). */
+@theme {
+  --font-display: "Bricolage Grotesque Variable", "Helvetica Neue", system-ui, sans-serif;
+  --font-serif: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
+  --font-mono: "Red Hat Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg: #eef2f9;
+  --color-bg-2: #e2e9f6;
+  --color-surface: #ffffff;
+  --color-ink: #0b1437;
+  --color-ink-2: #2b3663;
+  --color-muted: #5a6690;
+  --color-line: #cdd6ec;
+
+  --color-chain-a: #2b6bff;
+  --color-chain-b: #ff8a1f;
+  --color-relay: #7b4dff;
+  --color-proof: #0fc7a0;
+
+  --radius-card: 22px;
+}
+
+:root { color-scheme: light; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: var(--color-chain-a); color: #fff; }
+:focus-visible { outline: 3px solid var(--color-chain-a); outline-offset: 3px; border-radius: 8px; }
+
+/* Display headings use Bricolage's width axis (75-100%) for a tighter, inked look. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-stretch: 84%;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+.serif-accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144; letter-spacing: -0.015em; }
+.mono { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--color-muted);
+}
+
+.glass {
+  background: color-mix(in srgb, #fff 62%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid color-mix(in srgb, #fff 70%, var(--color-line));
+  box-shadow: 0 1px 0 #fff inset, 0 18px 40px -24px rgb(11 20 55 / 0.35);
+}
+
+.grid-paper {
+  background-image:
+    linear-gradient(to right, rgb(43 107 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(43 107 255 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Reveal-on-scroll; disabled when the user prefers reduced motion. */
+@media (scripting: enabled) {
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.is-in { opacity: 1; transform: none; }
+}
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes blink { 50% { opacity: .25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .marquee-track { animation: none !important; }
+}
+
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Horizontal rail aligned with the 1180px content column, bleeding to the viewport edge. */
+.rail { padding-inline: max(1.25rem, calc((100vw - 1180px) / 2 + 2rem)); scroll-padding-inline: max(1.25rem, calc((100vw - 1180px) / 2 + 2rem)); }

@@ -18,3 +18,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# next / tooling
+next-env.d.ts
+supabase/.temp
+.vercel
