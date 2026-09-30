@@ -1,53 +1,47 @@
-# Design — lấy từ portfolio `hpgbao2204/hpgbao2204`
+# Design
 
-Nguồn tham chiếu: `site/style.css` (tokens, components), `site/main.js` (hero 3D, motion), `scripts/fonts/` (font OFL). Lab web dùng **cùng ngôn ngữ thiết kế**, đổi nội dung/branding cho nhóm.
+Hướng thiết kế đã chốt với chủ dự án: **sáng, blockchain, liên chuỗi, có 3D**, tạo cảm giác "web lab có đầu tư". Không bám portfolio cũ; không dùng lại bộ font của source cũ.
 
-## Cảm giác
+## Ý tưởng chính
 
-Sáng, giấy kem + mực đen, viền đậm, bóng cứng (neo-brutalist), màu nhấn rực kiểu "block" blockchain, có chuỗi khối 3D ở hero. Chuyên nghiệp nhưng có cá tính; không dùng gradient tím mờ generic.
+Hero kể một câu chuyện giao thức: **Alice (Chain A) ↔ Bob (Chain B)** qua một **Relay**. Hai chuỗi khối cuộn liên tục, gói tin đi qua đi lại theo 5 bước HTLC (`lock → proof → verify → claim → ack`), đổi chiều sau mỗi lượt. Nền là chân dung các **tiền nhân** của mật mã/blockchain (duotone, trôi chậm, một người được "bật sáng" luân phiên kèm chú thích). Bảng log kiểu terminal chạy cùng đồng hồ với cảnh 3D (`src/components/hero/protocol.ts`).
 
-## Tokens
+## Tokens (xem `src/app/globals.css`)
 
-```css
---paper:#f6f3ec; --paper-2:#efebe1; --card:#fffdf8;
---ink:#16140f; --ink-2:#3a362e; --muted:#6d675c; --line:#d9d2c3;
---yellow:#ffc730; --orange:#ff8f42; --red:#ff4b4b; --pink:#ff4fa3;
---violet:#a26bff; --blue:#3d8bff; --teal:#00c9b0; --lime:#b6ec2c;
---shadow:4px 4px 0 var(--ink); --shadow-lg:7px 7px 0 var(--ink);
---radius:14px; --gutter:clamp(16px,4vw,48px); --max:1180px;
---display:"Unbounded","Space Grotesk",system-ui,sans-serif;
---sans:"Space Grotesk",system-ui,sans-serif;
---mono:"JetBrains Mono",ui-monospace,monospace;
-```
+| Token | Giá trị | Dùng cho |
+|---|---|---|
+| `bg` | `#eef2f9` | nền trang, clear color của canvas |
+| `ink` | `#0b1437` | chữ, nút chính, cạnh khối |
+| `chain-a` | `#2b6bff` | Chain A / Alice / nhấn chính (gần màu logo) |
+| `chain-b` | `#ff8a1f` | Chain B / Bob |
+| `relay` | `#7b4dff` | Relay, bước verify |
+| `proof` | `#0fc7a0` | proof / ack |
 
-- Nền body: `--paper` + lưới "ledger" mờ 44px (`--paper-2`).
-- `::selection` vàng; `:focus-visible` outline 3px `--blue`.
-- Nav sticky, nền paper 86% + `backdrop-filter: blur(10px)`, viền dưới 2px ink; link dạng pill, hover/active có viền ink + nền card.
-- Card/button: viền 2px ink, `--shadow`, hover dịch chuyển nhẹ (nhấn = bỏ bóng).
-- Brand mark: ô vuông vàng bo 8px, viền ink, bóng 2px.
-- Mono cho nhãn/số liệu/hash; display (Unbounded) cho tiêu đề lớn.
+## Font (cố ý khác bản cũ; Bricolage và Fraunces có subset tiếng Việt)
 
-## Hero 3D (Three.js)
+- **Bricolage Grotesque** (variable, trục `wght` + `wdth`): tiêu đề dùng `font-stretch: 84%` cho nét đặc, thân bài dùng 100%.
+- **Fraunces** (variable italic, `SOFT`/`WONK`/`opsz`): chỉ dùng cho từ nhấn trong tiêu đề (`.serif-accent`).
+- **Red Hat Mono** (variable): nhãn, log, số liệu. Giữ nội dung mono ở ASCII vì subset Việt của font này không đầy đủ.
 
-Tham khảo `site/main.js` ~ dòng 148+:
+Đổi font: sửa 3 dòng `@import` và 3 biến `--font-*` trong `globals.css`.
 
-- Các **block** (BoxGeometry) xếp trên vòng tròn, lắc nhẹ theo sin, **nối bằng cylinder** mảnh → chuỗi blockchain; một "core" ở giữa.
-- Vật liệu **MeshToonMaterial** màu lấy từ palette; **outline** bằng mesh back-face màu ink + `EdgesGeometry` cạnh ink.
-- Ánh sáng: HemisphereLight (trắng / kem) + DirectionalLight; nền trong suốt để thấy giấy.
-- Tương tác: kéo để xoay (orbit tự viết), tự xoay chậm; `touch-action: pan-y` để không chặn scroll mobile.
-- Hiệu năng: `import("three")` động, chỉ khởi tạo khi canvas vào viewport, giới hạn devicePixelRatio, dừng render khi tab ẩn.
-- Degrade: không WebGL / lỗi import / `prefers-reduced-motion` → canvas trống hoặc ảnh tĩnh, trang vẫn đầy đủ.
+## Cảnh 3D (`src/components/hero/scene/`)
 
-Trên Lab web: dùng block gắn nhãn theo hướng nghiên cứu (Blockchain, Security, Network, ZK, Cross-chain…) để hero mang ý nghĩa, không chỉ trang trí. Có thể lặp lại motif chuỗi block làm divider/loader ở các trang.
+- React Three Fiber + drei. `flat` (không tone mapping), clear color = `bg`.
+- `chain-lane.tsx`: khối kính bo góc + lõi phát sáng + viền ink; 10 khối/chuỗi tái sử dụng (wrap), nhãn `#height` và hash vẽ bằng canvas texture. Chuỗi mờ ở nền (`ghost`).
+- `portrait-wall.tsx`: ShaderMaterial duotone (ink ↔ pale, pha màu theo `tint`), cover-crop trong shader, parallax theo con trỏ, spotlight đổi sang màu thật cho một chân dung mỗi ~4s.
+- `packet.tsx`: gói tin + vệt hạt + hào quang + vòng xung; `avatar.tsx`, `relay.tsx`, `label.tsx` (sprite canvas, **không dùng drei `Html`** vì gây lỗi "unmount root" trong React 19 dev).
+- Hiệu năng/an toàn: import động (`ssr:false`), `frameloop="never"` khi ra khỏi viewport hoặc tab ẩn, dpr ≤ 1.75, `prefers-reduced-motion` → `frozen` (vẽ 1 khung, không Sparkles), không có WebGL → lưới chân dung tĩnh.
+- Responsive: `World` tự scale/dời theo aspect (desktop: chuỗi bên phải; màn dọc: cảnh nằm nửa dưới hero). Log ẩn dưới `lg`.
 
-## Motion
+## Ảnh chân dung
 
-Portfolio dùng anime.js. Bản Lab: ưu tiên CSS + `framer-motion` hoặc anime.js nhẹ; chỉ animate `transform/opacity`; reveal-on-scroll; tắt khi reduced-motion.
+`npm run fetch:pioneers` tải ảnh từ Wikimedia Commons, **chỉ giữ CC BY / CC BY-SA / CC0 / public domain**, nén 560px và ghi `src/data/pioneers.generated.json` (tác giả, giấy phép, nguồn). UI luôn hiển thị ghi công dưới mỗi ảnh. Người không có ảnh hợp lệ (Satoshi Nakamoto, danh tính ẩn) dùng hình minh hoạ. Test `src/data/pioneers.test.ts` kiểm tra mọi ảnh đều có ghi công và file tồn tại.
 
-## Tường riêng tư
+## Khu private (M5)
 
-Cùng tokens nhưng mật độ thông tin cao hơn: layout 2 cột (feed | sidebar thành viên + task), post là card có avatar, task là thẻ có badge trạng thái (màu: todo=muted, doing=blue, review=orange, done=teal), announcement ghim nền vàng. Không đặt hero 3D trong khu private.
+Cùng tokens nhưng mật độ thông tin cao hơn: 2 cột (feed | thành viên + task), post là card có avatar, task có badge trạng thái (todo=muted, doing=`chain-a`, review=`chain-b`, done=`proof`), announcement ghim nền nhạt. Không đặt hero 3D trong khu private.
 
 ## Yêu cầu chung
 
-Responsive từ 360px; tương phản đủ (chữ ink trên paper/card); skip link; focus rõ; không phụ thuộc hover; font tự host (woff2) `font-display: swap`.
+Responsive từ 360px; skip link; focus ring `chain-a`; không phụ thuộc hover; nội dung `.reveal` chỉ bị ẩn khi có JS (`@media (scripting: enabled)`).

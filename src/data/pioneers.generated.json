@@ -1,0 +1,101 @@
+[
+  {
+    "id": "chaum",
+    "name": "David Chaum",
+    "image": "/pioneers/chaum.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "author": "Web Summit",
+    "source": "https://commons.wikimedia.org/wiki/File:Web_Summit_2018_-_MoneyConf_-_Day_2,_November_7_HM1_6995_(30826444907)_(cropped).jpg"
+  },
+  {
+    "id": "merkle",
+    "name": "Ralph Merkle",
+    "image": "/pioneers/merkle.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "author": "david.orban",
+    "source": "https://commons.wikimedia.org/wiki/File:Ralph_Merkle.png"
+  },
+  {
+    "id": "diffie",
+    "name": "Whitfield Diffie",
+    "image": "/pioneers/diffie.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "author": "Duncan.Hull",
+    "source": "https://commons.wikimedia.org/wiki/File:Whitfield_Diffie_Royal_Society.jpg"
+  },
+  {
+    "id": "hellman",
+    "name": "Martin Hellman",
+    "image": "/pioneers/hellman.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "author": "User .:Ajvol:. on en.wikipedia",
+    "source": "https://commons.wikimedia.org/wiki/File:Martin-Hellman.jpg"
+  },
+  {
+    "id": "back",
+    "name": "Adam Back",
+    "image": "/pioneers/back.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "author": "Alexleso75",
+    "source": "https://commons.wikimedia.org/wiki/File:Portrait_Adam_Back_photographe_Alexandre_Sitter.webp"
+  },
+  {
+    "id": "goldwasser",
+    "name": "Shafi Goldwasser",
+    "image": "/pioneers/goldwasser.jpg",
+    "license": "Public domain",
+    "licenseUrl": null,
+    "author": "Weizmann Institute of Science",
+    "source": "https://commons.wikimedia.org/wiki/File:Shafi_Goldwasser.JPG"
+  },
+  {
+    "id": "micali",
+    "name": "Silvio Micali",
+    "image": "/pioneers/micali.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "author": "Rguillou228",
+    "source": "https://commons.wikimedia.org/wiki/File:Silvio_Micali.jpg"
+  },
+  {
+    "id": "buterin",
+    "name": "Vitalik Buterin",
+    "image": "/pioneers/buterin.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "author": "John Phillips",
+    "source": "https://commons.wikimedia.org/wiki/File:Vitalik_Buterin_TechCrunch_London_2015_(cropped).jpg"
+  },
+  {
+    "id": "rivest",
+    "name": "Ron Rivest",
+    "image": "/pioneers/rivest.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "author": "Ronald L. Rivest",
+    "source": "https://commons.wikimedia.org/wiki/File:Ronald_L_Rivest_photo.jpg"
+  },
+  {
+    "id": "shamir",
+    "name": "Adi Shamir",
+    "image": "/pioneers/shamir.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "author": "Duncan.Hull",
+    "source": "https://commons.wikimedia.org/wiki/File:Adi_Shamir_Royal_Society.jpg"
+  },
+  {
+    "id": "wood",
+    "name": "Gavin Wood",
+    "image": "/pioneers/wood.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "author": "TechCrunch",
+    "source": "https://commons.wikimedia.org/wiki/File:Gavin_Wood_in_2017.jpg"
+  }
+]
