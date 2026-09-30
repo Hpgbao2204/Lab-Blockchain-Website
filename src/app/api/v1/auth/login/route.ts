@@ -11,9 +11,12 @@ export const POST = route(
     const input = await body(req, loginInput);
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "local";
     const key = `login:${ip}:${input.email}`;
-    if (!rateLimit(key)) throw new AppError("rate_limited", "Too many attempts. Try again in a few minutes.");
+    // Also cap attempts per account, so guessing one password from many addresses is slow too.
+    const accountKey = `login:${input.email}`;
+    if (!rateLimit(key) || !rateLimit(accountKey, 30)) throw new AppError("rate_limited", "Too many attempts. Try again in a few minutes.");
     const user = await authenticate(db, input.email, input.password);
     resetRateLimit(key);
+    resetRateLimit(accountKey);
     const { token } = await createSession(db, user.id);
     await setSessionCookie(token);
     return { id: user.id, name: user.name, role: user.role, mustChangePassword: user.mustChangePassword };

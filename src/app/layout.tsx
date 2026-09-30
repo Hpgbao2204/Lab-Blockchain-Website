@@ -10,9 +10,10 @@ import "@fontsource/jetbrains-mono/latin-700.css";
 import "./globals.css";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
+import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
   title: { default: "Blockchainist · Blockchain Research Group", template: "%s · Blockchainist" },
   description: "Blockchainist is a blockchain research group at UIT – VNU-HCM working on cross-chain interoperability, zero-knowledge proofs, decentralized identity and smart contract security.",
   icons: { icon: "/favicon.svg" },

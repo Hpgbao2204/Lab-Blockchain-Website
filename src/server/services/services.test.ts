@@ -53,6 +53,15 @@ describe("accounts", () => {
     bob = again;
   });
 
+  it("changing the password signs out every existing session", async () => {
+    const u = await authenticate(db, "bob@lab.test", "a-much-better-pass");
+    const { token } = await createSession(db, u.id);
+    expect(await userFromToken(db, token)).not.toBeNull();
+    await changePassword(db, bob, { currentPassword: "a-much-better-pass", newPassword: "another-good-pass" });
+    expect(await userFromToken(db, token)).toBeNull();
+    await changePassword(db, bob, { currentPassword: "another-good-pass", newPassword: "a-much-better-pass" });
+  });
+
   it("rejects wrong passwords and deactivated users", async () => {
     await expect(authenticate(db, "bob@lab.test", "nope")).rejects.toMatchObject({ code: "unauthorized" });
     await updateUser(db, admin, bob.id, { active: false });

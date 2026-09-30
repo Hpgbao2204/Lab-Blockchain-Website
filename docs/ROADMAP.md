@@ -90,6 +90,12 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Email: domain gửi đã xác thực + Resend key.
 - Chưa đo Lighthouse / hiệu năng 3D trên GPU thật.
 
+**Cập nhật 01/10/2026 (review trước go-live):**
+- Header bảo mật (HSTS, chống iframe, nosniff, Referrer/Permissions-Policy), `robots.txt`, `sitemap.xml`, ảnh chia sẻ OG.
+- Đổi mật khẩu thì đăng xuất mọi phiên cũ; giới hạn đăng nhập thêm theo tài khoản.
+- Hướng dẫn go-live: `docs/DEPLOY.md` (Vercel + Neon + Vercel Blob + Resend, DNS).
+- Còn chặn deploy: driver lưu file (Blob/S3) + upload trực tiếp (Vercel giới hạn 4.5 MB/request); rate limit đăng nhập đang ở bộ nhớ, nên chuyển sang DB.
+
 **Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
 
 ## Milestones

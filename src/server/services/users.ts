@@ -39,6 +39,8 @@ export async function changePassword(db: Db, actor: SessionUser, input: z.infer<
     .update(users)
     .set({ passwordHash: await hashPassword(input.newPassword), mustChangePassword: false })
     .where(eq(users.id, actor.id));
+  // Sign out every device, including any opened with a leaked temporary password; the caller signs this one back in.
+  await deleteUserSessions(db, actor.id);
 }
 
 export async function listUsers(db: Db, actor: SessionUser | null) {
