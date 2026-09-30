@@ -13,10 +13,10 @@ export const POST = route(
     const key = `login:${ip}:${input.email}`;
     // Also cap attempts per account, so guessing one password from many addresses is slow too.
     const accountKey = `login:${input.email}`;
-    if (!rateLimit(key) || !rateLimit(accountKey, 30)) throw new AppError("rate_limited", "Too many attempts. Try again in a few minutes.");
+    if (!(await rateLimit(db, key)) || !(await rateLimit(db, accountKey, 30))) throw new AppError("rate_limited", "Too many attempts. Try again in a few minutes.");
     const user = await authenticate(db, input.email, input.password);
-    resetRateLimit(key);
-    resetRateLimit(accountKey);
+    await resetRateLimit(db, key);
+    await resetRateLimit(db, accountKey);
     const { token } = await createSession(db, user.id);
     await setSessionCookie(token);
     return { id: user.id, name: user.name, role: user.role, mustChangePassword: user.mustChangePassword };

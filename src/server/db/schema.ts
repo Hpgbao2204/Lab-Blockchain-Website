@@ -26,6 +26,13 @@ export const users = pgTable("users", {
   ...timestamps,
 });
 
+/** Fixed-window counters (login attempts). In the database so every server instance shares them. */
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+});
+
 /** Server-side sessions; the cookie holds a random token, the table only its SHA-256. */
 export const sessions = pgTable(
   "sessions",
