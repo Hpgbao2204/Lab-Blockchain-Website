@@ -51,19 +51,19 @@ function makeSilhouette(): CanvasTexture {
   c.height = 540;
   const g = c.getContext("2d")!;
   const grad = g.createLinearGradient(0, 0, 0, c.height);
-  grad.addColorStop(0, "#c9d6ff");
-  grad.addColorStop(1, "#5e78d6");
+  grad.addColorStop(0, "#ffe08a");
+  grad.addColorStop(1, "#ff8f42");
   g.fillStyle = grad;
   g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = "#0b1437";
+  g.fillStyle = "#16140f";
   g.beginPath();
   g.arc(210, 210, 92, 0, Math.PI * 2);
   g.fill();
   g.beginPath();
   g.ellipse(210, 560, 190, 210, 0, 0, Math.PI * 2);
   g.fill();
-  g.fillStyle = "#eef2f9";
-  g.font = '700 120px "Bricolage Grotesque Variable", system-ui, sans-serif';
+  g.fillStyle = "#ffc730";
+  g.font = '800 110px "Unbounded", system-ui, sans-serif';
   g.textAlign = "center";
   g.fillText("?", 210, 252);
   const tex = new CanvasTexture(c);
@@ -125,7 +125,7 @@ export function PortraitWall({ pointer, frozen, onSpotlight }: PortraitWallProps
           uImgAspect: { value: img.width / img.height },
           uPlaneAspect: { value: planeAspect },
           uDark: { value: new Color(COLORS.ink).lerp(tint, 0.42) },
-          uLight: { value: new Color("#f3f6ff").lerp(tint, 0.1) },
+          uLight: { value: new Color("#fffdf8").lerp(tint, 0.1) },
           uOpacity: { value: 0.6 },
           uFocus: { value: 0 },
         },

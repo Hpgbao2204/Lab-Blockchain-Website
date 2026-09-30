@@ -1,29 +1,59 @@
-import Link from "next/link";
-import { Brand } from "./brand";
+"use client";
 
-const links = [
-  { href: "/#research", label: "Nghiên cứu" },
-  { href: "/#pioneers", label: "Tiền nhân" },
-  { href: "/#publications", label: "Công bố" },
-  { href: "/#join", label: "Gia nhập" },
-];
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { Brand } from "./brand";
+import { siteLinks } from "./links";
 
 export function Nav() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const current = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-6">
-      <div className="glass mx-auto flex max-w-[1180px] items-center justify-between gap-4 rounded-full py-2 pl-5 pr-2">
+    <header className="nav">
+      <div className="wrap nav-inner">
         <Brand />
-        <nav aria-label="Chính" className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} className="rounded-full px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-white hover:text-ink">
+        <nav aria-label="Main" className="nav-links max-lg:hidden">
+          {siteLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="nav-link" aria-current={current(l.href) ? "page" : undefined}>
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
-        <Link href="/login" className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-chain-a">
-          Đăng nhập
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="btn btn-ink btn-sm max-sm:hidden" style={{ boxShadow: "3px 3px 0 var(--color-yellow)" }}>
+            Sign in
+          </Link>
+          <button
+            type="button"
+            className="btn btn-sm lg:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X size={18} aria-hidden /> : <Menu size={18} aria-hidden />}
+          </button>
+        </div>
       </div>
+      {open && (
+        <nav id="mobile-nav" aria-label="Main" className="wrap grid gap-2 pb-4 lg:hidden">
+          {[...siteLinks, { href: "/login", label: "Sign in" }].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="nav-link border-ink! bg-card text-base!"
+              aria-current={current(l.href) ? "page" : undefined}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

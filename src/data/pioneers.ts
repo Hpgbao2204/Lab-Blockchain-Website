@@ -32,18 +32,18 @@ type Editorial = Omit<Pioneer, "image" | "credit">;
 
 // Order matters: it is the order shown in the gallery and the hero spotlight.
 const editorial: Editorial[] = [
-  { id: "diffie", name: "Whitfield Diffie", year: "1976", tint: "blue", contribution: "Mật mã khoá công khai và trao đổi khoá Diffie–Hellman — nền tảng của chữ ký số." },
-  { id: "hellman", name: "Martin Hellman", year: "1976", tint: "violet", contribution: "Đồng tác giả “New Directions in Cryptography”, mở ra kỷ nguyên mật mã khoá công khai." },
-  { id: "merkle", name: "Ralph Merkle", year: "1979", tint: "amber", contribution: "Cây Merkle — cách tóm tắt và chứng minh dữ liệu khối với chi phí log n." },
-  { id: "rivest", name: "Ron Rivest", year: "1977", tint: "blue", contribution: "Đồng tác giả RSA, hệ mật và chữ ký số được dùng rộng rãi nhất." },
-  { id: "shamir", name: "Adi Shamir", year: "1979", tint: "violet", contribution: "Chia sẻ bí mật Shamir và RSA — nền cho ví đa chữ ký, khôi phục khoá." },
-  { id: "chaum", name: "David Chaum", year: "1982", tint: "blue", contribution: "Tiền mặt điện tử (eCash) và mix network; ý tưởng tiền thân của tiền số riêng tư." },
-  { id: "goldwasser", name: "Shafi Goldwasser", year: "1985", tint: "amber", contribution: "Chứng minh không tiết lộ tri thức (ZK) cùng Micali và Rackoff — nền của zk-SNARK." },
-  { id: "micali", name: "Silvio Micali", year: "1985", tint: "violet", contribution: "Zero-knowledge, hàm ngẫu nhiên kiểm chứng được (VRF) và đồng thuận Algorand." },
-  { id: "back", name: "Adam Back", year: "1997", tint: "blue", contribution: "Hashcash — proof-of-work, được trích dẫn trong bài báo Bitcoin." },
-  { id: "satoshi", name: "Satoshi Nakamoto", year: "2008", tint: "amber", contribution: "Bitcoin: hệ thống tiền điện tử ngang hàng — blockchain đầu tiên chạy thật. Danh tính vẫn chưa được biết." },
-  { id: "buterin", name: "Vitalik Buterin", year: "2013", tint: "violet", contribution: "Ethereum — hợp đồng thông minh và máy ảo tổng quát trên blockchain." },
-  { id: "wood", name: "Gavin Wood", year: "2016", tint: "blue", contribution: "Đồng sáng lập Ethereum, tác giả Solidity; Polkadot — kiến trúc relay chain cho liên chuỗi." },
+  { id: "diffie", name: "Whitfield Diffie", year: "1976", tint: "blue", contribution: "Public-key cryptography and Diffie–Hellman key exchange, the basis of digital signatures." },
+  { id: "hellman", name: "Martin Hellman", year: "1976", tint: "violet", contribution: "Co-author of “New Directions in Cryptography”, which opened the public-key era." },
+  { id: "merkle", name: "Ralph Merkle", year: "1979", tint: "amber", contribution: "Merkle trees: summarize and prove block data at logarithmic cost." },
+  { id: "rivest", name: "Ron Rivest", year: "1977", tint: "blue", contribution: "Co-inventor of RSA, the most widely deployed public-key cryptosystem and signature scheme." },
+  { id: "shamir", name: "Adi Shamir", year: "1979", tint: "violet", contribution: "Shamir secret sharing and RSA, the groundwork for multisig wallets and key recovery." },
+  { id: "chaum", name: "David Chaum", year: "1982", tint: "blue", contribution: "Electronic cash (eCash) and mix networks, forerunners of private digital money." },
+  { id: "goldwasser", name: "Shafi Goldwasser", year: "1985", tint: "amber", contribution: "Zero-knowledge proofs with Micali and Rackoff, the root of today's zk-SNARKs." },
+  { id: "micali", name: "Silvio Micali", year: "1985", tint: "violet", contribution: "Zero knowledge, verifiable random functions (VRF) and the Algorand consensus." },
+  { id: "back", name: "Adam Back", year: "1997", tint: "blue", contribution: "Hashcash, the proof-of-work scheme cited in the Bitcoin whitepaper." },
+  { id: "satoshi", name: "Satoshi Nakamoto", year: "2008", tint: "amber", contribution: "Bitcoin, the first peer-to-peer electronic cash system and the first working blockchain. Identity still unknown." },
+  { id: "buterin", name: "Vitalik Buterin", year: "2013", tint: "violet", contribution: "Ethereum: smart contracts and a general-purpose virtual machine on a blockchain." },
+  { id: "wood", name: "Gavin Wood", year: "2016", tint: "blue", contribution: "Ethereum co-founder and Solidity author; Polkadot, a relay-chain architecture for interoperability." },
 ];
 
 export const pioneers: Pioneer[] = editorial.map((e) => {

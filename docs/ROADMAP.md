@@ -46,7 +46,7 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 - [ ] **Danh sách core members** (thầy cung cấp): tối thiểu `họ tên, vai trò/chức danh, email, ảnh, link (scholar/orcid/github), có CV công khai không`. Định dạng CSV/Google Sheet đều được.
 - [ ] **Giải thưởng / thành tích** muốn khoe (hoặc để trống, admin nhập sau).
 - [ ] ORCID của thầy: `0000-0003-1156-7072` (lấy từ code cũ — xác nhận). ORCID Public API client id/secret nếu muốn sync ổn định (có thể bắt đầu không cần, dùng public API).
-- [ ] Ngôn ngữ: chỉ tiếng Việt hay song ngữ Việt/Anh?
+- [x] Ngôn ngữ: **chỉ tiếng Anh** (chốt 30/09/2026).
 - [ ] Tường có cần **upload file** không (ảnh/PDF, giới hạn dung lượng)? Mặc định: có, ≤ 10 MB/file.
 - [ ] Email gửi thông báo (Resend) — tuỳ chọn, để sau M6.
 
@@ -55,7 +55,7 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 | Milestone | Nội dung | Kích thước | Trạng thái |
 |---|---|---|---|
 | M0 | Scaffold, tooling, CI (deploy Vercel hoãn theo yêu cầu) | S | ✅ xong (chạy localhost) |
-| M1 | Design system + hero 3D + shell public | M | ✅ xong bản đầu (xem ghi chú) |
+| M1 | Design system + hero 3D + shell public | M | ✅ xong; M1.5 redesign tiếng Anh + nhiều trang + API đọc |
 | M2 | DB schema, RLS, Auth, admin tạo user | L | ⬜ |
 | M3 | Public content: members/CV, publications (ORCID), awards | L | ⬜ |
 | M4 | Admin console | M | ⬜ |
@@ -65,13 +65,17 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 
 Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
-**M1 đã có:** nav kính, hero 3D cross-chain (Alice ↔ Bob + relay, log HTLC, nền chân dung tiền nhân duotone), ticker, hướng nghiên cứu, gallery tiền nhân có ghi công ảnh, công bố mẫu, CTA gia nhập, footer, stub `/login` và `/join`.
+**M1.5 (redesign, 30/09/2026):** theo yêu cầu chủ dự án, site viết lại **toàn tiếng Anh**, **style portfolio** (`docs/DESIGN.md`) và thành **app nhiều trang có API**:
+- Trang: `/`, `/research`, `/research/[slug]`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers`, `/login` (giữ chỗ).
+- API công khai `/api/v1`: `stats`, `research`, `research/:slug`, `publications` (q/kind/year/area/limit, zod), `members`, `pioneers`, `health`; lỗi theo envelope `{error:{code,message}}`, 404 JSON cho path lạ. Trang và API cùng đọc qua `src/lib/content` → M2/M3 chỉ cần thay module này bằng Supabase/ORCID.
+- Hero 3D giữ cảnh cross-chain, đặt trong cửa sổ terminal; log tiếng Anh.
 
-**Còn dở / cần quyết sau M1:**
-- Công bố và hướng nghiên cứu là bản mẫu (M3 thay bằng ORCID + DB); chưa có mục Thành viên (chờ dữ liệu thầy).
-- Logo gốc `public/logo.png` ghi sai chính tả "RESEACH TEAM": chỉ dùng phần khối lập phương (`public/brand/mark.png`) + chữ dựng bằng font. Cần xác nhận với thầy.
+**Còn dở / cần quyết:**
+- Công bố là dữ liệu mẫu (8 bài lấy từ portfolio, M3 thay bằng ORCID + DB). Roster thành viên chờ dữ liệu thầy; trang People mới có PI (thông tin công khai như trên portfolio).
+- Logo gốc `public/logo.png` ghi sai "RESEACH TEAM": chỉ dùng khối lập phương (`public/brand/mark.png`) + chữ dựng bằng font. Cần báo thầy.
 - Tên đơn vị (vd. "UIT — VNU-HCM") chưa đưa lên UI vì chưa xác nhận.
-- Chưa đo Lighthouse / hiệu năng trên GPU thật (môi trường dev chỉ có render phần mềm); làm ở M6.
+- `/join` dùng mailto tới email PI (công khai trên portfolio) cho tới khi có form (M4).
+- Chưa đo Lighthouse / hiệu năng trên GPU thật; làm ở M6.
 
 **Bước tiếp theo: M2** (cần Supabase từ danh sách trên).
 
@@ -83,7 +87,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 
 - [x] `create-next-app` (TS, App Router, Tailwind v4, ESLint), vitest, prettier.
 - [x] `.env.example` (Supabase, Turnstile, `NEXT_PUBLIC_SITE_URL`), `.gitignore` thêm `supabase/.temp`.
-- [x] Font: Bricolage Grotesque / Fraunces / Red Hat Mono qua `@fontsource-variable` (tự host, có tiếng Việt).
+- [x] Font: ban đầu Bricolage/Fraunces/Red Hat Mono; **M1.5 đổi sang Unbounded / Space Grotesk / JetBrains Mono** cho giống portfolio.
 - [x] CI (GitHub Actions): lint + typecheck + test + build.
 - [ ] Deploy lên Vercel, trỏ domain (hoãn, làm khi sẵn sàng).
 - **Xong khi**: `/` hiển thị trang placeholder trên domain thật, CI xanh.
@@ -114,7 +118,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 - [ ] Publications: sync ORCID (`lib/orcid`: fetch works → normalize → upsert theo `(source, external_id)`/DOI; tham khảo code cũ ở `a7c69da`), trang `/publications` có tìm kiếm/lọc năm/loại, bài nổi bật trên trang chủ. Liên kết tác giả ↔ profile theo tên chuẩn hoá.
 - [ ] Awards/thành tích + stats trang chủ tính từ DB.
 - [ ] Cron (Vercel Cron hoặc GitHub Actions) sync ORCID định kỳ + nút sync tay ở admin.
-- [ ] `GET /api/v1/{members,publications,awards,stats}` công khai, có cache.
+- [ ] `GET /api/v1/{members,publications,awards,stats}` công khai, có cache (đã có bản đọc dữ liệu tĩnh từ M1.5; chuyển sang DB).
 - **Xong khi**: trang chủ/publications chạy bằng dữ liệu thật, không còn placeholder.
 
 ### M4 — Admin console (M)
@@ -139,7 +143,7 @@ Quy tắc chung: mỗi milestone = 1–2 session, kết thúc bằng `npm run li
 - [ ] SEO (metadata, OG image, sitemap, robots; tường `noindex`), a11y pass, tối ưu ảnh.
 - [ ] Bảo mật: headers/CSP, rate limit login & form, audit RLS, kiểm tra không lộ service key.
 - [ ] Cron ping chống Supabase pause; hướng dẫn backup/export DB.
-- [ ] i18n (nếu chọn song ngữ).
+- [x] ~~i18n~~: không cần, site chỉ tiếng Anh.
 - [ ] README vận hành + hướng dẫn cho thầy (tạo user, tạo nhóm, sync ORCID).
 - **Xong khi**: checklist bàn giao hoàn tất, thầy dùng thử không cần hỗ trợ.
 

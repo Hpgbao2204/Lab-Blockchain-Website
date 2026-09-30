@@ -1,12 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export function Brand({ className = "" }: { className?: string }) {
+/** Only the cube from the original logo is used; its lettering has a typo, so the name is set in type. */
+export function Brand() {
   return (
-    <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="Blockchainist — trang chủ">
-      <Image src="/brand/mark.png" alt="" width={34} height={33} priority />
-      <span className="display text-[1.15rem] tracking-tight">
-        Block<span className="text-chain-a">chainist</span>
+    <Link href="/" className="brand" aria-label="Blockchainist home">
+      <span className="brand-mark" style={{ background: "var(--color-card)" }}>
+        <Image src="/brand/mark.png" alt="" width={26} height={25} priority />
+      </span>
+      <span>
+        BLOCK<span className="text-blue">CHAINIST</span>
       </span>
     </Link>
   );

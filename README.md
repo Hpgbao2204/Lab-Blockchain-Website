@@ -7,4 +7,6 @@ Website của nhóm nghiên cứu Blockchain, Mạng & Bảo mật — `blockcha
 
 Trạng thái: **đang xây lại từ đầu**. Xem kế hoạch và milestone tại [`docs/ROADMAP.md`](docs/ROADMAP.md), kiến trúc tại [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), thiết kế tại [`docs/DESIGN.md`](docs/DESIGN.md).
 
+Nội dung site: tiếng Anh. Trang: `/research`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers` (API công khai `/api/v1`).
+
 Stack dự kiến: Next.js + TypeScript + Tailwind v4, Supabase (Postgres/Auth/Storage), Three.js, Vercel.
