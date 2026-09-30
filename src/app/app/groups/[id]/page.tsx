@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarClock, FileText } from "lucide-react";
+import { CalendarClock, FileText, Target } from "lucide-react";
 import { Feed, type FeedPost } from "@/components/app/feed";
 import { Initials } from "@/components/app/initials";
 import { TaskBoard } from "@/components/app/task-board";
+import { AddResource, Resources, type WallFile, type WallLink } from "@/components/app/resources";
 import { SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
 import { requirePageUser } from "@/server/auth/current";
 import { AppError } from "@/server/errors";
 import { getGroup } from "@/server/services/groups";
 import { listPosts, listTasks } from "@/server/services/wall";
+import { listLinks } from "@/server/services/links";
+import { listAttachments } from "@/server/services/attachments";
 import { formatDay, labToday } from "@/lib/weeks";
 
 export const metadata: Metadata = { title: "Group wall" };
@@ -29,13 +32,17 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
     if (e instanceof AppError && e.code === "not_found") notFound();
     throw e;
   }
-  const [tasks, posts] = await Promise.all([listTasks(db, user, id), listPosts(db, user, id)]);
+  const [tasks, posts, linkRows, fileRows] = await Promise.all([listTasks(db, user, id), listPosts(db, user, id), listLinks(db, user, id), listAttachments(db, user, id)]);
+  const links = JSON.parse(JSON.stringify(linkRows)) as WallLink[];
+  const files = JSON.parse(JSON.stringify(fileRows)) as WallFile[];
+  const groupLinks = links.filter((l) => !l.taskId);
+  const groupFiles = files.filter((f) => !f.taskId);
   const today = labToday();
 
   return (
-    <div className="wrap page grid gap-8">
-      <header className="card grid gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="grid gap-2">
+    <div className="wrap page grid grid-cols-[minmax(0,1fr)] gap-8">
+      <header className="card grid grid-cols-[minmax(0,1fr)] gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
           <p className="eyebrow">
             <span className="dot" />
             {group.status === "archived" ? "Archived group" : "Group wall"}
@@ -44,10 +51,14 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
           {group.paperTitle && (
             <p className="flex items-start gap-2 font-medium">
               <FileText size={18} className="mt-1 shrink-0" aria-hidden />
-              <span>
-                {group.paperTitle}
-                {group.targetVenue && <span className="font-normal text-ink-2"> · target: {group.targetVenue}</span>}
-              </span>
+              <span>{group.paperTitle}</span>
+            </p>
+          )}
+          {group.targetVenue && (
+            <p className="flex items-center gap-2">
+              <Target size={18} className="shrink-0" aria-hidden />
+              <span className="mono text-xs uppercase tracking-wider text-muted">Submitting to</span>
+              <b>{group.targetVenue}</b>
             </p>
           )}
           {group.description && <p className="text-ink-2">{group.description}</p>}
@@ -59,6 +70,14 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
                 {m.role === "lead" && <span className="tag">lead</span>}
               </span>
             ))}
+          </div>
+          <div className="mt-2 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 border-t-2 border-dashed border-ink pt-3">
+            <p className="mono text-xs uppercase tracking-wider text-muted">Workspace</p>
+            {groupLinks.length === 0 && groupFiles.length === 0 && (
+              <p className="text-sm text-ink-2">{group.canManage ? "Pin the Overleaf project, the repo and the call for papers here." : "No shared links yet."}</p>
+            )}
+            <Resources links={groupLinks} files={[]} me={user.id} canManage={group.canManage} />
+            {group.canManage && <AddResource groupId={id} linkPlaceholder="https://www.overleaf.com/project/…" />}
           </div>
         </div>
         {group.submissionDeadline && (
@@ -73,13 +92,31 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
 
       <section aria-labelledby="board">
         <SectionHead id="board" no={String(tasks.filter((t) => t.status !== "done").length).padStart(2, "0")} title="Weekly board" />
-        <TaskBoard groupId={id} tasks={tasks} members={group.members} me={user.id} canManage={group.canManage} today={today} />
+        <TaskBoard
+          groupId={id}
+          tasks={tasks}
+          members={group.members}
+          me={user.id}
+          canManage={group.canManage}
+          today={today}
+          targetVenue={group.targetVenue}
+          links={links}
+          files={files}
+        />
       </section>
 
-      <section aria-labelledby="wall" className="max-w-[760px]">
-        <SectionHead id="wall" no={String(posts.length).padStart(2, "0")} title="Wall" />
-        <Feed groupId={id} posts={JSON.parse(JSON.stringify(posts)) as FeedPost[]} canManage={group.canManage} />
-      </section>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section aria-labelledby="wall">
+          <SectionHead id="wall" no={String(posts.length).padStart(2, "0")} title="Wall" />
+          <Feed groupId={id} posts={JSON.parse(JSON.stringify(posts)) as FeedPost[]} canManage={group.canManage} />
+        </section>
+        <section aria-labelledby="files" className="grid gap-3">
+          <SectionHead id="files" no={String(groupFiles.length).padStart(2, "0")} title="Files" />
+          <p className="text-sm text-ink-2">PDFs and images up to 10 MB. Only members of this group can open them.</p>
+          <Resources links={[]} files={groupFiles} me={user.id} canManage={group.canManage} />
+          <AddResource groupId={id} fileOnly />
+        </section>
+      </div>
     </div>
   );
 }

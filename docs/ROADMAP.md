@@ -41,14 +41,14 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 
 - [ ] Tạo project **Supabase** (region Singapore) → lấy `URL`, `anon key`, `service_role key`, `DB password`. Khuyến nghị đặt vào **environment secrets** của môi trường Claude Code / Vercel, không dán vào chat hay commit.
 - [ ] Tài khoản **Vercel** đã import repo; trỏ DNS `blockchainist.id.vn` (hoặc cho biết nhà đăng ký domain để hướng dẫn).
-- [ ] **Email admin** của thầy (dùng làm tài khoản admin đầu tiên) + tên hiển thị, chức danh, ảnh chân dung (đã có `public/tuandung-tran.png`, xác nhận đúng người).
+- [x] **Email admin**: tạm thời `hpgbao@gmail.com` (Bao), sau này đổi sang thầy `dungtrt@uit.edu.vn` (chốt 01/10/2026).
 - [ ] **Tên nhóm, logo, tagline, lĩnh vực nghiên cứu** (3–6 mục) — có thể lấy lại từ bản cũ nếu đúng.
-- [ ] **Danh sách core members** (thầy cung cấp): tối thiểu `họ tên, vai trò/chức danh, email, ảnh, link (scholar/orcid/github), có CV công khai không`. Định dạng CSV/Google Sheet đều được.
+- [ ] **Danh sách core members** (thầy cung cấp; hiện dùng 10 hồ sơ mẫu có nhãn "sample"): tối thiểu `họ tên, vai trò/chức danh, email, ảnh, link (scholar/orcid/github), có CV công khai không`. Định dạng CSV/Google Sheet đều được.
 - [ ] **Giải thưởng / thành tích** muốn khoe (hoặc để trống, admin nhập sau).
 - [ ] ORCID của thầy: `0000-0003-1156-7072` (lấy từ code cũ — xác nhận). ORCID Public API client id/secret nếu muốn sync ổn định (có thể bắt đầu không cần, dùng public API).
 - [x] Ngôn ngữ: **chỉ tiếng Anh** (chốt 30/09/2026).
-- [ ] Tường có cần **upload file** không (ảnh/PDF, giới hạn dung lượng)? Mặc định: có, ≤ 10 MB/file.
-- [ ] Email gửi thông báo (Resend) — tuỳ chọn, để sau M6.
+- [x] Tường có **upload file** (PDF, ảnh, ≤ 10 MB/file). Tên đơn vị "UIT – VNU-HCM" đã xác nhận.
+- [ ] Email nhắc deadline thứ Hai (Resend): code xong, cần `RESEND_API_KEY`, `MAIL_FROM` (domain đã xác thực), `CRON_SECRET` khi deploy.
 
 ## Trạng thái
 
@@ -59,9 +59,9 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 | M2 | DB schema, Auth, admin tạo user | L | ✅ xong (Drizzle + Postgres/PGlite, auth tự viết) |
 | M3 | Public content: members/CV, publications (ORCID), awards | L | 🟡 publications thật (30 bài, Crossref); members/CV/awards chưa |
 | M4 | Admin console | M | 🟡 tài khoản + nhóm xong; CMS nội dung public chưa |
-| M5 | Tường riêng tư theo nhóm/tháng | L | 🟡 wall + bảng việc theo tuần + comment xong; đính kèm file chưa |
+| M5 | Tường riêng tư theo nhóm/tháng | L | ✅ wall, bảng việc theo tuần, comment, link Overleaf/GitHub, nơi nộp, file đính kèm |
 | M6 | Polish, SEO, a11y, hardening, bàn giao | M | ⬜ |
-| M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | ⬜ |
+| M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | 🟡 email thứ Hai + báo cáo tháng (CSV/in PDF) xong |
 
 Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
@@ -72,17 +72,25 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - **Đổi stack DB/Auth**: Drizzle + Postgres (PGlite local), auth tự viết. Lý do trong `docs/ARCHITECTURE.md`.
 - Khu thành viên: `/login`, đổi mật khẩu bắt buộc, `/app` (việc của tôi, nhóm của tôi), `/app/groups/[id]` (bảng việc theo tuần: This week/Next week/Later/Done, hạn nộp paper đếm ngược, wall + announcement ghim, comment), `/admin` (tạo tài khoản + mật khẩu tạm, reset, vô hiệu, role; tạo/lưu trữ nhóm, gán thành viên/lead).
 
-**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `admin@blockchainist.local` / `admin-password-123` (demo member: `lead@`, `an@`, `binh@blockchainist.local` / `demo-password-123`).
+**Cập nhật 01/10/2026 (round 3):**
+- Admin mặc định `hpgbao@gmail.com` (`ADMIN_EMAIL`), sau đổi sang thầy. Hiện "UIT – VNU-HCM" ở hero, footer, People, metadata.
+- 10 thành viên mẫu trên /people (nhãn *sample*, không tính vào stats); `--demo` tạo tài khoản cho họ + 2 nhóm.
+- Wall: link nhóm (Overleaf, repo, call for papers; chỉ admin/lead ghim), nơi nộp (journal/conf) trên task, link + file trên từng task (member gắn cho task của mình), khu Files. Bảng `links`, `attachments`, cột `tasks.venue`, `tasks.completed_at` (migration `0001`).
+- File: PDF/PNG/JPEG/GIF/WebP, kiểm tra theo nội dung (magic bytes), ≤ 10 MB, tải qua `/api/v1/attachments/:id` có kiểm tra nhóm. Lưu ở `UPLOAD_DIR` (mặc định `.data/uploads`); **deploy Vercel cần driver S3/Blob** (interface ở `src/server/storage`).
+- Email thứ Hai 08:00 (VN): `/api/v1/cron/weekly-digest` (Bearer `CRON_SECRET`, `vercel.json` cron `0 1 * * 1`), gửi qua Resend; xem trước + gửi tay ở `/admin/reminders`.
+- Báo cáo tháng `/admin/reports?month=YYYY-MM`: theo nhóm và thành viên (xong, trễ hạn, còn mở, quá hạn, hoạt động), tải CSV, in/lưu PDF.
+
+**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `hpgbao@gmail.com` / `admin-password-123` (thành viên mẫu, vd. `minh.anh.le@blockchainist.local` (lead), `tuan.kiet.bui@blockchainist.local` / `demo-password-123`).
 
 **Còn dở / cần quyết:**
 - Deploy: cần một Postgres (khuyên Supabase hoặc Neon free, region Singapore) + Vercel. Đặt `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_NAME` vào environment secrets, không dán vào chat.
-- Email thật của thầy để tạo tài khoản admin đầu tiên.
-- Roster thành viên (tên, vai trò, ảnh, link) để làm trang People + CV.
-- Tên đơn vị (vd. "UIT — VNU-HCM") chưa đưa lên UI vì chưa xác nhận.
-- Đính kèm file trên wall cần object storage (Supabase Storage / Vercel Blob).
+- Chuyển admin sang `dungtrt@uit.edu.vn` khi ổn định.
+- Roster thành viên thật (tên, vai trò, ảnh, link) thay 10 hồ sơ mẫu.
+- Object storage cho file khi deploy (Supabase Storage / S3 / Vercel Blob).
+- Email: domain gửi đã xác thực + Resend key.
 - Chưa đo Lighthouse / hiệu năng 3D trên GPU thật.
 
-**Bước tiếp theo:** deploy (Postgres + Vercel), trang People/CV từ roster, CMS nội dung public trong /admin, đính kèm file, thông báo deadline qua email (M7).
+**Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
 
 ## Milestones
 

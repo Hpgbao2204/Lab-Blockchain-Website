@@ -1,11 +1,13 @@
 import { and, asc, count, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "../db/client";
-import { comments, groupMembers, groups, posts, taskAssignees, tasks, users } from "../db/schema";
+import { attachments, comments, groupMembers, groups, links, posts, taskAssignees, tasks, users } from "../db/schema";
 import { AppError } from "../errors";
 import type { SessionUser } from "../auth/sessions";
+import type { Storage } from "../storage";
 import type { commentInput, postInput, taskInput, taskPatch } from "../validation";
 import { groupAccess } from "./groups";
+import { detectLinkKind } from "./links";
 
 const author = { id: users.id, name: users.name };
 
@@ -76,16 +78,32 @@ async function checkAssignees(db: Db, groupId: string, ids: string[]) {
   return unique;
 }
 
-export async function createTask(db: Db, actor: SessionUser | null, groupId: string, input: z.infer<typeof taskInput>) {
+type TaskCreate = Omit<z.infer<typeof taskInput>, "venue" | "links"> & Partial<Pick<z.infer<typeof taskInput>, "venue" | "links">>;
+
+export async function createTask(db: Db, actor: SessionUser | null, groupId: string, input: TaskCreate) {
   const access = await groupAccess(db, actor, groupId);
   if (!access.canManage) throw new AppError("forbidden", "Only the admin or a group lead can assign tasks.");
   const assigneeIds = await checkAssignees(db, groupId, input.assigneeIds);
   return db.transaction(async (tx) => {
     const [t] = await tx
       .insert(tasks)
-      .values({ groupId, createdBy: actor!.id, title: input.title, description: input.description ?? null, dueDate: input.dueDate, priority: input.priority })
+      .values({
+        groupId,
+        createdBy: actor!.id,
+        title: input.title,
+        description: input.description ?? null,
+        dueDate: input.dueDate,
+        priority: input.priority,
+        venue: input.venue ?? null,
+      })
       .returning();
     if (assigneeIds.length) await tx.insert(taskAssignees).values(assigneeIds.map((userId) => ({ taskId: t.id, userId })));
+    const taskLinks = input.links ?? [];
+    if (taskLinks.length) {
+      await tx
+        .insert(links)
+        .values(taskLinks.map((l) => ({ groupId, taskId: t.id, url: l.url, label: l.label ?? null, kind: l.kind ?? detectLinkKind(l.url), addedBy: actor!.id })));
+    }
     return t;
   });
 }
@@ -112,7 +130,9 @@ export async function updateTask(db: Db, actor: SessionUser | null, taskId: stri
   }
   const ids = assigneeIds ? await checkAssignees(db, task.groupId, assigneeIds) : null;
   await db.transaction(async (tx) => {
-    await tx.update(tasks).set({ ...fields, updatedAt: new Date() }).where(eq(tasks.id, taskId));
+    const now = new Date();
+    const completedAt = fields.status === undefined || fields.status === task.status ? {} : { completedAt: fields.status === "done" ? now : null };
+    await tx.update(tasks).set({ ...fields, ...completedAt, updatedAt: now }).where(eq(tasks.id, taskId));
     if (ids) {
       await tx.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
       if (ids.length) await tx.insert(taskAssignees).values(ids.map((userId) => ({ taskId, userId })));
@@ -122,10 +142,13 @@ export async function updateTask(db: Db, actor: SessionUser | null, taskId: stri
   return updated;
 }
 
-export async function deleteTask(db: Db, actor: SessionUser | null, taskId: string) {
+/** Deleting a task also removes its links, comments and files (the bytes too, when `storage` is given). */
+export async function deleteTask(db: Db, actor: SessionUser | null, taskId: string, storage?: Storage) {
   const { access } = await loadTask(db, actor, taskId);
   if (!access.canManage) throw new AppError("forbidden", "Only the admin or a group lead can delete tasks.");
+  const files = await db.select({ key: attachments.storageKey }).from(attachments).where(eq(attachments.taskId, taskId));
   await db.delete(tasks).where(eq(tasks.id, taskId));
+  if (storage) await Promise.all(files.map((f) => storage.remove(f.key)));
 }
 
 // ------------------------------------------------------------- comments --

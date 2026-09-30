@@ -53,7 +53,7 @@ export function getStats() {
     publications: f.total,
     journals: f.byKind.journal,
     researchAreas: researchAreas.length,
-    members: people.length,
+    members: people.filter((p) => !p.sample).length,
     pioneers: pioneers.length,
     since: Math.min(...f.years),
   };

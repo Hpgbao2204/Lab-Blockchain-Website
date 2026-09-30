@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, check, date, index, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("user_role", ["admin", "member"]);
 export const groupRoleEnum = pgEnum("group_role", ["lead", "member"]);
@@ -7,6 +7,7 @@ export const groupStatusEnum = pgEnum("group_status", ["active", "archived"]);
 export const postKindEnum = pgEnum("post_kind", ["note", "announcement"]);
 export const taskStatusEnum = pgEnum("task_status", ["todo", "doing", "review", "done"]);
 export const priorityEnum = pgEnum("task_priority", ["low", "normal", "high"]);
+export const linkKindEnum = pgEnum("link_kind", ["overleaf", "github", "drive", "paper", "other"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -98,6 +99,9 @@ export const tasks = pgTable(
     dueDate: date("due_date").notNull(),
     priority: priorityEnum("priority").notNull().default("normal"),
     status: taskStatusEnum("status").notNull().default("todo"),
+    /** journal or conference this piece of work is aimed at */
+    venue: text("venue"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -140,6 +144,43 @@ export const comments = pgTable(
   ],
 );
 
+/** Overleaf, GitHub, Drive… links pinned to a group or to one task. */
+export const links = pgTable(
+  "links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+    kind: linkKindEnum("kind").notNull().default("other"),
+    url: text("url").notNull(),
+    label: text("label"),
+    addedBy: uuid("added_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [index("links_group_idx").on(t.groupId), index("links_task_idx").on(t.taskId)],
+);
+
+/** Uploaded files (PDF, images) on a group or a task. Bytes live in object storage under `storageKey`. */
+export const attachments = pgTable(
+  "attachments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+    uploaderId: uuid("uploader_id").references(() => users.id, { onDelete: "set null" }),
+    filename: text("filename").notNull(),
+    mime: text("mime").notNull(),
+    size: integer("size").notNull(),
+    storageKey: text("storage_key").notNull().unique(),
+    ...timestamps,
+  },
+  (t) => [index("attachments_group_idx").on(t.groupId), index("attachments_task_idx").on(t.taskId)],
+);
+
 export const groupRelations = relations(groups, ({ many }) => ({ members: many(groupMembers), tasks: many(tasks), posts: many(posts) }));
 export const groupMemberRelations = relations(groupMembers, ({ one }) => ({
   group: one(groups, { fields: [groupMembers.groupId], references: [groups.id] }),
@@ -168,4 +209,6 @@ export type User = typeof users.$inferSelect;
 export type Group = typeof groups.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type Post = typeof posts.$inferSelect;
+export type Link = typeof links.$inferSelect;
+export type Attachment = typeof attachments.$inferSelect;
 export type TaskStatus = (typeof taskStatusEnum.enumValues)[number];
