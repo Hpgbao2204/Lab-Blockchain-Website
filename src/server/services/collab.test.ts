@@ -8,7 +8,7 @@ import { authenticate, createUser, ensureAdmin } from "./users";
 import { createGroup, setMembers } from "./groups";
 import { createTask, deleteTask, updateTask } from "./wall";
 import { createLink, deleteLink, detectLinkKind, listLinks } from "./links";
-import { deleteAttachment, listAttachments, readAttachment, uploadAttachment, MAX_UPLOAD_BYTES } from "./attachments";
+import { completeUpload, deleteAttachment, listAttachments, prepareUpload, readAttachment, signedDownload, uploadAttachment, MAX_UPLOAD_BYTES } from "./attachments";
 import { buildDigests, renderDigest } from "./digest";
 import { monthlyReport, reportCsv } from "./reports";
 
@@ -111,6 +111,35 @@ describe("attachments", () => {
     await expect(deleteAttachment(db, storage, alice, leadFile.id)).rejects.toMatchObject({ code: "forbidden" });
     await deleteAttachment(db, storage, lead, leadFile.id);
     await expect(readAttachment(db, storage, lead, leadFile.id)).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("direct uploads: signed URL, then the real bytes are checked before the file is listed", async () => {
+    // memory storage pretending to be a bucket: the "browser" writes straight into it
+    const bucket = { ...memoryStorage(), signedPut: async (k: string) => `https://bucket.test/${k}?sig`, signedGet: async (k: string) => `https://bucket.test/${k}?get` };
+    expect(await prepareUpload(db, storage, alice, group, { size: 10, mime: "application/pdf" })).toBeNull();
+    await expect(prepareUpload(db, bucket, alice, group, { size: 10, mime: "text/html" })).rejects.toMatchObject({ code: "invalid_input" });
+    await expect(prepareUpload(db, bucket, alice, group, { size: MAX_UPLOAD_BYTES + 1, mime: "application/pdf" })).rejects.toMatchObject({ code: "invalid_input" });
+    await expect(prepareUpload(db, bucket, bob, group, { size: 10, mime: "application/pdf" })).rejects.toMatchObject({ code: "not_found" });
+    await expect(prepareUpload(db, bucket, alice, group, { size: 10, mime: "application/pdf", taskId: leadTask })).rejects.toMatchObject({ code: "forbidden" });
+
+    const ticket = (await prepareUpload(db, bucket, alice, group, { size: pdf.byteLength, mime: "application/pdf" }))!;
+    expect(ticket.url).toContain(ticket.key);
+    await expect(completeUpload(db, bucket, alice, group, { key: ticket.key, name: "early.pdf" })).rejects.toMatchObject({ code: "invalid_input" });
+    await bucket.put(ticket.key, pdf);
+    // someone else cannot claim alice's upload
+    await expect(completeUpload(db, bucket, lead, group, { key: ticket.key, name: "mine.pdf" })).rejects.toMatchObject({ code: "invalid_input" });
+    const a = await completeUpload(db, bucket, alice, group, { key: ticket.key, name: "direct.pdf" });
+    expect(a).toMatchObject({ mime: "application/pdf", filename: "direct.pdf", size: pdf.byteLength, storageKey: ticket.key });
+    await expect(completeUpload(db, bucket, alice, group, { key: ticket.key, name: "again.pdf" })).rejects.toBeTruthy();
+    expect(await bucket.get(ticket.key)).not.toBeNull();
+    expect(await signedDownload(db, bucket, lead, a.id, false)).toBe(`https://bucket.test/${ticket.key}?get`);
+    await expect(signedDownload(db, bucket, bob, a.id, false)).rejects.toMatchObject({ code: "not_found" });
+
+    // a file that lies about its type is rejected and removed from the bucket
+    const fake = (await prepareUpload(db, bucket, alice, group, { size: 8, mime: "image/png" }))!;
+    await bucket.put(fake.key, new TextEncoder().encode("<script>"));
+    await expect(completeUpload(db, bucket, alice, group, { key: fake.key, name: "x.png" })).rejects.toMatchObject({ code: "invalid_input" });
+    expect(await bucket.get(fake.key)).toBeNull();
   });
 
   it("deleting a task removes its files from storage", async () => {

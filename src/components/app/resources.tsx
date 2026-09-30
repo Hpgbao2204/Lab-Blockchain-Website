@@ -111,12 +111,25 @@ export function AddResource({ groupId, taskId, small, linkPlaceholder, fileOnly 
     if (file.size > 10 * 1024 * 1024) return setError("Files can be at most 10 MB.");
     setBusy(true);
     setError("");
-    const form = new FormData();
-    form.set("file", file);
-    if (taskId) form.set("taskId", taskId);
+    const base = `/api/v1/groups/${groupId}/attachments`;
+    const failed = async (res: Response) => new Error((await res.json().catch(() => null))?.error?.message ?? `Upload failed (${res.status})`);
     try {
-      const res = await fetch(`/api/v1/groups/${groupId}/attachments`, { method: "POST", body: form });
-      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error?.message ?? `Upload failed (${res.status})`);
+      // Ask for a signed bucket URL first; the server says `direct: false` when files stay on its own disk.
+      const ticketRes = await fetch(`${base}/direct`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ size: file.size, mime: file.type, taskId: taskId ?? null }) });
+      if (!ticketRes.ok) throw await failed(ticketRes);
+      const ticket = (await ticketRes.json()).data as { direct: boolean; key?: string; url?: string; contentType?: string };
+      let res: Response;
+      if (ticket.direct) {
+        const put = await fetch(ticket.url!, { method: "PUT", headers: { "Content-Type": ticket.contentType! }, body: file });
+        if (!put.ok) throw new Error(`Upload failed (${put.status})`);
+        res = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: ticket.key, name: file.name, taskId: taskId ?? null }) });
+      } else {
+        const form = new FormData();
+        form.set("file", file);
+        if (taskId) form.set("taskId", taskId);
+        res = await fetch(base, { method: "POST", body: form });
+      }
+      if (!res.ok) throw await failed(res);
       router.refresh();
     } catch (e) {
       setError((e as Error).message);

@@ -8,12 +8,12 @@ Hướng dẫn go-live cho `blockchainist.id.vn` (đổi tên miền nếu dùng
 |---|---|---|
 | Hosting | **Vercel** (Hobby, dự án phi thương mại) | Next.js chạy sẵn, HTTPS tự động, có cron |
 | Postgres | **Neon** (region Singapore `aws-ap-southeast-1`), cài qua Vercel Marketplace | Không bị pause/xoá như Supabase free; Vercel tự điền `DATABASE_URL` |
-| File đính kèm | **Vercel Blob** (cùng tài khoản) | Ổ đĩa của Vercel không lưu lâu dài; Blob cho upload thẳng từ trình duyệt (vượt giới hạn 4.5 MB/request của Vercel Functions) |
+| File đính kèm | **Cloudflare R2** (10 GB free, không tính phí tải xuống) | Ổ đĩa của Vercel không lưu lâu dài. Driver S3 trong code cho trình duyệt upload/tải thẳng qua URL ký ngắn hạn (5 phút), vượt giới hạn 4.5 MB/request của Vercel |
 | Email | **Resend** + domain đã xác thực | Email nhắc việc thứ Hai |
 
-Supabase (Postgres + Storage trong 1 tài khoản) cũng được, nhưng project free bị pause sau ~1 tuần ít hoạt động.
+Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nhưng project free bị pause sau ~1 tuần ít hoạt động. Dịch vụ tương thích S3 nào cũng dùng được với cùng các biến `S3_*`.
 
-> ⚠️ Trước khi mở phần upload cho thành viên: code hiện lưu file vào ổ đĩa (`src/server/storage`). Cần driver Blob/S3 và upload trực tiếp từ trình duyệt; nếu chưa có thì file > ~4.5 MB sẽ lỗi trên Vercel và file sẽ mất sau mỗi lần deploy.
+> ⚠️ Không đặt `S3_*` thì file lưu vào ổ đĩa server (chỉ hợp cho chạy local): trên Vercel file sẽ mất và file > ~4.5 MB sẽ lỗi.
 
 ## Các bước
 
@@ -24,6 +24,7 @@ Supabase (Postgres + Storage trong 1 tài khoản) cũng được, nhưng projec
    - `ADMIN_EMAIL` = `hpgbao@gmail.com`, `ADMIN_NAME` = tên hiển thị
    - `CRON_SECRET` = chuỗi ngẫu nhiên dài (vd. `openssl rand -hex 32`); Vercel Cron tự gửi `Authorization: Bearer $CRON_SECRET`
    - `RESEND_API_KEY`, `MAIL_FROM` = `Blockchainist <noreply@blockchainist.id.vn>` (sau bước Email)
+   - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (sau bước File)
 4. **Tạo bảng + admin** (một lần, từ máy có repo; dùng URL *unpooled* cho migration):
    ```bash
    vercel env pull .env.production.local --environment=production
@@ -39,8 +40,13 @@ Supabase (Postgres + Storage trong 1 tài khoản) cũng được, nhưng projec
    | CNAME | `www` | `cname.vercel-dns.com` |
    Xoá bản ghi A/AAAA/CNAME cũ trùng tên (trang "parking" của nhà đăng ký). Đợi Vercel báo *Valid Configuration*, HTTPS tự cấp.
 6. **Email (Resend)**: *Domains → Add* `blockchainist.id.vn` (region gần nhất, vd. Tokyo) → thêm các bản ghi Resend hiển thị vào DNS: TXT DKIM `resend._domainkey`, MX + TXT SPF cho subdomain `send`. Thêm DMARC: TXT `_dmarc` = `v=DMARC1; p=none; rua=mailto:hpgbao@gmail.com`. Khi *Verified* → tạo API key → điền `RESEND_API_KEY`, `MAIL_FROM` → redeploy → thử ở `/admin/reminders`.
-7. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.id.vn/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
-8. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.id.vn/sitemap.xml`.
+7. **File (Cloudflare R2)**: Cloudflare → *R2 → Create bucket* `blockchainist-files` (không bật public access). *Manage R2 API Tokens → Create*, quyền *Object Read & Write* chỉ cho bucket đó → điền `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`; `S3_ENDPOINT` = `https://<account-id>.r2.cloudflarestorage.com`, `S3_BUCKET` = `blockchainist-files`. Trong bucket → *Settings → CORS policy*:
+   ```json
+   [{ "AllowedOrigins": ["https://blockchainist.id.vn"], "AllowedMethods": ["PUT", "GET"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
+   ```
+   Redeploy, rồi thử upload một PDF > 5 MB trên wall.
+8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.id.vn/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
+9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.id.vn/sitemap.xml`.
 
 ## Vận hành
 

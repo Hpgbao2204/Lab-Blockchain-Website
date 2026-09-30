@@ -91,3 +91,14 @@ export const taskPatch = z.object({
 export const commentInput = z.object({ body: text(3000) });
 
 export const monthParam = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");
+
+export const uploadRequestInput = z.object({
+  size: z.number().int().positive(),
+  mime: z.string().max(100),
+  taskId: z.string().uuid().optional().nullable(),
+});
+export const uploadCompleteInput = z.object({
+  key: z.string().max(200),
+  name: z.string().max(300),
+  taskId: z.string().uuid().optional().nullable(),
+});

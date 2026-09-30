@@ -28,6 +28,7 @@ export const endpoints: Endpoint[] = [
   { method: "GET", path: "/api/v1/groups/:id/links", summary: "Overleaf, GitHub and other links. POST adds one: group-wide (admin or lead) or on a task you work on.", auth: "member" },
   { method: "DELETE", path: "/api/v1/links/:id", summary: "Remove a link (whoever added it, a lead or the admin).", auth: "member" },
   { method: "GET", path: "/api/v1/groups/:id/attachments", summary: "Files on the wall. POST multipart `file` (PDF or image, max 10 MB) and optional `taskId`.", auth: "member" },
+  { method: "POST", path: "/api/v1/groups/:id/attachments/direct", summary: "Start a direct upload `{ size, mime, taskId? }`: returns a signed URL to PUT the file to, then POST `{ key, name, taskId? }` to /groups/:id/attachments.", auth: "member" },
   { method: "GET", path: "/api/v1/attachments/:id", summary: "Download a file (group members only); DELETE removes it.", auth: "member", params: "download" },
   { method: "PATCH", path: "/api/v1/tasks/:id", summary: "Update a task. Members may only change the status of their own tasks.", auth: "member" },
   { method: "GET", path: "/api/v1/tasks/:id/comments", summary: "Comments on a task; POST adds one.", auth: "member" },

@@ -76,7 +76,7 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Admin mặc định `hpgbao@gmail.com` (`ADMIN_EMAIL`), sau đổi sang thầy. Hiện "UIT – VNU-HCM" ở hero, footer, People, metadata.
 - 10 thành viên mẫu trên /people (nhãn *sample*, không tính vào stats); `--demo` tạo tài khoản cho họ + 2 nhóm.
 - Wall: link nhóm (Overleaf, repo, call for papers; chỉ admin/lead ghim), nơi nộp (journal/conf) trên task, link + file trên từng task (member gắn cho task của mình), khu Files. Bảng `links`, `attachments`, cột `tasks.venue`, `tasks.completed_at` (migration `0001`).
-- File: PDF/PNG/JPEG/GIF/WebP, kiểm tra theo nội dung (magic bytes), ≤ 10 MB, tải qua `/api/v1/attachments/:id` có kiểm tra nhóm. Lưu ở `UPLOAD_DIR` (mặc định `.data/uploads`); **deploy Vercel cần driver S3/Blob** (interface ở `src/server/storage`).
+- File: PDF/PNG/JPEG/GIF/WebP, kiểm tra theo nội dung (magic bytes), ≤ 10 MB, tải qua `/api/v1/attachments/:id` có kiểm tra nhóm. Lưu ở `UPLOAD_DIR` (mặc định `.data/uploads`); production dùng driver S3 (`S3_*`).
 - Email thứ Hai 08:00 (VN): `/api/v1/cron/weekly-digest` (Bearer `CRON_SECRET`, `vercel.json` cron `0 1 * * 1`), gửi qua Resend; xem trước + gửi tay ở `/admin/reminders`.
 - Báo cáo tháng `/admin/reports?month=YYYY-MM`: theo nhóm và thành viên (xong, trễ hạn, còn mở, quá hạn, hoạt động), tải CSV, in/lưu PDF.
 
@@ -86,16 +86,16 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Deploy: cần một Postgres (khuyên Supabase hoặc Neon free, region Singapore) + Vercel. Đặt `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_NAME` vào environment secrets, không dán vào chat.
 - Chuyển admin sang `dungtrt@uit.edu.vn` khi ổn định.
 - Roster thành viên thật (tên, vai trò, ảnh, link) thay 10 hồ sơ mẫu.
-- Object storage cho file khi deploy (Supabase Storage / S3 / Vercel Blob).
+- Tạo bucket R2 + CORS khi deploy (xem `docs/DEPLOY.md`).
 - Email: domain gửi đã xác thực + Resend key.
 - Chưa đo Lighthouse / hiệu năng 3D trên GPU thật.
 
 **Cập nhật 01/10/2026 (review trước go-live):**
 - Header bảo mật (HSTS, chống iframe, nosniff, Referrer/Permissions-Policy), `robots.txt`, `sitemap.xml`, ảnh chia sẻ OG.
 - Đổi mật khẩu thì đăng xuất mọi phiên cũ; giới hạn đăng nhập thêm theo tài khoản.
-- Hướng dẫn go-live: `docs/DEPLOY.md` (Vercel + Neon + Vercel Blob + Resend, DNS).
+- Hướng dẫn go-live: `docs/DEPLOY.md` (Vercel + Neon + Cloudflare R2 + Resend, DNS).
 - Rate limit đăng nhập lưu trong Postgres (bảng `rate_limits`, migration `0002`), dùng chung giữa các instance serverless.
-- Còn chặn deploy: driver lưu file (Blob/S3) + upload trực tiếp (Vercel giới hạn 4.5 MB/request).
+- File: driver S3 (`S3_*`, khuyên Cloudflare R2); trình duyệt upload/tải thẳng qua URL ký 5 phút (`POST groups/:id/attachments/direct`, rồi `POST groups/:id/attachments` với `{ key, name }`), server kiểm tra lại kích thước + magic bytes trước khi nhận. Không có `S3_*` thì vẫn lưu ổ đĩa như cũ.
 
 **Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
 
