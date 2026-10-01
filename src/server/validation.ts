@@ -122,3 +122,41 @@ export const announcementInput = z.object({
   body: text(5000),
   notify: z.boolean().default(true),
 });
+
+const optionalUrl = httpUrl.optional().nullable().or(z.literal("").transform(() => null));
+const cvEntry = z.object({
+  title: text(200),
+  org: optionalText(200),
+  period: optionalText(60),
+  url: optionalUrl,
+  detail: optionalText(1000),
+});
+export const profileAccents = ["yellow", "blue", "teal", "red", "violet", "orange", "pink", "lime"] as const;
+export const profileTemplates = ["classic", "minimal"] as const;
+export const profileInput = z.object({
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3)
+    .max(60)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers and dashes, e.g. gia-bao-huynh"),
+  headline: optionalText(160),
+  bio: optionalText(2000),
+  photoUrl: optionalUrl,
+  portfolioUrl: optionalUrl,
+  links: z.array(z.object({ label: text(40), url: httpUrl })).max(8).default([]),
+  interests: z.array(text(60)).max(12).default([]),
+  cv: z
+    .object({
+      education: z.array(cvEntry).max(15).default([]),
+      experience: z.array(cvEntry).max(20).default([]),
+      projects: z.array(cvEntry).max(20).default([]),
+      awards: z.array(cvEntry).max(20).default([]),
+    })
+    .default({ education: [], experience: [], projects: [], awards: [] }),
+  display: z.enum(["template", "portfolio"]).default("template"),
+  template: z.enum(profileTemplates).default("classic"),
+  accent: z.enum(profileAccents).default("yellow"),
+  published: z.boolean().default(false),
+});

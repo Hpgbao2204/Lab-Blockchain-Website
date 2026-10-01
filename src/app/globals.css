@@ -350,3 +350,8 @@ select.field { appearance: none; padding-right: 36px; background-image: linear-g
   .card, .stat-row div { box-shadow: none !important; }
   .report-group { break-inside: avoid; }
 }
+
+/* member CV timeline (profile pages) */
+.cv-list { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 3px solid var(--color-ink); display: grid; gap: 16px; }
+.cv-list li { position: relative; }
+.cv-list li::before { content: ""; position: absolute; left: -27px; top: 5px; width: 13px; height: 13px; border: 2px solid var(--color-ink); border-radius: 4px; background: var(--c, var(--color-yellow)); transform: rotate(45deg); }
