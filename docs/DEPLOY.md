@@ -50,6 +50,6 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
 
 ## Vận hành
 
-- Cron `vercel.json`: thứ Hai 01:00 UTC (08:00 giờ VN). Gói Hobby có thể lệch trong vòng 1 giờ.
+- Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN) và nhắc họp hằng ngày 00:00 UTC (07:00 VN). Gói Hobby có thể lệch trong vòng 1 giờ.
 - Backup: Neon có point-in-time restore ngắn hạn; nên `pg_dump "$DATABASE_URL_UNPOOLED" > backup.sql` hàng tháng.
 - Chuyển admin sang thầy: tạo tài khoản admin cho `dungtrt@uit.edu.vn` trong `/admin`, thầy đăng nhập và đổi mật khẩu, rồi hạ quyền tài khoản cũ nếu muốn.

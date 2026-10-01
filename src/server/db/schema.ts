@@ -219,3 +219,50 @@ export type Post = typeof posts.$inferSelect;
 export type Link = typeof links.$inferSelect;
 export type Attachment = typeof attachments.$inferSelect;
 export type TaskStatus = (typeof taskStatusEnum.enumValues)[number];
+
+/** Lab meetings (seminar / weekly meeting): when, where, and who presents. Visible to every member. */
+export const meetings = pgTable(
+  "meetings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    location: text("location"),
+    link: text("link"),
+    notes: text("notes"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    /** set once the reminder email for the day of the meeting has gone out */
+    remindedAt: timestamp("reminded_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("meetings_starts_idx").on(t.startsAt)],
+);
+
+export const meetingPresenters = pgTable(
+  "meeting_presenters",
+  {
+    meetingId: uuid("meeting_id")
+      .notNull()
+      .references(() => meetings.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** what this person presents, e.g. a paper title */
+    topic: text("topic"),
+  },
+  (t) => [primaryKey({ columns: [t.meetingId, t.userId] }), index("meeting_presenters_user_idx").on(t.userId)],
+);
+
+/** Lab-wide notices from the admin, shown on every member's dashboard and optionally emailed. */
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("announcements_created_idx").on(t.createdAt)],
+);

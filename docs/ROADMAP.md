@@ -97,6 +97,13 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Rate limit đăng nhập lưu trong Postgres (bảng `rate_limits`, migration `0002`), dùng chung giữa các instance serverless.
 - File: driver S3 (`S3_*`, khuyên Cloudflare R2); trình duyệt upload/tải thẳng qua URL ký 5 phút (`POST groups/:id/attachments/direct`, rồi `POST groups/:id/attachments` với `{ key, name }`), server kiểm tra lại kích thước + magic bytes trước khi nhận. Không có `S3_*` thì vẫn lưu ổ đĩa như cũ.
 
+**Cập nhật 01/10/2026 (họp lab, theo yêu cầu thầy):**
+- `/admin/meetings`: admin lên lịch buổi họp (ngày giờ VN, phòng, link online, ghi chú), chọn người trình bày (+ chủ đề); danh sách gợi ý ai lâu chưa trình bày nhất. Sửa/đổi người trình bày, gửi lại email, xoá.
+- Thông báo chung toàn lab (title + nội dung), tuỳ chọn gửi email cho mọi tài khoản đang hoạt động.
+- Email gửi tới chính email đăng nhập của tài khoản (admin tạo account = đã gắn email). Người trình bày nhận dòng "You are presenting". Cron hằng ngày 07:00 VN nhắc buổi họp trong ngày (`/api/v1/cron/meeting-reminders`).
+- `/app`: thẻ "Lab meetings" (nổi bật buổi mình trình bày) + "Announcements".
+- Chạy local không có Resend: email được ghi ra `.data/outbox/*.html` để mở xem. Bảng `meetings`, `meeting_presenters`, `announcements` (migration `0003`). Demo seed có 3 buổi họp + 1 thông báo.
+
 **Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
 
 ## Milestones
