@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/admin/meetings", label: "Meetings", admin: true },
   { href: "/admin/reports", label: "Monthly report", admin: true },
   { href: "/admin/reminders", label: "Monday email", admin: true },
+  { href: "/account/profile", label: "My profile" },
   { href: "/account/password", label: "Password" },
 ];
 

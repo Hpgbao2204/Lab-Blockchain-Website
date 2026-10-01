@@ -32,6 +32,7 @@ export const endpoints: Endpoint[] = [
   { method: "GET", path: "/api/v1/attachments/:id", summary: "Download a file (group members only); DELETE removes it.", auth: "member", params: "download" },
   { method: "PATCH", path: "/api/v1/tasks/:id", summary: "Update a task. Members may only change the status of their own tasks.", auth: "member" },
   { method: "GET", path: "/api/v1/tasks/:id/comments", summary: "Comments on a task; POST adds one.", auth: "member" },
+  { method: "GET", path: "/api/v1/profiles/me", summary: "Your profile for the editor (admin: /profiles/:userId). PUT saves it: portfolio link or CV sections, template, published.", auth: "member" },
   { method: "GET", path: "/api/v1/meetings", summary: "Lab meetings with their presenters. POST (admin) schedules one and emails every member; PATCH/DELETE …/:id.", auth: "member", params: "when (upcoming|past)" },
   { method: "GET", path: "/api/v1/announcements", summary: "Lab-wide announcements. POST (admin) posts one and emails every member.", auth: "member" },
   { method: "GET", path: "/api/v1/admin/presenters", summary: "Who presented how often and when last, longest-ago first.", auth: "admin" },

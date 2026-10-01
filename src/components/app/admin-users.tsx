@@ -137,6 +137,9 @@ export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
                 <td className="mono text-xs">{!u.active ? "deactivated" : u.mustChangePassword ? "awaiting first sign-in" : "active"}</td>
                 <td>
                   <div className="flex justify-end gap-2">
+                    <a href={`/account/profile?user=${u.id}`} className="btn btn-sm">
+                      Profile
+                    </a>
                     <button
                       type="button"
                       className="btn btn-sm"

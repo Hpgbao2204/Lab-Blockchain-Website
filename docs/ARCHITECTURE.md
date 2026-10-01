@@ -38,6 +38,7 @@ Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác o
 - `comments(id, group_id, post_id?, task_id?, author_id, body)`: đúng một trong hai target
 - `links(id, group_id, task_id?, kind overleaf|github|drive|paper|other, url, label, added_by)`: không có task = link của cả nhóm (admin/lead); link trên task: người làm task đó
 - `meetings(id, title, starts_at, location?, link?, notes?, created_by, reminded_at?)`, `meeting_presenters(meeting_id, user_id, topic?)`, `announcements(id, title, body, author_id, emailed_at?)`: họp lab + thông báo chung, mọi thành viên đăng nhập đều xem; chỉ admin tạo/sửa
+- `profiles(user_id, slug, headline, bio, photo_url, portfolio_url, links, interests, cv, display template|portfolio, template, accent, published)`: hồ sơ công khai, chủ tài khoản hoặc admin sửa
 - `attachments(id, group_id, task_id?, uploader_id, filename, mime, size, storage_key)`: bytes ở storage (`src/server/storage`), không nằm trong DB
 
 Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`.

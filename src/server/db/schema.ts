@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("user_role", ["admin", "member"]);
 export const groupRoleEnum = pgEnum("group_role", ["lead", "member"]);
@@ -7,6 +7,7 @@ export const groupStatusEnum = pgEnum("group_status", ["active", "archived"]);
 export const postKindEnum = pgEnum("post_kind", ["note", "announcement"]);
 export const taskStatusEnum = pgEnum("task_status", ["todo", "doing", "review", "done"]);
 export const priorityEnum = pgEnum("task_priority", ["low", "normal", "high"]);
+export const profileDisplayEnum = pgEnum("profile_display", ["template", "portfolio"]);
 export const linkKindEnum = pgEnum("link_kind", ["overleaf", "github", "drive", "paper", "other"]);
 
 const timestamps = {
@@ -266,3 +267,41 @@ export const announcements = pgTable(
   },
   (t) => [index("announcements_created_idx").on(t.createdAt)],
 );
+
+export interface CvEntry {
+  title: string;
+  org?: string | null;
+  period?: string | null;
+  url?: string | null;
+  detail?: string | null;
+}
+export interface CvSections {
+  education: CvEntry[];
+  experience: CvEntry[];
+  projects: CvEntry[];
+  awards: CvEntry[];
+}
+
+/**
+ * A member's public profile on /people. Each member edits their own: either a CV built from the
+ * site's templates, or a link out to a portfolio they designed themselves. Hidden until published.
+ */
+export const profiles = pgTable("profiles", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  headline: text("headline"),
+  bio: text("bio"),
+  photoUrl: text("photo_url"),
+  portfolioUrl: text("portfolio_url"),
+  links: jsonb("links").$type<{ label: string; url: string }[]>().notNull().default([]),
+  interests: jsonb("interests").$type<string[]>().notNull().default([]),
+  cv: jsonb("cv").$type<CvSections>().notNull().default({ education: [], experience: [], projects: [], awards: [] }),
+  /** `portfolio`: the card links to `portfolioUrl`; `template`: the site renders the CV */
+  display: profileDisplayEnum("display").notNull().default("template"),
+  template: text("template").notNull().default("classic"),
+  accent: text("accent").notNull().default("yellow"),
+  published: boolean("published").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

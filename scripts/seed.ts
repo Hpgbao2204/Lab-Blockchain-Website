@@ -15,6 +15,8 @@ import { createGroup, setMembers } from "../src/server/services/groups";
 import { createPost, createTask, updateTask } from "../src/server/services/wall";
 import { createLink } from "../src/server/services/links";
 import { createAnnouncement, createMeeting } from "../src/server/services/meetings";
+import { saveProfile } from "../src/server/services/profiles";
+import { profileInput } from "../src/server/validation";
 import { people } from "../src/data/people";
 import { addDays, labToday, weekStart } from "../src/lib/weeks";
 
@@ -101,6 +103,25 @@ async function main() {
     await createMeeting(db, admin, { ...meet, title: "Weekly lab seminar", date: addDays(mon, 11), time: "14:00", presenters: [{ userId: u("gia-khang-vo").id, topic: "Reproducing DeFi exploits in Foundry" }] });
     await createMeeting(db, admin, { ...meet, title: "Weekly lab seminar", date: addDays(mon, -3), time: "14:00", presenters: [{ userId: u("hai-dang-ngo").id, topic: "Incident report survey" }] });
     await createAnnouncement(db, admin, { title: "Welcome to the lab wall", body: "Meetings, presenters and announcements now show up here and in your email." });
+
+    // Public profiles: every sample member gets a CV page; Bao's demo account links his real portfolio.
+    for (const p of people.filter((x) => x.sample)) {
+      await saveProfile(db, admin, u(p.slug).id, profileInput.parse({ slug: p.slug, headline: p.title, bio: p.bio, interests: p.interests, published: true, accent: ["yellow", "blue", "teal", "violet", "orange", "pink"][p.slug.length % 6], template: p.slug.length % 2 ? "minimal" : "classic", cv: { education: [{ title: "B.Sc. Information Security", org: "University of Information Technology, VNU-HCM", period: "2023 – now" }], experience: [{ title: "Research member", org: "Blockchainist lab", period: "2025 – now", detail: p.bio }], projects: [], awards: [] } }));
+    }
+    const baoMail = "gia.bao.huynh@blockchainist.local";
+    const [baoExisting] = await db.select().from(users).where(eq(users.email, baoMail));
+    const bao = baoExisting ?? (await db.insert(users).values({ email: baoMail, name: "Huynh Phan Gia Bao", title: "Undergraduate researcher", passwordHash: await hashPassword(demoPassword), mustChangePassword: false }).returning())[0];
+    await saveProfile(db, admin, bao.id, profileInput.parse({
+      slug: "huynh-phan-gia-bao",
+      headline: "Blockchain security researcher",
+      bio: "Works on smart contract security, zero-knowledge proofs, cross-chain protocols and decentralized identity.",
+      interests: ["Smart contracts", "Zero-knowledge", "Cross-chain", "Identity & reputation"],
+      display: "portfolio",
+      portfolioUrl: "https://hpgbao2204.github.io/Hpgbao2204/",
+      links: [{ label: "GitHub", url: "https://github.com/hpgbao2204" }, { label: "Google Scholar", url: "https://scholar.google.com/citations?user=koh0HscAAAAJ" }, { label: "ORCID", url: "https://orcid.org/0009-0008-8773-0482" }],
+      accent: "blue",
+      published: true,
+    }));
 
     console.log(`Demo data added for ${Object.keys(accounts).length} sample members (e.g. minh.anh.le@blockchainist.local). Password: ${demoPassword}`);
   }

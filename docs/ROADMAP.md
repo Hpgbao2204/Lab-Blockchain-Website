@@ -104,6 +104,11 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - `/app`: thẻ "Lab meetings" (nổi bật buổi mình trình bày) + "Announcements".
 - Chạy local không có Resend: email được ghi ra `.data/outbox/*.html` để mở xem. Bảng `meetings`, `meeting_presenters`, `announcements` (migration `0003`). Demo seed có 3 buổi họp + 1 thông báo.
 
+**Cập nhật 01/10/2026 (CV / portfolio thành viên):**
+- Mỗi thành viên tự sửa hồ sơ ở `/account/profile` (admin sửa hộ qua nút *Profile* trong danh sách tài khoản): chọn **portfolio riêng** (thẻ trên /people trỏ thẳng tới site họ tự thiết kế) hoặc **CV trên site** (Education, Research & experience, Projects, Awards) với 2 template *Classic* / *Minimal* + 8 màu nhấn; xem trước trực tiếp. Chỉ hiện công khai khi tick "Show on the People page".
+- `/people` lấy PI từ `src/data/people.ts` + hồ sơ đã publish trong DB; 10 hồ sơ mẫu tự ẩn khi đã có hồ sơ thật. Trang `/people/[slug]` (cả PI). Ảnh: link ảnh hoặc tự lấy ảnh GitHub. Bảng `profiles` (migration `0004`). API `/api/v1/profiles/:userId|me`, `/api/v1/members` không trả email.
+- Demo seed: hồ sơ CV cho 10 thành viên mẫu + tài khoản `gia.bao.huynh@blockchainist.local` link portfolio thật của Bao.
+
 **Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
 
 ## Milestones
