@@ -37,6 +37,7 @@ Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác o
 - `task_assignees(task_id, user_id)`: rỗng = cả nhóm
 - `comments(id, group_id, post_id?, task_id?, author_id, body)`: đúng một trong hai target
 - `links(id, group_id, task_id?, kind overleaf|github|drive|paper|other, url, label, added_by)`: không có task = link của cả nhóm (admin/lead); link trên task: người làm task đó
+- `meetings(id, title, starts_at, location?, link?, notes?, created_by, reminded_at?)`, `meeting_presenters(meeting_id, user_id, topic?)`, `announcements(id, title, body, author_id, emailed_at?)`: họp lab + thông báo chung, mọi thành viên đăng nhập đều xem; chỉ admin tạo/sửa
 - `attachments(id, group_id, task_id?, uploader_id, filename, mime, size, storage_key)`: bytes ở storage (`src/server/storage`), không nằm trong DB
 
 Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`.
@@ -49,7 +50,7 @@ Thành công `{ data, meta? }`, lỗi `{ error: { code, message, details? } }`. 
 
 - Public: `stats`, `research`, `research/:slug`, `publications?q&kind&year&area&limit`, `members`, `pioneers`, `health`, `me` (null khi chưa đăng nhập).
 - Auth: `POST auth/login`, `POST auth/logout`, `POST auth/change-password`.
-- Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST, kèm `venue`, `links`), `groups/:id/posts` (GET/POST), `groups/:id/links` (GET/POST), `DELETE links/:id`, `groups/:id/attachments` (GET, POST multipart), `GET|DELETE attachments/:id`, `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
+- Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST, kèm `venue`, `links`), `groups/:id/posts` (GET/POST), `groups/:id/links` (GET/POST), `DELETE links/:id`, `groups/:id/attachments` (GET, POST multipart hoặc JSON `{ key, name, taskId? }` sau upload trực tiếp), `POST groups/:id/attachments/direct` (URL ký để PUT lên bucket; `{ direct: false }` khi lưu ổ đĩa), `GET|DELETE attachments/:id`, `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
 - Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`, `admin/reports?month&format=csv`, `admin/digest` (GET xem trước, POST gửi).
 - Cron: `GET cron/weekly-digest` (header `Authorization: Bearer $CRON_SECRET`, `?dryRun`).
 

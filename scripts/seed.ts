@@ -14,6 +14,7 @@ import { ensureAdmin } from "../src/server/services/users";
 import { createGroup, setMembers } from "../src/server/services/groups";
 import { createPost, createTask, updateTask } from "../src/server/services/wall";
 import { createLink } from "../src/server/services/links";
+import { createAnnouncement, createMeeting } from "../src/server/services/meetings";
 import { people } from "../src/data/people";
 import { addDays, labToday, weekStart } from "../src/lib/weeks";
 
@@ -93,6 +94,13 @@ async function main() {
     await t(sc.id, "Reproduce the first 10 exploits in Foundry", addDays(mon, 2), [u("gia-khang-vo").id, u("hai-dang-ngo").id], { priority: "high" });
     await t(sc.id, "Label bug classes", addDays(mon, 9), [u("khanh-linh-dang").id]);
     await createPost(db, admin, sc.id, { kind: "note", pinned: false, body: "Please add your Foundry repo link to your task so everyone can re-run it." });
+
+    // Lab meetings: this Friday's seminar (Minh Anh presents), one next week, and a past one for the rotation list.
+    const meet = { location: "Room B4.10, UIT", link: "https://meet.google.com/abc-defg-hij", notes: null };
+    await createMeeting(db, admin, { ...meet, title: "Weekly lab seminar", date: addDays(mon, 4), time: "14:00", presenters: [{ userId: u("minh-anh-le").id, topic: "zk-HTLC threat model" }] });
+    await createMeeting(db, admin, { ...meet, title: "Weekly lab seminar", date: addDays(mon, 11), time: "14:00", presenters: [{ userId: u("gia-khang-vo").id, topic: "Reproducing DeFi exploits in Foundry" }] });
+    await createMeeting(db, admin, { ...meet, title: "Weekly lab seminar", date: addDays(mon, -3), time: "14:00", presenters: [{ userId: u("hai-dang-ngo").id, topic: "Incident report survey" }] });
+    await createAnnouncement(db, admin, { title: "Welcome to the lab wall", body: "Meetings, presenters and announcements now show up here and in your email." });
 
     console.log(`Demo data added for ${Object.keys(accounts).length} sample members (e.g. minh.anh.le@blockchainist.local). Password: ${demoPassword}`);
   }

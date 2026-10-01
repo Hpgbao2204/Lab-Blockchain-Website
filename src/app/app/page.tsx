@@ -1,18 +1,26 @@
 import Link from "next/link";
-import { ArrowUpRight, CalendarClock } from "lucide-react";
+import { ArrowUpRight, CalendarClock, Megaphone } from "lucide-react";
+import { MeetingCard } from "@/components/app/meeting-card";
 import { PageHead, SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
 import { requirePageUser } from "@/server/auth/current";
 import { listGroups } from "@/server/services/groups";
+import { listAnnouncements, listMeetings } from "@/server/services/meetings";
 import { myOpenTasks } from "@/server/services/wall";
-import { BUCKET_LABEL, bucketFor, formatDay, labToday } from "@/lib/weeks";
+import { BUCKET_LABEL, bucketFor, formatDay, formatStamp, labToday } from "@/lib/weeks";
 
 const bucketColor = { overdue: "var(--color-red)", "this-week": "var(--color-yellow)", "next-week": "var(--color-blue)", later: "var(--color-paper-2)", done: "var(--color-teal)" };
 
 export default async function Dashboard() {
   const user = await requirePageUser();
   const db = await getDb();
-  const [groups, tasks] = await Promise.all([listGroups(db, user), myOpenTasks(db, user)]);
+  const [groups, tasks, meetings, notices] = await Promise.all([
+    listGroups(db, user),
+    myOpenTasks(db, user),
+    listMeetings(db, user, { when: "upcoming", limit: 3 }),
+    listAnnouncements(db, user, 3),
+  ]);
+  const presenting = meetings.find((m) => m.presenters.some((p) => p.id === user.id));
   const today = labToday();
   const first = user.name.split(" ").at(-1);
 
@@ -20,7 +28,45 @@ export default async function Dashboard() {
     <div className="wrap page">
       <PageHead eyebrow={`Today · ${formatDay(today)}`} title={<>Hi, <span className="hl">{first}</span></>}>
         {tasks.length ? `You have ${tasks.length} open task${tasks.length === 1 ? "" : "s"}.` : "Nothing is waiting on you right now."}
+        {presenting ? ` You present at "${presenting.title}" on ${formatStamp(presenting.startsAt)}.` : ""}
       </PageHead>
+
+      {(meetings.length > 0 || notices.length > 0) && (
+        <div className="mb-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <section aria-labelledby="meetings" className="grid gap-3">
+            <SectionHead id="meetings" no={String(meetings.length).padStart(2, "0")} title="Lab meetings" />
+            {meetings.length ? (
+              meetings.map((m, i) => <MeetingCard key={m.id} meeting={m} viewerId={user.id} highlight={i === 0} />)
+            ) : (
+              <p className="note">
+                <b>None</b>
+                <span>No meeting scheduled.</span>
+              </p>
+            )}
+          </section>
+          <section aria-labelledby="notices" className="grid gap-3">
+            <SectionHead id="notices" no={String(notices.length).padStart(2, "0")} title="Announcements" />
+            {notices.map((a) => (
+              <article key={a.id} className="card grid gap-1.5 p-4">
+                <h3 className="flex items-center gap-2 font-bold">
+                  <Megaphone size={16} aria-hidden /> {a.title}
+                </h3>
+                <p className="whitespace-pre-line text-sm text-ink-2">{a.body}</p>
+                <p className="mono text-xs text-muted">
+                  {a.author?.name ? `${a.author.name} · ` : ""}
+                  {formatStamp(a.createdAt)}
+                </p>
+              </article>
+            ))}
+            {!notices.length && (
+              <p className="note">
+                <b>Quiet</b>
+                <span>No announcements.</span>
+              </p>
+            )}
+          </section>
+        </div>
+      )}
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <section aria-labelledby="my-tasks">

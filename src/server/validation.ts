@@ -91,3 +91,34 @@ export const taskPatch = z.object({
 export const commentInput = z.object({ body: text(3000) });
 
 export const monthParam = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");
+
+export const uploadRequestInput = z.object({
+  size: z.number().int().positive(),
+  mime: z.string().max(100),
+  taskId: z.string().uuid().optional().nullable(),
+});
+export const uploadCompleteInput = z.object({
+  key: z.string().max(200),
+  name: z.string().max(300),
+  taskId: z.string().uuid().optional().nullable(),
+});
+
+const clock = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM");
+export const meetingInput = z.object({
+  title: text(200),
+  /** date and time in Vietnam time */
+  date: isoDate,
+  time: clock,
+  location: optionalText(200),
+  link: httpUrl.optional().nullable().or(z.literal("").transform(() => null)),
+  notes: optionalText(3000),
+  presenters: z.array(z.object({ userId: z.string().uuid(), topic: optionalText(300) })).max(20).default([]),
+  /** email every member about it now */
+  notify: z.boolean().default(true),
+});
+
+export const announcementInput = z.object({
+  title: text(200),
+  body: text(5000),
+  notify: z.boolean().default(true),
+});
