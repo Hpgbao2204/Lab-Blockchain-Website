@@ -54,6 +54,11 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
 8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.id.vn/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
 9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.id.vn/sitemap.xml`.
 
+## Lỗi thường gặp
+
+- Log Vercel báo `mkdir '.data/pglite'` hoặc `DATABASE_URL is not set`, `/login` và `/api/v1/me` lỗi 500: project chưa có database. Làm bước 2 (Storage → Neon → *Connect*, tick cả Production), kiểm tra *Settings → Environment Variables* có `DATABASE_URL`, rồi **Redeploy** (biến môi trường chỉ có hiệu lực từ lần deploy sau). Sau đó làm tiếp bước 4 để tạo bảng và admin.
+- Trang công khai (Home, Research, Publications…) vẫn chạy khi chưa có database vì chúng là trang tĩnh; chỉ đăng nhập, wall, admin và /people cần database.
+
 ## Vận hành
 
 - Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN) và nhắc họp hằng ngày 00:00 UTC (07:00 VN). Gói Hobby có thể lệch trong vòng 1 giờ.
