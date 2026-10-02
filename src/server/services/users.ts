@@ -100,3 +100,17 @@ export async function ensureAdmin(db: Db, input: { email: string; name: string; 
   });
   return password;
 }
+
+/**
+ * Lost admin password (deploy script, ADMIN_RESET=1): gives the admin with this email, or else
+ * the first admin, a temporary password, reactivates it and signs it out everywhere.
+ */
+export async function recoverAdmin(db: Db, email?: string) {
+  const admins = await db.select({ id: users.id, email: users.email }).from(users).where(eq(users.role, "admin")).orderBy(asc(users.createdAt));
+  const admin = admins.find((a) => a.email === email?.toLowerCase()) ?? admins[0];
+  if (!admin) return null;
+  const password = temporaryPassword();
+  await db.update(users).set({ passwordHash: await hashPassword(password), mustChangePassword: true, active: true }).where(eq(users.id, admin.id));
+  await deleteUserSessions(db, admin.id);
+  return { email: admin.email, password };
+}

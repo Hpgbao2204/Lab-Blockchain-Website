@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createTestDb, type Db } from "../db/client";
 import { createSession, userFromToken, type SessionUser } from "../auth/sessions";
-import { authenticate, changePassword, createUser, ensureAdmin, resetPassword, updateUser } from "./users";
+import { authenticate, changePassword, createUser, ensureAdmin, recoverAdmin, resetPassword, updateUser } from "./users";
 import { createGroup, getGroup, listGroups, setMembers } from "./groups";
 import { addTaskComment, createPost, createTask, listTasks, myOpenTasks, updateTask } from "./wall";
 
@@ -68,6 +68,21 @@ describe("accounts", () => {
     await expect(authenticate(db, "bob@lab.test", "a-much-better-pass")).rejects.toMatchObject({ code: "unauthorized" });
     await updateUser(db, admin, bob.id, { active: true });
     await expect(updateUser(db, admin, admin.id, { active: false })).rejects.toMatchObject({ code: "invalid_input" });
+  });
+});
+
+describe("admin recovery", () => {
+  it("gives a lost admin a temporary password and signs it out", async () => {
+    const db = await createTestDb();
+    expect(await recoverAdmin(db)).toBeNull();
+    const first = await ensureAdmin(db, { email: "pi@lab.test", name: "PI" });
+    const { token } = await createSession(db, (await authenticate(db, "pi@lab.test", first!)).id);
+    const r = await recoverAdmin(db, "PI@lab.test");
+    expect(r?.email).toBe("pi@lab.test");
+    await expect(authenticate(db, "pi@lab.test", first!)).rejects.toMatchObject({ code: "unauthorized" });
+    expect((await authenticate(db, "pi@lab.test", r!.password)).mustChangePassword).toBe(true);
+    expect(await userFromToken(db, token)).toBeNull();
+    expect((await recoverAdmin(db, "someone@else.test"))?.email).toBe("pi@lab.test");
   });
 });
 

@@ -27,6 +27,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (sau bước File)
 4. **Tạo bảng + admin: tự động**, không cần gõ lệnh. Mỗi lần Vercel build, script `vercel-build` (`scripts/deploy-db.ts`) chạy migration rồi tạo admin nếu chưa có. Chỉ cần **Redeploy** sau khi đã có `DATABASE_URL`.
    - Đặt sẵn `ADMIN_PASSWORD` (Environment Variables, Production) nếu muốn tự chọn mật khẩu admin. Không đặt thì mật khẩu tạm được in ra **build log** (Deployments → bản mới nhất → *Build Logs*, tìm dòng `[deploy-db] Admin created`), đăng nhập rồi đổi ngay.
+   - **Quên / không thấy mật khẩu admin** (log ghi `Admin already exists`): thêm biến `ADMIN_RESET` = `1` (chỉ môi trường Production) → Redeploy → build log có dòng `[deploy-db] ADMIN_RESET: <email> temporary password: …` → đăng nhập, đổi mật khẩu → **xoá biến `ADMIN_RESET`** (để nguyên thì lần deploy sau lại đặt lại mật khẩu).
    - Kiểm tra: build log có `[deploy-db] Migrations applied.`; mở `/login` đăng nhập được.
    - Chạy tay (không bắt buộc), từ máy có repo: `vercel env pull .env.production.local --environment=production`, nạp biến rồi `npx tsx scripts/deploy-db.ts`. Không chạy `db:seed --demo` trên production.
 5. **Domain**: Vercel → *Settings → Domains* → thêm `blockchainist.id.vn` và `www.blockchainist.id.vn` (redirect về apex). Ở trang quản lý DNS của nhà đăng ký, tạo đúng các bản ghi Vercel hiển thị, thường là:
