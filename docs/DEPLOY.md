@@ -25,14 +25,10 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    - `CRON_SECRET` = chuỗi ngẫu nhiên dài (vd. `openssl rand -hex 32`); Vercel Cron tự gửi `Authorization: Bearer $CRON_SECRET`
    - `RESEND_API_KEY`, `MAIL_FROM` = `Blockchainist <noreply@blockchainist.id.vn>` (sau bước Email)
    - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (sau bước File)
-4. **Tạo bảng + admin** (một lần, từ máy có repo; dùng URL *unpooled* cho migration):
-   ```bash
-   vercel env pull .env.production.local --environment=production
-   set -a; source .env.production.local; set +a
-   DATABASE_URL="$DATABASE_URL_UNPOOLED" npm run db:migrate
-   DATABASE_URL="$DATABASE_URL_UNPOOLED" npm run db:seed    # in mật khẩu tạm của admin, đổi ngay khi đăng nhập
-   ```
-   Không chạy `--demo` trên production. Mỗi lần thêm migration mới: chạy lại `npm run db:migrate` trước khi deploy.
+4. **Tạo bảng + admin: tự động**, không cần gõ lệnh. Mỗi lần Vercel build, script `vercel-build` (`scripts/deploy-db.ts`) chạy migration rồi tạo admin nếu chưa có. Chỉ cần **Redeploy** sau khi đã có `DATABASE_URL`.
+   - Đặt sẵn `ADMIN_PASSWORD` (Environment Variables, Production) nếu muốn tự chọn mật khẩu admin. Không đặt thì mật khẩu tạm được in ra **build log** (Deployments → bản mới nhất → *Build Logs*, tìm dòng `[deploy-db] Admin created`), đăng nhập rồi đổi ngay.
+   - Kiểm tra: build log có `[deploy-db] Migrations applied.`; mở `/login` đăng nhập được.
+   - Chạy tay (không bắt buộc), từ máy có repo: `vercel env pull .env.production.local --environment=production`, nạp biến rồi `npx tsx scripts/deploy-db.ts`. Không chạy `db:seed --demo` trên production.
 5. **Domain**: Vercel → *Settings → Domains* → thêm `blockchainist.id.vn` và `www.blockchainist.id.vn` (redirect về apex). Ở trang quản lý DNS của nhà đăng ký, tạo đúng các bản ghi Vercel hiển thị, thường là:
    | Loại | Tên | Giá trị |
    |---|---|---|
@@ -53,6 +49,11 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    Redeploy, rồi thử upload một PDF > 5 MB trên wall.
 8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.id.vn/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
 9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.id.vn/sitemap.xml`.
+
+## Lỗi thường gặp
+
+- Log Vercel báo `mkdir '.data/pglite'` hoặc `DATABASE_URL is not set`, `/login` và `/api/v1/me` lỗi 500: project chưa có database. Làm bước 2 (Storage → Neon → *Connect*, tick cả Production), kiểm tra *Settings → Environment Variables* có `DATABASE_URL`, rồi **Redeploy** (biến môi trường chỉ có hiệu lực từ lần deploy sau). Redeploy cũng tự tạo bảng và admin (bước 4).
+- Trang công khai (Home, Research, Publications…) vẫn chạy khi chưa có database vì chúng là trang tĩnh; chỉ đăng nhập, wall, admin và /people cần database.
 
 ## Vận hành
 
