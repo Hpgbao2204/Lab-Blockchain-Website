@@ -6,6 +6,8 @@
  * password is printed in the build log, and it must be changed at first sign-in.
  * Lost the admin password? Set ADMIN_RESET=1, redeploy, read the new temporary password in the
  * build log, then delete ADMIN_RESET (otherwise every deploy resets it again).
+ * Start over with an empty site? Set RESET_DATABASE to a new value (e.g. today's date) and
+ * redeploy: every table is emptied once for that value, then the admin above is created again.
  */
 import path from "node:path";
 import postgres from "postgres";
@@ -27,8 +29,9 @@ async function main() {
     const db = drizzle(sql, { schema });
     await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
     console.log("[deploy-db] Migrations applied.");
-    const email = process.env.ADMIN_EMAIL || "hpgbao@gmail.com";
-    const created = await ensureAdmin(db as unknown as Db, { email, name: process.env.ADMIN_NAME || "Lab Admin", password: process.env.ADMIN_PASSWORD || undefined });
+    await resetOnce(sql, process.env.RESET_DATABASE);
+    const email = process.env.ADMIN_EMAIL || "dungtrt@uit.edu.vn";
+    const created = await ensureAdmin(db as unknown as Db, { email, name: process.env.ADMIN_NAME || "Tran Tuan Dung", password: process.env.ADMIN_PASSWORD || undefined });
     if (!created && process.env.ADMIN_RESET === "1") {
       const r = await recoverAdmin(db as unknown as Db, email);
       if (r) console.log(`[deploy-db] ADMIN_RESET: ${r.email}  temporary password: ${r.password}  (sign in, change it, then DELETE the ADMIN_RESET variable)`);
@@ -38,6 +41,18 @@ async function main() {
   } finally {
     await sql.end();
   }
+}
+
+/** Empties every app table, once per RESET_DATABASE value (remembered in app_meta, which is kept). */
+async function resetOnce(sql: postgres.Sql, token: string | undefined) {
+  if (!token) return;
+  await sql`create table if not exists app_meta (key text primary key, value text not null)`;
+  const [done] = await sql`select value from app_meta where key = 'reset_database'`;
+  if (done?.value === token) return console.log(`[deploy-db] RESET_DATABASE=${token} was already applied; nothing deleted.`);
+  const tables = await sql<{ name: string }[]>`select tablename as name from pg_tables where schemaname = 'public' and tablename <> 'app_meta'`;
+  if (tables.length) await sql.unsafe(`truncate ${tables.map((t) => `"${t.name}"`).join(", ")} restart identity cascade`);
+  await sql`insert into app_meta (key, value) values ('reset_database', ${token}) on conflict (key) do update set value = excluded.value`;
+  console.log(`[deploy-db] RESET_DATABASE=${token}: emptied ${tables.length} tables (accounts, groups, wall, meetings, profiles…).`);
 }
 
 main().catch((e) => {
