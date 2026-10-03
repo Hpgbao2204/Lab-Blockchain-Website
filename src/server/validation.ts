@@ -160,3 +160,45 @@ export const profileInput = z.object({
   accent: z.enum(profileAccents).default("yellow"),
   published: z.boolean().default(false),
 });
+
+export const newsKinds = ["news", "award", "paper", "event"] as const;
+export const newsInput = z.object({
+  kind: z.enum(newsKinds).default("news"),
+  title: text(200),
+  summary: text(400),
+  body: optionalText(10000),
+  link: optionalUrl,
+  publishedOn: isoDate,
+  published: z.boolean().default(true),
+});
+
+export const applicationPrograms = ["Undergraduate", "Master's", "PhD", "Other"] as const;
+export const applicationInput = z.object({
+  name: text(120),
+  email: z.string().trim().toLowerCase().email().max(200),
+  program: z.enum(applicationPrograms),
+  studentId: optionalText(40),
+  interests: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
+  message: z.string().trim().min(30, "Tell us a little more (at least 30 characters).").max(4000),
+  link: optionalUrl,
+  /** honeypot: people never fill it, bots usually do */
+  website: z.string().max(200).optional(),
+});
+export const applicationStatuses = ["new", "contacted", "accepted", "declined"] as const;
+export const applicationUpdateInput = z.object({
+  status: z.enum(applicationStatuses).optional(),
+  adminNote: optionalText(2000),
+});
+
+export const publicationKinds = ["journal", "conference", "article"] as const;
+export const publicationInput = z.object({
+  name: optionalText(80),
+  title: text(400),
+  year: z.number().int().min(1990).max(2100),
+  kind: z.enum(publicationKinds),
+  authors: z.array(z.string().trim().min(1).max(120)).min(1).max(60),
+  venue: optionalText(300),
+  doi: optionalText(200).transform((v) => (v ? v.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "") : v)),
+  url: optionalUrl,
+  areas: z.array(z.string().trim().min(1).max(60)).max(10).optional(),
+});

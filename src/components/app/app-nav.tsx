@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation";
 
 const ITEMS = [
   { href: "/app", label: "My wall" },
-  { href: "/admin", label: "Accounts & groups", admin: true },
+  { href: "/admin", label: "Accounts", admin: true },
   { href: "/admin/meetings", label: "Meetings", admin: true },
-  { href: "/admin/reports", label: "Monthly report", admin: true },
+  { href: "/admin/news", label: "News", admin: true },
+  { href: "/admin/applications", label: "Applications", admin: true },
+  { href: "/admin/publications", label: "Publications", admin: true },
+  { href: "/admin/reports", label: "Report", admin: true },
   { href: "/admin/reminders", label: "Monday email", admin: true },
   { href: "/account/profile", label: "My profile" },
   { href: "/account/password", label: "Password" },

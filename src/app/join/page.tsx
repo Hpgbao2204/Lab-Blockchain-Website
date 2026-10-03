@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHead, SectionHead } from "@/components/site/page-head";
+import { ApplyForm } from "@/components/join/apply-form";
+import { listResearchAreas } from "@/lib/content";
 
 export const metadata: Metadata = { title: "Join", description: "Join the Blockchainist research group." };
 
@@ -13,7 +15,7 @@ const perks = [
 
 const steps = [
   { t: "Read a few papers", d: "Pick one or two publications that interest you and read them properly." },
-  { t: "Send a short note", d: "Tell us who you are, what caught your eye and what you would like to try." },
+  { t: "Apply below", d: "Tell us who you are, what caught your eye and what you would like to try." },
   { t: "Have a chat", d: "We talk about your background and agree on a first small task." },
   { t: "Get an account", d: "Members get a login to the private group wall. There is no public sign-up." },
 ];
@@ -49,11 +51,16 @@ export default function JoinPage() {
         </ol>
       </section>
 
+      <section className="section" aria-labelledby="apply">
+        <SectionHead id="apply" no="02" title="Apply online" />
+        <ApplyForm areas={listResearchAreas().map(({ slug, title }) => ({ slug, title }))} />
+      </section>
+
       <section className="section">
         <div className="card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between" style={{ background: "var(--color-yellow)" }}>
           <div>
-            <h2 className="display text-[clamp(22px,2.6vw,30px)]">Ready to start?</h2>
-            <p className="mt-2 text-ink-2">An online application form is on the way. Until then, write to the principal investigator.</p>
+            <h2 className="display text-[clamp(22px,2.6vw,30px)]">Questions first?</h2>
+            <p className="mt-2 text-ink-2">Write to the principal investigator, or read a few of our papers.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <a href="mailto:dungtrt@uit.edu.vn?subject=Joining%20Blockchainist" className="btn btn-ink">

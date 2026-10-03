@@ -1,4 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createTestDb } from "@/server/db/client";
+
+// public routes merge the admin's publication changes from the database
+vi.mock("@/server/db", () => {
+  const db = createTestDb();
+  return { getDb: () => db };
+});
 import { GET as index } from "./route";
 import { GET as publications } from "./publications/route";
 import { GET as researchOne } from "./research/[slug]/route";
@@ -15,7 +22,7 @@ describe("/api/v1", () => {
   });
 
   it("filters publications and reports meta", async () => {
-    const res = publications(req("/api/v1/publications?kind=conference"));
+    const res = await publications(req("/api/v1/publications?kind=conference"));
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toContain("s-maxage");
     const body = await res.json();
@@ -24,7 +31,7 @@ describe("/api/v1", () => {
   });
 
   it("rejects bad query params with the error envelope", async () => {
-    const res = publications(req("/api/v1/publications?year=abc"));
+    const res = await publications(req("/api/v1/publications?year=abc"));
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error.code).toBe("invalid_query");
@@ -40,7 +47,7 @@ describe("/api/v1", () => {
   });
 
   it("serves stats and a JSON 404 for unknown paths", async () => {
-    expect((await stats().json()).data.publications).toBeGreaterThan(0);
+    expect((await (await stats()).json()).data.publications).toBeGreaterThan(0);
     const res = unknown();
     expect(res.status).toBe(404);
     expect((await res.json()).error.code).toBe("not_found");

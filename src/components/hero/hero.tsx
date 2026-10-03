@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getStats } from "@/lib/content";
+import type { getStats } from "@/lib/content";
 import { HeroShell } from "./hero-shell";
 import { Rotator } from "./rotator";
 
@@ -11,8 +11,7 @@ const letters = (word: string, offset = 0) =>
     </span>
   ));
 
-export function Hero() {
-  const stats = getStats();
+export function Hero({ stats }: { stats: ReturnType<typeof getStats> }) {
   return (
     <HeroShell>
       <p className="eyebrow">

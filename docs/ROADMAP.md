@@ -57,8 +57,8 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 | M0 | Scaffold, tooling, CI (deploy Vercel hoãn theo yêu cầu) | S | ✅ xong (chạy localhost) |
 | M1 | Design system + hero 3D + shell public | M | ✅ xong; M1.5 redesign tiếng Anh + nhiều trang + API đọc |
 | M2 | DB schema, Auth, admin tạo user | L | ✅ xong (Drizzle + Postgres/PGlite, auth tự viết) |
-| M3 | Public content: members/CV, publications (ORCID), awards | L | 🟡 publications thật (30 bài, Crossref); members/CV/awards chưa |
-| M4 | Admin console | M | 🟡 tài khoản + nhóm xong; CMS nội dung public chưa |
+| M3 | Public content: members/CV, publications (ORCID), awards | L | ✅ publications (Crossref + admin thêm/ẩn), CV thành viên, News (giải thưởng, bài được nhận) |
+| M4 | Admin console | M | ✅ tài khoản, nhóm, họp, News, đơn ứng tuyển, publications |
 | M5 | Tường riêng tư theo nhóm/tháng | L | ✅ wall, bảng việc theo tuần, comment, link Overleaf/GitHub, nơi nộp, file đính kèm |
 | M6 | Polish, SEO, a11y, hardening, bàn giao | M | ⬜ |
 | M7 | (tuỳ chọn) thông báo, lịch, tìm kiếm | — | 🟡 email thứ Hai + báo cáo tháng (CSV/in PDF) xong |
@@ -80,7 +80,7 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Email thứ Hai 08:00 (VN): `/api/v1/cron/weekly-digest` (Bearer `CRON_SECRET`, `vercel.json` cron `0 1 * * 1`), gửi qua Resend; xem trước + gửi tay ở `/admin/reminders`.
 - Báo cáo tháng `/admin/reports?month=YYYY-MM`: theo nhóm và thành viên (xong, trễ hạn, còn mở, quá hạn, hoạt động), tải CSV, in/lưu PDF.
 
-**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `hpgbao@gmail.com` / `admin-password-123` (thành viên mẫu, vd. `minh.anh.le@blockchainist.local` (lead), `tuan.kiet.bui@blockchainist.local` / `demo-password-123`).
+**Chạy thử local:** `npm install && ADMIN_PASSWORD=admin-password-123 npm run db:seed -- --demo && npm run dev` → đăng nhập `dungtrt@uit.edu.vn` / `admin-password-123` (thành viên mẫu, vd. `minh.anh.le@blockchainist.local` (lead), `tuan.kiet.bui@blockchainist.local` / `demo-password-123`).
 
 **Còn dở / cần quyết:**
 - Deploy: cần một Postgres (khuyên Supabase hoặc Neon free, region Singapore) + Vercel. Đặt `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_NAME` vào environment secrets, không dán vào chat.
@@ -109,7 +109,14 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - `/people` lấy PI từ `src/data/people.ts` + hồ sơ đã publish trong DB; 10 hồ sơ mẫu tự ẩn khi đã có hồ sơ thật. Trang `/people/[slug]` (cả PI). Ảnh: link ảnh hoặc tự lấy ảnh GitHub. Bảng `profiles` (migration `0004`). API `/api/v1/profiles/:userId|me`, `/api/v1/members` không trả email.
 - Demo seed: hồ sơ CV cho 10 thành viên mẫu + tài khoản `gia.bao.huynh@blockchainist.local` link portfolio thật của Bao.
 
-**Bước tiếp theo:** deploy (Postgres + Vercel + object storage), roster thật + trang CV, CMS nội dung public trong /admin.
+**Cập nhật 03/10/2026 (go-live + tính năng còn lại):**
+- Site chạy ở https://blockchainist.id.vn (Vercel + Neon). `RESET_DATABASE` xoá sạch dữ liệu một lần; admin production là thầy `dungtrt@uit.edu.vn` (mật khẩu tạm in trong build log).
+- **News** (`/news`, `/news/[slug]`, 3 tin mới nhất trên trang chủ, sitemap): admin viết ở `/admin/news`; loại News/Award/Paper accepted/Event, bản nháp, hẹn ngày đăng. Bảng `news`.
+- **Ứng tuyển**: form trên `/join` (giới hạn 3 lần/giờ/IP, honeypot chống bot), admin xem ở `/admin/applications` (trạng thái, ghi chú riêng, trả lời qua email), email báo admin khi có đơn mới. Bảng `applications`.
+- **Publications do admin quản lý**: `/admin/publications` thêm bài Crossref chưa có (DOI hoặc link), sửa/xoá bài thêm tay, ẩn/hiện mọi bài. Bảng `publication_entries`, `hidden_publications` (migration `0005`). Nếu DB lỗi, trang public vẫn hiện bản Crossref.
+- Hướng dẫn cho thầy: `docs/HUONG-DAN-ADMIN.md`.
+
+**Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 
 ## Milestones
 

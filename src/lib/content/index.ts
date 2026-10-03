@@ -24,9 +24,13 @@ export type PublicationQuery = z.infer<typeof publicationQuerySchema>;
 
 const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 
-export function listPublications(query: PublicationQuery = {}): Publication[] {
+/**
+ * `source` defaults to the Crossref snapshot; server code passes `allPublications(db)` so the
+ * admin's additions and hidden papers count too.
+ */
+export function listPublications(query: PublicationQuery = {}, source: Publication[] = publications): Publication[] {
   const q = query.q ? norm(query.q) : "";
-  const rows = publications
+  const rows = source
     .filter((p) => !query.kind || p.kind === query.kind)
     .filter((p) => !query.year || p.year === query.year)
     .filter((p) => !query.area || p.areas.includes(query.area))
@@ -35,10 +39,10 @@ export function listPublications(query: PublicationQuery = {}): Publication[] {
   return query.limit ? rows.slice(0, query.limit) : rows;
 }
 
-export function publicationFacets() {
-  const byKind = Object.fromEntries(PUBLICATION_KINDS.map((k) => [k, publications.filter((p) => p.kind === k).length])) as Record<PublicationKind, number>;
-  const years = [...new Set(publications.map((p) => p.year))].sort((a, b) => b - a);
-  return { total: publications.length, byKind, years };
+export function publicationFacets(source: Publication[] = publications) {
+  const byKind = Object.fromEntries(PUBLICATION_KINDS.map((k) => [k, source.filter((p) => p.kind === k).length])) as Record<PublicationKind, number>;
+  const years = [...new Set(source.map((p) => p.year))].sort((a, b) => b - a);
+  return { total: source.length, byKind, years };
 }
 
 export const listResearchAreas = (): ResearchArea[] => researchAreas;
@@ -47,8 +51,8 @@ export const getResearchArea = (slug: string): ResearchArea | undefined => resea
 export const listPeople = (): Person[] => people;
 export const listPioneers = (): Pioneer[] => pioneers;
 
-export function getStats() {
-  const f = publicationFacets();
+export function getStats(source: Publication[] = publications) {
+  const f = publicationFacets(source);
   return {
     publications: f.total,
     journals: f.byKind.journal,
@@ -62,4 +66,4 @@ export function getStats() {
 export const doiUrl = (doi: string) => `https://doi.org/${doi}`;
 export const scholarSearchUrl = (p: Publication) =>
   `https://scholar.google.com/scholar?q=${encodeURIComponent(`"${p.name ? `${p.name}: ` : ""}${p.title}"`)}`;
-export const publicationUrl = (p: Publication) => (p.doi ? doiUrl(p.doi) : scholarSearchUrl(p));
+export const publicationUrl = (p: Publication) => (p.doi ? doiUrl(p.doi) : p.url || scholarSearchUrl(p));

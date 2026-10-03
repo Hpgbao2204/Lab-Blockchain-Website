@@ -22,9 +22,8 @@ import { addDays, labToday, weekStart } from "../src/lib/weeks";
 
 async function main() {
   const db = await createDb({ url: process.env.DATABASE_URL, dir: process.env.PGLITE_DIR ?? ".data/pglite" });
-  // Bao runs the site while it is being tested; the advisor's address takes over later.
-  const email = process.env.ADMIN_EMAIL || "hpgbao@gmail.com";
-  const created = await ensureAdmin(db, { email, name: process.env.ADMIN_NAME || "Lab Admin", password: process.env.ADMIN_PASSWORD });
+  const email = process.env.ADMIN_EMAIL || "dungtrt@uit.edu.vn";
+  const created = await ensureAdmin(db, { email, name: process.env.ADMIN_NAME || "Tran Tuan Dung", password: process.env.ADMIN_PASSWORD });
   console.log(created ? `Admin created: ${email}  password: ${created}` : "An admin already exists; nothing to do.");
 
   if (process.argv.includes("--demo")) {

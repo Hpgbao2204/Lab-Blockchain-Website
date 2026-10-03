@@ -19,10 +19,10 @@ Crossref (theo ORCID PI) ──► npm run sync:publications ──► src/data/
 
 | Vai trò | Quyền |
 |---|---|
-| visitor | Đọc trang public và API public. Không có đăng ký. |
+| visitor | Đọc trang public và API public, gửi đơn ứng tuyển ở /join. Không có đăng ký. |
 | member | Xem nhóm mình thuộc về (nhóm khác trả 404, không lộ là có tồn tại); viết note lên wall; comment task; đổi **trạng thái** task giao cho mình hoặc cho cả nhóm. |
 | lead (theo nhóm) | Như member + tạo/sửa/xoá task, giao việc, đăng announcement/ghim trong nhóm đó. |
-| admin | Toàn quyền: tạo/sửa/vô hiệu tài khoản, reset mật khẩu, đổi role, tạo/lưu trữ nhóm, gán thành viên và lead, xem mọi wall. |
+| admin | Toàn quyền: tạo/sửa/vô hiệu tài khoản, reset mật khẩu, đổi role, tạo/lưu trữ nhóm, gán thành viên và lead, xem mọi wall; viết News, đọc đơn ứng tuyển, thêm/ẩn publications. |
 
 Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác origin, rate limit đăng nhập (in-memory), tài khoản còn mật khẩu tạm bị chặn mọi API trừ đổi mật khẩu, vô hiệu/reset xoá session.
 
@@ -41,7 +41,9 @@ Bảo vệ khác: cookie `httpOnly` + `SameSite=Lax`, chặn request ghi khác o
 - `profiles(user_id, slug, headline, bio, photo_url, portfolio_url, links, interests, cv, display template|portfolio, template, accent, published)`: hồ sơ công khai, chủ tài khoản hoặc admin sửa
 - `attachments(id, group_id, task_id?, uploader_id, filename, mime, size, storage_key)`: bytes ở storage (`src/server/storage`), không nằm trong DB
 
-Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` trong DB, `awards`, `site_settings`.
+- `news(id, slug unique, kind news|award|paper|event, title, summary, body?, link?, published_on, published, author_id)`: public chỉ thấy bản đã đăng và ngày ≤ hôm nay (giờ VN); admin thấy cả nháp
+- `applications(id, name, email, program, student_id?, interests, message, link?, status new|contacted|accepted|declined, admin_note?)`: ai cũng gửi được (rate limit 3/giờ/IP), chỉ admin đọc
+- `publication_entries(id, name?, title, year, kind, authors, venue?, doi?, url?, areas, created_by)`, `hidden_publications(id)`: bài admin thêm + bài bị ẩn, cộng/trừ vào bản Crossref trong `src/data` (`services/publications.ts#allPublications`)
 
 Đổi schema: sửa `schema.ts` → `npm run db:generate` → commit SQL mới trong `drizzle/`.
 
@@ -49,10 +51,10 @@ Kế hoạch thêm (M3–M4): `member_profiles`/CV công khai, `publications` tr
 
 Thành công `{ data, meta? }`, lỗi `{ error: { code, message, details? } }`. Danh sách đầy đủ ở `src/lib/api/catalog.ts` (hiện trên trang `/developers`).
 
-- Public: `stats`, `research`, `research/:slug`, `publications?q&kind&year&area&limit`, `members`, `pioneers`, `health`, `me` (null khi chưa đăng nhập).
+- Public: `stats`, `research`, `research/:slug`, `publications?q&kind&year&area&limit`, `news`, `news/:slug`, `POST applications`, `members`, `pioneers`, `health`, `me` (null khi chưa đăng nhập).
 - Auth: `POST auth/login`, `POST auth/logout`, `POST auth/change-password`.
 - Member: `me/tasks`, `groups`, `groups/:id`, `groups/:id/tasks` (GET/POST, kèm `venue`, `links`), `groups/:id/posts` (GET/POST), `groups/:id/links` (GET/POST), `DELETE links/:id`, `groups/:id/attachments` (GET, POST multipart hoặc JSON `{ key, name, taskId? }` sau upload trực tiếp), `POST groups/:id/attachments/direct` (URL ký để PUT lên bucket; `{ direct: false }` khi lưu ổ đĩa), `GET|DELETE attachments/:id`, `PATCH|DELETE tasks/:id`, `tasks/:id/comments` (GET/POST).
-- Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`, `admin/reports?month&format=csv`, `admin/digest` (GET xem trước, POST gửi).
+- Admin: `admin/users` (GET/POST), `PATCH admin/users/:id`, `POST admin/users/:id/reset-password`, `admin/groups` (GET/POST), `PATCH admin/groups/:id`, `PUT admin/groups/:id/members`, `admin/reports?month&format=csv`, `admin/digest` (GET xem trước, POST gửi), `POST news`, `PATCH|DELETE news/:id`, `GET applications`, `PATCH|DELETE applications/:id`, `admin/publications` (GET/POST), `PATCH admin/publications/:id` (sửa bài thêm tay hoặc `{ hidden }`), `DELETE admin/publications/:id`.
 - Cron: `GET cron/weekly-digest` (header `Authorization: Bearer $CRON_SECRET`, `?dryRun`).
 
 ## Việc nền

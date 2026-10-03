@@ -6,6 +6,10 @@ import { PublicationCard } from "@/components/pubs/publication-card";
 import { SectionHead } from "@/components/site/page-head";
 import { accentVar } from "@/components/site/accent";
 import { getResearchArea, listPublications, listResearchAreas } from "@/lib/content";
+import { getDb } from "@/server/db";
+import { allPublications } from "@/server/services/publications";
+
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -26,7 +30,7 @@ export default async function ResearchAreaPage({ params }: Props) {
   const all = listResearchAreas();
   const idx = all.findIndex((a) => a.slug === slug);
   const next = all[(idx + 1) % all.length];
-  const pubs = listPublications({ area: slug });
+  const pubs = listPublications({ area: slug }, await allPublications(await getDb()));
   const c = accentVar(area.accent);
 
   return (
