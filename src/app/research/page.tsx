@@ -5,10 +5,15 @@ import { PageHead } from "@/components/site/page-head";
 import { Reveal } from "@/components/site/reveal";
 import { accentVar } from "@/components/site/accent";
 import { listPublications, listResearchAreas } from "@/lib/content";
+import { getDb } from "@/server/db";
+import { allPublications } from "@/server/services/publications";
 
 export const metadata: Metadata = { title: "Research", description: "Research directions of the Blockchainist group." };
 
-export default function ResearchPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ResearchPage() {
+  const all = await allPublications(await getDb());
   const areas = listResearchAreas();
   return (
     <div className="wrap page">
@@ -29,7 +34,7 @@ export default function ResearchPage() {
                     <li key={k}>{k}</li>
                   ))}
                 </ul>
-                <p className="mono text-xs! text-muted!">{listPublications({ area: a.slug }).length} related papers</p>
+                <p className="mono text-xs! text-muted!">{listPublications({ area: a.slug }, all).length} related papers</p>
               </Link>
           </Reveal>
         ))}

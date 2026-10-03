@@ -305,3 +305,71 @@ export const profiles = pgTable("profiles", {
   published: boolean("published").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event"]);
+export const applicationStatusEnum = pgEnum("application_status", ["new", "contacted", "accepted", "declined"]);
+
+/** Public news items (lab news, awards, accepted papers, events), written by the admin. */
+export const news = pgTable(
+  "news",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    kind: newsKindEnum("kind").notNull().default("news"),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    body: text("body"),
+    link: text("link"),
+    /** the date shown on the item (Vietnam calendar day) */
+    publishedOn: date("published_on").notNull(),
+    /** drafts are only visible to admins */
+    published: boolean("published").notNull().default(true),
+    authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("news_published_idx").on(t.publishedOn)],
+);
+export type NewsItem = typeof news.$inferSelect;
+
+/** Applications sent from the public Join form; only admins read them. */
+export const applications = pgTable(
+  "applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    program: text("program").notNull(),
+    studentId: text("student_id"),
+    interests: jsonb("interests").$type<string[]>().notNull().default([]),
+    message: text("message").notNull(),
+    link: text("link"),
+    status: applicationStatusEnum("status").notNull().default("new"),
+    adminNote: text("admin_note"),
+    ...timestamps,
+  },
+  (t) => [index("applications_created_idx").on(t.createdAt)],
+);
+export type Application = typeof applications.$inferSelect;
+
+/** Publications the admin adds by hand, on top of the Crossref snapshot in `src/data`. */
+export const publicationEntries = pgTable("publication_entries", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  title: text("title").notNull(),
+  year: integer("year").notNull(),
+  kind: text("kind").notNull(),
+  authors: jsonb("authors").$type<string[]>().notNull().default([]),
+  venue: text("venue"),
+  doi: text("doi"),
+  url: text("url"),
+  areas: jsonb("areas").$type<string[]>().notNull().default([]),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+/** Snapshot publications the admin hid from the public list (ids from `src/data/publications`). */
+export const hiddenPublications = pgTable("hidden_publications", {
+  id: text("id").primaryKey(),
+  ...timestamps,
+});

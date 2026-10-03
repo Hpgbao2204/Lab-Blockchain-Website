@@ -17,6 +17,8 @@ export interface Publication {
   authors: string[];
   venue: string | null;
   doi: string | null;
+  /** a link for papers without a DOI (added by the admin) */
+  url?: string | null;
   /** research area slugs, see `research.ts` */
   areas: string[];
 }
