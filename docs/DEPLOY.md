@@ -25,6 +25,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    - `CRON_SECRET` = chuỗi ngẫu nhiên dài (vd. `openssl rand -hex 32`); Vercel Cron tự gửi `Authorization: Bearer $CRON_SECRET`
    - `RESEND_API_KEY`, `MAIL_FROM` = `Blockchainist <noreply@blockchainist.id.vn>` (sau bước Email)
    - `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (sau bước File)
+   - `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` (captcha form /join, bước 7b)
 4. **Tạo bảng + admin: tự động**, không cần gõ lệnh. Mỗi lần Vercel build, script `vercel-build` (`scripts/deploy-db.ts`) chạy migration rồi tạo admin nếu chưa có. Chỉ cần **Redeploy** sau khi đã có `DATABASE_URL`.
    - Đặt sẵn `ADMIN_PASSWORD` (Environment Variables, Production) nếu muốn tự chọn mật khẩu admin. Không đặt thì mật khẩu tạm được in ra **build log** (Deployments → bản mới nhất → *Build Logs*, tìm dòng `[deploy-db] Admin created`), đăng nhập rồi đổi ngay.
    - **Quên / không thấy mật khẩu admin** (log ghi `Admin already exists`): thêm biến `ADMIN_RESET` = `1` (chỉ môi trường Production) → Redeploy → build log có dòng `[deploy-db] ADMIN_RESET: <email> temporary password: …` → đăng nhập, đổi mật khẩu → **xoá biến `ADMIN_RESET`** (để nguyên thì lần deploy sau lại đặt lại mật khẩu).
@@ -49,6 +50,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    [{ "AllowedOrigins": ["https://blockchainist.id.vn"], "AllowedMethods": ["PUT", "GET"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
    ```
    Redeploy, rồi thử upload một PDF > 5 MB trên wall.
+7b. **Captcha form /join (Cloudflare Turnstile, miễn phí)**: Cloudflare → *Turnstile → Add widget* → tên `blockchainist-join`, hostname `blockchainist.id.vn` (thêm `localhost` nếu muốn thử ở máy), widget mode *Managed* → *Create*. Copy **Site Key** vào `TURNSTILE_SITE_KEY` (tên cũ `NEXT_PUBLIC_TURNSTILE_SITE_KEY` vẫn chạy) và **Secret Key** vào `TURNSTILE_SECRET_KEY` (Production) → Redeploy. Thiếu một trong hai thì captcha tắt hẳn, form vẫn gửi được. Chưa đặt hai biến này thì form vẫn chạy, chỉ còn honeypot + giới hạn 3 đơn/giờ/IP; quá 20 đơn/giờ thì admin không nhận thêm email báo đơn (đơn vẫn lưu).
 8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.id.vn/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
 9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.id.vn/sitemap.xml`.
 

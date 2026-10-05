@@ -85,6 +85,18 @@ body {
 .nav-link:hover, .nav-link[aria-current="page"] { border-color: var(--color-ink); background: var(--color-card); }
 .nav-link[aria-current="page"] { background: var(--color-yellow); }
 
+/* the red "something new" badge on My wall, like a notification count */
+.unread-dot {
+  position: absolute; top: -9px; right: -9px; z-index: 1;
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  border: 2px solid var(--color-ink); border-radius: 999px; background: var(--color-red); color: #fff;
+  font: 800 11px/1 var(--font-sans); box-shadow: 1px 1px 0 var(--color-ink);
+  animation: unread-pop .35s cubic-bezier(.34, 1.56, .64, 1);
+}
+.unread-dot.unread-inline { position: static; margin-left: 6px; vertical-align: 1px; box-shadow: none; }
+@keyframes unread-pop { from { transform: scale(0); } }
+@media (prefers-reduced-motion: reduce) { .unread-dot { animation: none; } }
+
 /* -------------------------------------------------------------- buttons -- */
 .btn {
   --c: var(--color-card);

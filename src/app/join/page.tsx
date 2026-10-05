@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { PageHead, SectionHead } from "@/components/site/page-head";
 import { ApplyForm } from "@/components/join/apply-form";
 import { listResearchAreas } from "@/lib/content";
+import { captchaSiteKey } from "@/server/captcha";
 
 export const metadata: Metadata = { title: "Join", description: "Join the Blockchainist research group." };
 
@@ -15,9 +16,9 @@ const perks = [
 
 const steps = [
   { t: "Read a few papers", d: "Pick one or two publications that interest you and read them properly." },
-  { t: "Apply below", d: "Tell us who you are, what caught your eye and what you would like to try." },
+  { t: "Apply below", d: "Alone or as a team: tell us who you are, what caught your eye and what you would like to try." },
   { t: "Have a chat", d: "We talk about your background and agree on a first small task." },
-  { t: "Get an account", d: "Members get a login to the private group wall. There is no public sign-up." },
+  { t: "Get an account", d: "Once accepted, everyone on the application gets a login by email. There is no public sign-up." },
 ];
 
 export default function JoinPage() {
@@ -53,7 +54,7 @@ export default function JoinPage() {
 
       <section className="section" aria-labelledby="apply">
         <SectionHead id="apply" no="02" title="Apply online" />
-        <ApplyForm areas={listResearchAreas().map(({ slug, title }) => ({ slug, title }))} />
+        <ApplyForm areas={listResearchAreas().map(({ slug, title }) => ({ slug, title }))} captchaSiteKey={captchaSiteKey()} />
       </section>
 
       <section className="section">

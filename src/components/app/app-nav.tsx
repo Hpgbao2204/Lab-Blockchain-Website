@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { UnreadDot, useWallActivity } from "./wall-activity";
 
 const ITEMS = [
   { href: "/app", label: "My wall" },
@@ -18,12 +19,14 @@ const ITEMS = [
 
 export function AppNav({ admin }: { admin: boolean }) {
   const path = usePathname();
+  const unread = useWallActivity()?.total;
   const current = ITEMS.filter((i) => path === i.href || path.startsWith(`${i.href}/`)).sort((a, b) => b.href.length - a.href.length)[0]?.href;
   return (
     <>
       {ITEMS.filter((i) => admin || !i.admin).map((i) => (
         <Link key={i.href} href={i.href} className="nav-link whitespace-nowrap" aria-current={current === i.href ? "page" : undefined}>
           {i.label}
+          {i.href === "/app" && <UnreadDot n={unread} className="unread-inline" />}
         </Link>
       ))}
     </>

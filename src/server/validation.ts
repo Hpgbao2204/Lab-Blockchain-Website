@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { withoutAccents } from "@/lib/text";
 import { PASSWORD_MIN } from "./auth/password";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
@@ -176,25 +177,47 @@ export const newsInput = z.object({
 });
 
 export const applicationPrograms = ["Undergraduate", "Master's", "PhD", "Other"] as const;
-export const applicationInput = z.object({
-  name: text(120),
-  email: z.string().trim().toLowerCase().email().max(200),
-  program: z.enum(applicationPrograms),
-  studentId: optionalText(40),
-  interests: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
-  message: z.string().trim().min(30, "Tell us a little more (at least 30 characters).").max(4000),
-  link: optionalUrl,
-  facebook: optionalUrl.refine((v) => !v || /^https?:\/\/([a-z0-9-]+\.)*(facebook\.com|fb\.com|fb\.me)\//i.test(v), "Use your Facebook profile link, e.g. https://facebook.com/your.name"),
-  zalo: z
+export const MAX_TEAM = 6;
+const phoneNumber = (what: string) =>
+  z
     .string()
     .trim()
     .max(20)
-    .regex(/^\+?[0-9][0-9 .-]{7,18}$/, "Use the phone number you use on Zalo, e.g. 0901 234 567")
-    .optional()
-    .nullable()
-    .or(z.literal("").transform(() => null)),
+    .regex(/^\+?[0-9][0-9 .-]{7,18}$/, `${what}: use a phone number, e.g. 0901 234 567`);
+/** Facebook profile link; `facebook.com/name` without https:// is accepted and completed. */
+const facebookUrl = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() && !/^https?:\/\//i.test(v.trim()) ? `https://${v.trim()}` : v),
+  httpUrl.refine((v) => /^https?:\/\/([a-z0-9-]+\.)*(facebook\.com|fb\.com|fb\.me)\/./i.test(v), "Facebook: use your profile link, e.g. https://facebook.com/your.name"),
+);
+/** One person on an application. Every field is required; the name is stored without accents. */
+export const applicantInput = z.object({
+  name: text(120).transform(withoutAccents),
+  studentId: z
+    .string()
+    .trim()
+    .min(4, "Student ID is too short.")
+    .max(20)
+    .regex(/^[A-Za-z0-9]+$/, "Student ID: letters and digits only."),
+  email: z.string().trim().toLowerCase().email().max(200),
+  phone: phoneNumber("Phone"),
+  zalo: phoneNumber("Zalo"),
+  facebook: facebookUrl,
+});
+/** The Join form: one application for a whole team (1 to MAX_TEAM people). */
+export const applicationInput = z.object({
+  members: z
+    .array(applicantInput)
+    .min(1)
+    .max(MAX_TEAM)
+    .refine((m) => new Set(m.map((x) => x.email)).size === m.length, "Each person needs their own email address."),
+  program: z.enum(applicationPrograms),
+  interests: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
+  message: z.string().trim().min(30, "Tell us a little more (at least 30 characters).").max(4000),
+  link: optionalUrl,
   /** honeypot: people never fill it, bots usually do */
   website: z.string().max(200).optional(),
+  /** Cloudflare Turnstile token, required once TURNSTILE_SECRET_KEY is set */
+  captcha: z.string().max(4096).optional(),
 });
 export const applicationStatuses = ["new", "contacted", "accepted", "declined"] as const;
 export const applicationUpdateInput = z.object({
@@ -205,6 +228,8 @@ export const applicationUpdateInput = z.object({
 export const applicationReplyInput = z.object({
   status: z.enum(["contacted", "accepted", "declined"]).default("contacted"),
   message: z.string().trim().min(1, "Write a message.").max(4000),
+  /** with `accepted`: create an account for everyone on the application and email them their login */
+  createAccounts: z.boolean().default(false),
 });
 
 export const publicationKinds = ["journal", "conference", "article"] as const;
@@ -219,3 +244,6 @@ export const publicationInput = z.object({
   url: optionalUrl,
   areas: z.array(z.string().trim().min(1).max(60)).max(10).optional(),
 });
+
+/** A wall someone has just looked at: a group id, or "lab" for meetings and announcements. */
+export const wallSeenInput = z.object({ scope: z.union([z.literal("lab"), z.string().uuid()]) });
