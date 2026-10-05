@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { PageHead, SectionHead } from "@/components/site/page-head";
 import { ApplyForm } from "@/components/join/apply-form";
 import { listResearchAreas } from "@/lib/content";
+import { captchaSiteKey } from "@/server/captcha";
 
 export const metadata: Metadata = { title: "Join", description: "Join the Blockchainist research group." };
 
@@ -53,7 +54,7 @@ export default function JoinPage() {
 
       <section className="section" aria-labelledby="apply">
         <SectionHead id="apply" no="02" title="Apply online" />
-        <ApplyForm areas={listResearchAreas().map(({ slug, title }) => ({ slug, title }))} captchaSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || undefined} />
+        <ApplyForm areas={listResearchAreas().map(({ slug, title }) => ({ slug, title }))} captchaSiteKey={captchaSiteKey()} />
       </section>
 
       <section className="section">

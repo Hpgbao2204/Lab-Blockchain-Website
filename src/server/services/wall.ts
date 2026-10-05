@@ -132,7 +132,7 @@ export async function updateTask(db: Db, actor: SessionUser | null, taskId: stri
   await db.transaction(async (tx) => {
     const now = new Date();
     const completedAt = fields.status === undefined || fields.status === task.status ? {} : { completedAt: fields.status === "done" ? now : null };
-    await tx.update(tasks).set({ ...fields, ...completedAt, updatedAt: now }).where(eq(tasks.id, taskId));
+    await tx.update(tasks).set({ ...fields, ...completedAt, updatedAt: now, updatedBy: actor!.id }).where(eq(tasks.id, taskId));
     if (ids) {
       await tx.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
       if (ids.length) await tx.insert(taskAssignees).values(ids.map((userId) => ({ taskId, userId })));

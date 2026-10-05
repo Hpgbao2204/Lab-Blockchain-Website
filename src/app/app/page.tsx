@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ArrowUpRight, CalendarClock, Megaphone } from "lucide-react";
 import { MeetingCard } from "@/components/app/meeting-card";
+import { MarkWallSeen, UnreadDot } from "@/components/app/wall-activity";
 import { PageHead, SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
 import { requirePageUser } from "@/server/auth/current";
 import { listGroups } from "@/server/services/groups";
 import { listAnnouncements, listMeetings } from "@/server/services/meetings";
 import { myOpenTasks } from "@/server/services/wall";
+import { wallActivity } from "@/server/services/activity";
 import { BUCKET_LABEL, bucketFor, formatDay, formatStamp, labToday } from "@/lib/weeks";
 
 const bucketColor = { overdue: "var(--color-red)", "this-week": "var(--color-yellow)", "next-week": "var(--color-blue)", later: "var(--color-paper-2)", done: "var(--color-teal)" };
@@ -14,11 +16,12 @@ const bucketColor = { overdue: "var(--color-red)", "this-week": "var(--color-yel
 export default async function Dashboard() {
   const user = await requirePageUser();
   const db = await getDb();
-  const [groups, tasks, meetings, notices] = await Promise.all([
+  const [groups, tasks, meetings, notices, activity] = await Promise.all([
     listGroups(db, user),
     myOpenTasks(db, user),
     listMeetings(db, user, { when: "upcoming", limit: 3 }),
     listAnnouncements(db, user, 3),
+    wallActivity(db, user),
   ]);
   const presenting = meetings.find((m) => m.presenters.some((p) => p.id === user.id));
   const today = labToday();
@@ -26,6 +29,7 @@ export default async function Dashboard() {
 
   return (
     <div className="wrap page">
+      <MarkWallSeen scope="lab" />
       <PageHead eyebrow={`Today · ${formatDay(today)}`} title={<>Hi, <span className="hl">{first}</span></>}>
         {tasks.length ? `You have ${tasks.length} open task${tasks.length === 1 ? "" : "s"}.` : "Nothing is waiting on you right now."}
         {presenting ? ` You present at "${presenting.title}" on ${formatStamp(presenting.startsAt)}.` : ""}
@@ -106,7 +110,8 @@ export default async function Dashboard() {
             <ul className="grid gap-3">
               {groups.map((g) => (
                 <li key={g.id}>
-                  <Link href={`/app/groups/${g.id}`} className="card lift grid gap-1.5 p-4" style={{ boxShadow: "var(--shadow)" }}>
+                  <Link href={`/app/groups/${g.id}`} className="card lift relative grid gap-1.5 p-4" style={{ boxShadow: "var(--shadow)" }}>
+                    <UnreadDot n={activity.groups[g.id]} />
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-lg font-bold [font-family:var(--font-display)]">{g.name}</h3>
                       <ArrowUpRight size={18} aria-hidden />

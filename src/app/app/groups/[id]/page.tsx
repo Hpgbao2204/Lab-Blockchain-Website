@@ -4,6 +4,7 @@ import { CalendarClock, FileText, Target } from "lucide-react";
 import { Feed, type FeedPost } from "@/components/app/feed";
 import { Initials } from "@/components/app/initials";
 import { TaskBoard } from "@/components/app/task-board";
+import { MarkWallSeen } from "@/components/app/wall-activity";
 import { AddResource, Resources, type WallFile, type WallLink } from "@/components/app/resources";
 import { SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
@@ -41,6 +42,7 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="wrap page grid grid-cols-[minmax(0,1fr)] gap-8">
+      <MarkWallSeen scope={group.id} />
       <header className="card grid grid-cols-[minmax(0,1fr)] gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_auto]">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
           <p className="eyebrow">

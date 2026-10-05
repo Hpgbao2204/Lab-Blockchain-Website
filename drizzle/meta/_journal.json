@@ -57,6 +57,13 @@
       "when": 1791213617516,
       "tag": "0007_application_team_members",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791214845684,
+      "tag": "0008_wall_reads",
+      "breakpoints": true
     }
   ]
 }

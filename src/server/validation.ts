@@ -244,3 +244,6 @@ export const publicationInput = z.object({
   url: optionalUrl,
   areas: z.array(z.string().trim().min(1).max(60)).max(10).optional(),
 });
+
+/** A wall someone has just looked at: a group id, or "lab" for meetings and announcements. */
+export const wallSeenInput = z.object({ scope: z.union([z.literal("lab"), z.string().uuid()]) });

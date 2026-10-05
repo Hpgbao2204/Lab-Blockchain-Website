@@ -12,6 +12,8 @@ Nội dung hiển thị công khai trên site là tiếng Anh, nên tin tức, b
 
 Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 
+**Chấm đỏ trên nút *My wall***: khi người khác giao task mới, sửa task, viết bài, bình luận, thêm link/file trên tường của bạn, hoặc có họp lab / thông báo mới, nút *My wall* hiện số màu đỏ như thông báo Facebook. Mở trang *My wall* là hết phần họp + thông báo; mở tường của nhóm nào thì hết chấm của nhóm đó (thẻ nhóm trên *My wall* cũng có chấm riêng). Việc bạn tự làm không tính.
+
 ## 2. Accounts: tài khoản và nhóm
 
 - **Tạo tài khoản**: nhập email (cũng là email nhận thông báo), họ tên, chức danh, vai trò *member* hoặc *admin* → site tự **gửi email chào mừng** (tiếng Việt) tới địa chỉ đó, kèm username, mật khẩu tạm và link đăng nhập để kích hoạt và cập nhật hồ sơ. Mật khẩu tạm cũng hiện trên màn hình một lần, phòng khi email chưa tới. Bỏ tick *Email the username…* nếu không muốn gửi. Không có đăng ký công khai.

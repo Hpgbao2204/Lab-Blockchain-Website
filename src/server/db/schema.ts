@@ -112,6 +112,8 @@ export const tasks = pgTable(
     completedAt: timestamp("completed_at", { withTimezone: true }),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    /** who last changed the task, so a change by someone else shows up as new on the wall */
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
   },
   (t) => [index("tasks_group_due_idx").on(t.groupId, t.dueDate)],
 );
@@ -187,6 +189,22 @@ export const attachments = pgTable(
     ...timestamps,
   },
   (t) => [index("attachments_group_idx").on(t.groupId), index("attachments_task_idx").on(t.taskId)],
+);
+
+/**
+ * When someone last looked at a wall: `scope` is a group id, or "lab" for lab meetings and
+ * announcements. Anything others did after that counts as new (the red dot on "My wall").
+ */
+export const wallReads = pgTable(
+  "wall_reads",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    scope: text("scope").notNull(),
+    seenAt: timestamp("seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.scope] })],
 );
 
 export const groupRelations = relations(groups, ({ many }) => ({ members: many(groupMembers), tasks: many(tasks), posts: many(posts) }));

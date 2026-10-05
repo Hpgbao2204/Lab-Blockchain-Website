@@ -24,6 +24,7 @@ export const endpoints: Endpoint[] = [
   { method: "POST", path: "/api/v1/auth/change-password", summary: "Replace the temporary password.", auth: "member" },
   { method: "GET", path: "/api/v1/me", summary: "The signed-in account, or null for visitors." },
   { method: "GET", path: "/api/v1/me/tasks", summary: "Open tasks assigned to me or to my whole group.", auth: "member" },
+  { method: "GET", path: "/api/v1/me/activity", summary: "What others did on my walls since I last looked (the red dot on My wall). POST { scope: \"lab\" | groupId } marks one as read.", auth: "member" },
   { method: "GET", path: "/api/v1/groups", summary: "My groups (admins see all).", auth: "member" },
   { method: "GET", path: "/api/v1/groups/:id", summary: "One group with its members.", auth: "member" },
   { method: "GET", path: "/api/v1/groups/:id/tasks", summary: "Tasks of a group; POST creates one (admin or lead).", auth: "member" },

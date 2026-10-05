@@ -1,13 +1,19 @@
 /**
- * Cloudflare Turnstile, the free captcha on the Join form. It is on once `TURNSTILE_SECRET_KEY`
- * (server) and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (browser) are set; without them the form relies
- * on the honeypot and the per-address rate limit only.
+ * Cloudflare Turnstile, the free captcha on the Join form. It is on once both keys are set:
+ * `TURNSTILE_SITE_KEY` (public, handed to the form by the server; `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+ * works too) and `TURNSTILE_SECRET_KEY`. With only one of them it stays off, so the form never
+ * asks for a check it cannot show; then it relies on the honeypot and the rate limit only.
  */
-export const captchaEnabled = () => Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
+export function captchaSiteKey() {
+  const site = process.env.TURNSTILE_SITE_KEY?.trim() || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+  return site && process.env.TURNSTILE_SECRET_KEY?.trim() ? site : undefined;
+}
+
+export const captchaEnabled = () => Boolean(captchaSiteKey());
 
 export async function verifyCaptcha(token: string | undefined, ip: string | null, fetcher: typeof fetch = fetch): Promise<{ ok: true } | { ok: false; reason: string }> {
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
-  if (!secret) return { ok: true };
+  if (!secret || !captchaEnabled()) return { ok: true };
   if (!token) return { ok: false, reason: "Please complete the “I am human” check." };
   try {
     const res = await fetcher("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
