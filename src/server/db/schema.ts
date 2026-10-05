@@ -352,6 +352,8 @@ export const applications = pgTable(
     zalo: text("zalo"),
     status: applicationStatusEnum("status").notNull().default("new"),
     adminNote: text("admin_note"),
+    /** everyone on the application (the first is the contact, copied to name/email/… above) */
+    members: jsonb("members").$type<Applicant[]>().notNull().default([]),
     /** messages the admins sent to the applicant from the site, oldest first */
     replies: jsonb("replies").$type<ApplicationReply[]>().notNull().default([]),
     ...timestamps,
@@ -359,6 +361,17 @@ export const applications = pgTable(
   (t) => [index("applications_created_idx").on(t.createdAt)],
 );
 export type Application = typeof applications.$inferSelect;
+export interface Applicant {
+  name: string;
+  studentId: string;
+  email: string;
+  phone: string;
+  zalo: string;
+  facebook: string;
+  /** the account made for this person when the application was accepted */
+  userId?: string | null;
+  account?: "created" | "existing";
+}
 export interface ApplicationReply {
   at: string;
   by: string;

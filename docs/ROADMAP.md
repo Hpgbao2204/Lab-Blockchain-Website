@@ -122,6 +122,8 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - `/people/<tên>` theo lựa chọn của thành viên: trang CV ở site (4 template: classic, minimal, spotlight, cards), **hiển thị luôn website riêng** (iframe toàn màn hình dưới thanh lab), hoặc chuyển thẳng sang website. Site từ chối bị nhúng (`X-Frame-Options`, CSP `frame-ancestors`) hoặc không truy cập được thì tự chuyển hướng (`src/server/services/portfolio-frame.ts`, cache 30 phút). Thẻ trên /people luôn trỏ về `/people/<tên>`.
 - Form /join thêm Facebook, Zalo. Email báo đơn mới có Reply-To = người nộp. Admin trả lời ngay trên thẻ đơn (Accept / Decline / Just reply + lời nhắn): email gửi người nộp với Reply-To = admin, đổi status, lưu lịch sử trong `applications.replies`. Đơn đã nhận có nút *Create their account* (điền sẵn tên, email ở /admin).
 
+**Cập nhật 05/10/2026 (đơn theo nhóm + tự tạo tài khoản):** form /join cho cả nhóm 1–6 người, mọi ô bắt buộc (họ tên lưu không dấu, MSSV, email, điện thoại, Zalo, Facebook). Admin Accept trên site thì tạo tài khoản cho từng người (username = email, mật khẩu tạm) và gửi email chào mừng. Captcha Cloudflare Turnstile (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`), chặn email báo đơn khi >20 đơn/giờ. Trang chủ: "Explore the research group".
+
 **Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 
 ## Milestones

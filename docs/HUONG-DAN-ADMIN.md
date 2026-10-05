@@ -37,12 +37,12 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 
 ## 5. Applications: đơn xin vào lab
 
-- Sinh viên điền form ở `/join` (họ tên, email, chương trình học, hướng quan tâm, giới thiệu bản thân, link GitHub/CV, Facebook, số Zalo).
-- Đơn mới hiện ở **Applications** và trên trang Accounts (*N new applications waiting*). Khi đã bật email, admin nhận email cho mỗi đơn mới; bấm **Reply** ngay trong email là thư đi thẳng tới người nộp (không phải địa chỉ noreply).
-- Trả lời trên site: ở thẻ đơn chọn **Accept** (nhận), **Decline** (từ chối) hoặc **Just reply** (chỉ nhắn, ví dụ hẹn phỏng vấn). Site điền sẵn một lời nhắn mẫu tiếng Việt, thầy sửa tuỳ ý rồi bấm **Send**. Người nộp nhận email có lời nhắn và tên thầy; họ bấm Reply là thư về email của thầy. Status đổi theo lựa chọn, lời nhắn được lưu trên thẻ để admin khác cũng thấy. Chưa quyết thì bấm **Later**, để sau.
-- Bấm số Zalo để mở chat Zalo, hoặc link Facebook.
-- **Status** chỉnh tay được (*New → Contacted → Accepted / Declined*), **Private note** là ghi chú riêng (tự lưu khi bấm ra ngoài ô), **Delete** xoá đơn.
-- Nhận người: sau khi Accept, bấm **Create their account** để mở Accounts với tên và email điền sẵn, rồi bấm Create account.
+- Sinh viên điền form ở `/join`. Một nhóm làm chung chỉ nộp **một đơn**: chọn số người (1 đến 6), mỗi người điền đủ họ tên (tự lưu thành tiếng Việt không dấu), mã số sinh viên, email, số điện thoại, Zalo, Facebook. Ô nào cũng bắt buộc. Cả nhóm điền chung chương trình học, hướng quan tâm, phần giới thiệu.
+- Đơn mới hiện ở **Applications** và trên trang Accounts (*N new applications waiting*). Admin nhận email cho mỗi đơn mới (có đủ thông tin từng người); bấm **Reply** ngay trong email là thư đi thẳng tới người đứng tên đơn.
+- Trả lời trên site: ở thẻ đơn chọn **Accept** (nhận), **Decline** (từ chối) hoặc **Just reply** (chỉ nhắn, ví dụ hẹn phỏng vấn). Site điền sẵn một lời nhắn mẫu tiếng Việt, thầy sửa tuỳ ý rồi bấm **Send**: mọi người trong đơn nhận email, họ bấm Reply là thư về email của thầy. Chưa quyết thì bấm **Later**.
+- **Accept tự tạo tài khoản**: khi Accept, ô *Create N accounts and email the login details* được tick sẵn. Mỗi người có một tài khoản (username là email, mật khẩu tạm ngẫu nhiên) và nhận email chào mừng tiếng Việt như khi tạo tay. Ai đã có tài khoản thì giữ nguyên. Thẻ đơn ghi *account created* cạnh từng người. Sau đó thầy chỉ cần thêm họ vào group ở Accounts.
+- **Status** chỉnh tay được (*New → Contacted → Accepted / Declined*), **Private note** là ghi chú riêng, **Delete** xoá đơn. Đổi Status bằng ô chọn thì không tạo tài khoản; khi đó dùng nút **Create their account** (mở Accounts với tên và email điền sẵn).
+- Chống spam: form có ô "I am human" của Cloudflare (khi đã cấu hình, xem `docs/DEPLOY.md` bước 7b), mỗi địa chỉ IP gửi tối đa 3 đơn/giờ, và nếu có hơn 20 đơn trong 1 giờ thì site ngừng gửi email báo đơn (đơn vẫn được lưu).
 
 ## 6. Publications: danh sách bài báo
 

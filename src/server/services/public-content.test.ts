@@ -5,7 +5,8 @@ import { applicationInput, applicationReplyInput, newsInput, publicationInput } 
 import type { Mail } from "../mail";
 import { authenticate, createUser, ensureAdmin } from "./users";
 import { createNews, deleteNews, getNews, listNews, slugify, updateNews } from "./news";
-import { countNewApplications, deleteApplication, listApplications, renderApplicationMail, replyToApplication, submitApplication, updateApplication } from "./applications";
+import { applicantsOf, countNewApplications, deleteApplication, listApplications, renderApplicationMail, replyToApplication, submitApplication, updateApplication } from "./applications";
+import { applications } from "../db/schema";
 import { zaloLink } from "@/lib/contact";
 import { addPublication, allPublications, deletePublication, listAdminPublications, setPublicationHidden, updatePublication } from "./publications";
 import { publications as snapshot } from "@/data/publications";
@@ -74,26 +75,46 @@ describe("news", () => {
 });
 
 describe("applications", () => {
+  const person = (n: number, over: Record<string, unknown> = {}) => ({
+    name: `Lê Văn Cường ${n}`,
+    studentId: `2252000${n}`,
+    email: `Cuong${n}@Example.com`,
+    phone: "0901 234 567",
+    zalo: "0901 234 567",
+    facebook: `facebook.com/cuong.${n}`,
+    ...over,
+  });
   const form = (over: Record<string, unknown> = {}) =>
     applicationInput.parse({
-      name: "Le Van Cuong",
-      email: "Cuong@Example.com",
+      members: [person(1)],
       program: "Undergraduate",
       interests: ["zero-knowledge", "zero-knowledge"],
       message: "I read your Lotus paper and would like to work on private cross-chain swaps.",
       ...over,
     });
+  const sink = () => {
+    const sent: Mail[] = [];
+    return { sent, send: async (mails: Mail[]) => (sent.push(...mails), { sent: mails.length, saved: 0 }) };
+  };
+  const site = "https://blockchainist.id.vn";
 
-  it("rejects short messages and unknown programs", () => {
+  it("requires every field for every person, and cleans them", () => {
+    const f = form();
+    expect(f.members[0]).toMatchObject({ name: "Le Van Cuong 1", email: "cuong1@example.com", facebook: "https://facebook.com/cuong.1" });
     expect(() => form({ message: "hi" })).toThrow();
     expect(() => form({ program: "Kindergarten" })).toThrow();
+    expect(() => form({ members: [] })).toThrow();
+    for (const k of ["name", "studentId", "email", "phone", "zalo", "facebook"]) expect(() => form({ members: [person(1, { [k]: "" })] }), k).toThrow();
+    expect(() => form({ members: [person(1, { facebook: "https://evil.example/facebook.com/" })] })).toThrow();
+    expect(() => form({ members: [person(1, { zalo: "call me" })] })).toThrow();
+    expect(() => form({ members: [person(1), person(2, { email: "CUONG1@example.com" })] })).toThrow();
+    expect(() => form({ members: Array.from({ length: 7 }, (_, i) => person(i)) })).toThrow();
   });
 
   it("anyone can apply; only the admin reads and updates", async () => {
     const a = (await submitApplication(db, form()))!;
-    expect(a.email).toBe("cuong@example.com");
+    expect(a).toMatchObject({ name: "Le Van Cuong 1", email: "cuong1@example.com", studentId: "22520001", status: "new" });
     expect(a.interests).toEqual(["zero-knowledge"]);
-    expect(a.status).toBe("new");
 
     await expect(listApplications(db, member)).rejects.toMatchObject({ code: "forbidden" });
     await expect(listApplications(db, null)).rejects.toMatchObject({ code: "unauthorized" });
@@ -113,51 +134,83 @@ describe("applications", () => {
     expect((await listApplications(db, admin)).length).toBe(before);
   });
 
-  it("escapes the applicant's text in the admin email, and the admin's Reply goes to the applicant", async () => {
-    const a = (await submitApplication(db, form({ name: "<script>x</script>" })))!;
-    const mail = renderApplicationMail(a, { email: "pi@lab.test" }, "https://blockchainist.id.vn");
+  it("the admin email lists the whole team, escaped, and Reply goes to the contact person", async () => {
+    const a = (await submitApplication(db, form({ members: [person(1, { name: "<script>x</script>" }), person(2)] })))!;
+    const mail = renderApplicationMail(a, { email: "pi@lab.test" }, site);
+    expect(mail.subject).toContain("and 1 more");
     expect(mail.html).not.toContain("<script>");
-    expect(mail.text).toContain("https://blockchainist.id.vn/admin/applications");
-    expect(mail.replyTo).toBe("cuong@example.com");
+    expect(mail.html).toContain("cuong2@example.com");
+    expect(mail.html).toContain("https://zalo.me/0901234567");
+    expect(mail.text).toContain(`${site}/admin/applications`);
+    expect(mail.replyTo).toBe("cuong1@example.com");
+    expect(zaloLink("+84 901 234 567")).toBe("https://zalo.me/0901234567");
   });
 
-  it("keeps Facebook and Zalo contacts, and rejects ones that are not", async () => {
-    const a = (await submitApplication(db, form({ facebook: "https://www.facebook.com/le.cuong", zalo: "+84 901 234 567" })))!;
-    expect(a).toMatchObject({ facebook: "https://www.facebook.com/le.cuong", zalo: "+84 901 234 567" });
-    expect(zaloLink(a.zalo!)).toBe("https://zalo.me/0901234567");
-    expect(renderApplicationMail(a, { email: "pi@lab.test" }, "https://x.test").html).toContain("https://zalo.me/0901234567");
-    expect(form({ facebook: "", zalo: "" })).toMatchObject({ facebook: null, zalo: null });
-    expect(() => form({ facebook: "https://evil.example/facebook.com/" })).toThrow();
-    expect(() => form({ zalo: "call me" })).toThrow();
+  it("older single-person applications still read as one person", async () => {
+    const [legacy] = await db.insert(applications).values({ name: "Old Form", email: "old@example.com", program: "PhD", message: "x".repeat(40), zalo: "0909 000 000" }).returning();
+    expect(applicantsOf(legacy)).toEqual([expect.objectContaining({ name: "Old Form", email: "old@example.com", zalo: "0909 000 000" })]);
   });
 
-  it("the admin's reply is emailed with Reply-To the admin, decides the status and is kept", async () => {
-    const a = (await submitApplication(db, form({ name: "Tran Thi Mai" })))!;
-    const sent: Mail[] = [];
-    const ok = async (m: Mail) => (sent.push(m), { sent: 1, saved: 0 });
-    const reply = applicationReplyInput.parse({ status: "accepted", message: "Chào mừng bạn <b>vào nhóm</b>!" });
+  it("the admin's reply goes to everyone with Reply-To the admin, decides the status and is kept", async () => {
+    const a = (await submitApplication(db, form({ members: [person(3), person(4)] })))!;
+    const mail = sink();
+    const reply = applicationReplyInput.parse({ status: "contacted", message: "Hẹn các bạn <b>thứ Sáu</b>!" });
 
-    await expect(replyToApplication(db, member, a.id, reply, ok)).rejects.toMatchObject({ code: "forbidden" });
-    await expect(replyToApplication(db, null, a.id, reply, ok)).rejects.toMatchObject({ code: "unauthorized" });
-    expect(sent).toHaveLength(0);
+    await expect(replyToApplication(db, member, a.id, reply, { send: mail.send, siteUrl: site })).rejects.toMatchObject({ code: "forbidden" });
+    await expect(replyToApplication(db, null, a.id, reply, { send: mail.send, siteUrl: site })).rejects.toMatchObject({ code: "unauthorized" });
+    expect(mail.sent).toHaveLength(0);
 
-    const r = await replyToApplication(db, admin, a.id, reply, ok);
-    expect(r.emailed).toBe(true);
-    expect(r.application.status).toBe("accepted");
-    expect(r.application.replies).toEqual([expect.objectContaining({ by: "Tran Tuan Dung", status: "accepted", emailed: true, message: reply.message })]);
-    expect(sent[0]).toMatchObject({ to: "cuong@example.com", replyTo: "pi@lab.test" });
-    expect(sent[0].subject).toContain("Chào mừng");
-    expect(sent[0].html).not.toContain("<b>vào");
-    expect(sent[0].text).toContain("Chào Tran Thi Mai,");
+    const r = await replyToApplication(db, admin, a.id, reply, { send: mail.send, siteUrl: site });
+    expect(r).toMatchObject({ emailed: true, accounts: [], loginEmails: null });
+    expect(r.application.status).toBe("contacted");
+    expect(mail.sent.map((m) => [m.to, m.replyTo])).toEqual([
+      ["cuong3@example.com", "pi@lab.test"],
+      ["cuong4@example.com", "pi@lab.test"],
+    ]);
+    expect(mail.sent[1].text).toContain("Chào Le Van Cuong 4,");
+    expect(mail.sent[0].html).not.toContain("<b>thứ");
 
-    const failed = await replyToApplication(db, admin, a.id, applicationReplyInput.parse({ message: "Bạn rảnh thứ Sáu không?" }), async () => ({ sent: 0, saved: 0, error: "Resend 500" }));
+    const failed = await replyToApplication(db, admin, a.id, applicationReplyInput.parse({ message: "Còn đó không?" }), { send: async () => ({ sent: 0, saved: 0, error: "Resend 500" }), siteUrl: site });
     expect(failed).toMatchObject({ emailed: false, error: "Resend 500" });
-    expect(failed.application.status).toBe("contacted");
     expect(failed.application.replies.map((x) => x.emailed)).toEqual([true, false]);
 
-    await expect(replyToApplication(db, admin, "00000000-0000-0000-0000-000000000000", reply, ok)).rejects.toMatchObject({ code: "not_found" });
+    await expect(replyToApplication(db, admin, "00000000-0000-0000-0000-000000000000", reply, { send: mail.send, siteUrl: site })).rejects.toMatchObject({ code: "not_found" });
     expect(() => applicationReplyInput.parse({ status: "new", message: "x" })).toThrow();
     expect(() => applicationReplyInput.parse({ message: "  " })).toThrow();
+  });
+
+  it("accepting creates an account per person, emails their login, and never twice", async () => {
+    // one of them already has an account (the member created in beforeAll)
+    const a = (await submitApplication(db, form({ members: [person(5, { name: "Trần Thị Mai" }), person(6, { email: "an@lab.test" }), person(7)] })))!;
+    const mail = sink();
+    const accept = applicationReplyInput.parse({ status: "accepted", message: "Chào mừng các bạn!", createAccounts: true });
+
+    const r = await replyToApplication(db, admin, a.id, accept, { send: mail.send, siteUrl: site });
+    expect(r.application.status).toBe("accepted");
+    expect(r.accounts).toEqual([
+      { email: "cuong5@example.com", name: "Tran Thi Mai", account: "created" },
+      { email: "an@lab.test", name: "Le Van Cuong 6", account: "existing" },
+      { email: "cuong7@example.com", name: "Le Van Cuong 7", account: "created" },
+    ]);
+    expect(r.loginEmails).toMatchObject({ sent: 2, of: 2 });
+    const welcome = mail.sent.filter((m) => m.subject.includes("Beta"));
+    expect(welcome.map((m) => m.to)).toEqual(["cuong5@example.com", "cuong7@example.com"]);
+
+    // the new account signs in with the emailed password; username = email, name without accents
+    const password = /Mật khẩu tạm: (\S+)/.exec(welcome[0].text)?.[1];
+    const mai = await authenticate(db, "cuong5@example.com", password!);
+    expect(mai).toMatchObject({ name: "Tran Thi Mai", role: "member" });
+    expect(r.application.members.every((p) => p.userId)).toBe(true);
+
+    const again = await replyToApplication(db, admin, a.id, accept, { send: sink().send, siteUrl: site });
+    expect(again.accounts).toEqual([]);
+    expect(again.loginEmails).toMatchObject({ of: 0 });
+
+    // accepting without the box ticked makes no accounts
+    const b = (await submitApplication(db, form({ members: [person(8)] })))!;
+    const plain = await replyToApplication(db, admin, b.id, applicationReplyInput.parse({ status: "accepted", message: "OK" }), { send: sink().send, siteUrl: site });
+    expect(plain.accounts).toEqual([]);
+    await expect(authenticate(db, "cuong8@example.com", "whatever-password")).rejects.toBeTruthy();
   });
 });
 

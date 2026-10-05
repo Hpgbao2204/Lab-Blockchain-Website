@@ -33,7 +33,7 @@ export default async function Home() {
       <Hero stats={stats} />
 
       <section className="wrap section" aria-labelledby="explore">
-        <SectionHead id="explore" no="01" title="Explore the lab" />
+        <SectionHead id="explore" no="01" title="Explore the research group" />
         <div className="tiles">
           {tiles.map((t, i) => (
             <Reveal key={t.href} delay={i * 60} className={`tile-cell ${t.wide ? "wide" : ""} ${t.full ? "full" : ""}`}>
