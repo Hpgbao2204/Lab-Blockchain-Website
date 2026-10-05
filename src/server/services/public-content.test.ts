@@ -1,10 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createTestDb, type Db } from "../db/client";
 import { createSession, userFromToken, type SessionUser } from "../auth/sessions";
-import { applicationInput, newsInput, publicationInput } from "../validation";
+import { applicationInput, applicationReplyInput, newsInput, publicationInput } from "../validation";
+import type { Mail } from "../mail";
 import { authenticate, createUser, ensureAdmin } from "./users";
 import { createNews, deleteNews, getNews, listNews, slugify, updateNews } from "./news";
-import { countNewApplications, deleteApplication, listApplications, renderApplicationMail, submitApplication, updateApplication } from "./applications";
+import { countNewApplications, deleteApplication, listApplications, renderApplicationMail, replyToApplication, submitApplication, updateApplication } from "./applications";
+import { zaloLink } from "@/lib/contact";
 import { addPublication, allPublications, deletePublication, listAdminPublications, setPublicationHidden, updatePublication } from "./publications";
 import { publications as snapshot } from "@/data/publications";
 import { listPublications, publicationUrl } from "@/lib/content";
@@ -111,11 +113,51 @@ describe("applications", () => {
     expect((await listApplications(db, admin)).length).toBe(before);
   });
 
-  it("escapes the applicant's text in the admin email", async () => {
+  it("escapes the applicant's text in the admin email, and the admin's Reply goes to the applicant", async () => {
     const a = (await submitApplication(db, form({ name: "<script>x</script>" })))!;
     const mail = renderApplicationMail(a, { email: "pi@lab.test" }, "https://blockchainist.id.vn");
     expect(mail.html).not.toContain("<script>");
     expect(mail.text).toContain("https://blockchainist.id.vn/admin/applications");
+    expect(mail.replyTo).toBe("cuong@example.com");
+  });
+
+  it("keeps Facebook and Zalo contacts, and rejects ones that are not", async () => {
+    const a = (await submitApplication(db, form({ facebook: "https://www.facebook.com/le.cuong", zalo: "+84 901 234 567" })))!;
+    expect(a).toMatchObject({ facebook: "https://www.facebook.com/le.cuong", zalo: "+84 901 234 567" });
+    expect(zaloLink(a.zalo!)).toBe("https://zalo.me/0901234567");
+    expect(renderApplicationMail(a, { email: "pi@lab.test" }, "https://x.test").html).toContain("https://zalo.me/0901234567");
+    expect(form({ facebook: "", zalo: "" })).toMatchObject({ facebook: null, zalo: null });
+    expect(() => form({ facebook: "https://evil.example/facebook.com/" })).toThrow();
+    expect(() => form({ zalo: "call me" })).toThrow();
+  });
+
+  it("the admin's reply is emailed with Reply-To the admin, decides the status and is kept", async () => {
+    const a = (await submitApplication(db, form({ name: "Tran Thi Mai" })))!;
+    const sent: Mail[] = [];
+    const ok = async (m: Mail) => (sent.push(m), { sent: 1, saved: 0 });
+    const reply = applicationReplyInput.parse({ status: "accepted", message: "Chào mừng bạn <b>vào nhóm</b>!" });
+
+    await expect(replyToApplication(db, member, a.id, reply, ok)).rejects.toMatchObject({ code: "forbidden" });
+    await expect(replyToApplication(db, null, a.id, reply, ok)).rejects.toMatchObject({ code: "unauthorized" });
+    expect(sent).toHaveLength(0);
+
+    const r = await replyToApplication(db, admin, a.id, reply, ok);
+    expect(r.emailed).toBe(true);
+    expect(r.application.status).toBe("accepted");
+    expect(r.application.replies).toEqual([expect.objectContaining({ by: "Tran Tuan Dung", status: "accepted", emailed: true, message: reply.message })]);
+    expect(sent[0]).toMatchObject({ to: "cuong@example.com", replyTo: "pi@lab.test" });
+    expect(sent[0].subject).toContain("Chào mừng");
+    expect(sent[0].html).not.toContain("<b>vào");
+    expect(sent[0].text).toContain("Chào Tran Thi Mai,");
+
+    const failed = await replyToApplication(db, admin, a.id, applicationReplyInput.parse({ message: "Bạn rảnh thứ Sáu không?" }), async () => ({ sent: 0, saved: 0, error: "Resend 500" }));
+    expect(failed).toMatchObject({ emailed: false, error: "Resend 500" });
+    expect(failed.application.status).toBe("contacted");
+    expect(failed.application.replies.map((x) => x.emailed)).toEqual([true, false]);
+
+    await expect(replyToApplication(db, admin, "00000000-0000-0000-0000-000000000000", reply, ok)).rejects.toMatchObject({ code: "not_found" });
+    expect(() => applicationReplyInput.parse({ status: "new", message: "x" })).toThrow();
+    expect(() => applicationReplyInput.parse({ message: "  " })).toThrow();
   });
 });
 

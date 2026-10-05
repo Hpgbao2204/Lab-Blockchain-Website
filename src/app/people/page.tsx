@@ -11,8 +11,9 @@ import { listPublicPeople, type PersonView } from "@/server/services/people";
 export const metadata: Metadata = { title: "People", description: "The people behind Blockchainist." };
 export const dynamic = "force-dynamic";
 
-/** Where a card leads: the member's own portfolio, their CV page here, or nowhere (samples). */
-const hrefOf = (p: PersonView) => (p.display === "portfolio" && p.portfolioUrl ? p.portfolioUrl : p.hasPage ? `/people/${p.slug}` : null);
+/** Every real member has an address here; it shows their CV or their own website, as they chose. */
+const hrefOf = (p: PersonView) => (p.hasPage ? `/people/${p.slug}` : null);
+const hasSite = (p: PersonView) => p.display !== "template" && !!p.portfolioUrl;
 
 export default async function PeoplePage() {
   const people = await listPublicPeople(await getDb());
@@ -73,7 +74,6 @@ export default async function PeoplePage() {
           {members.map((m, i) => {
             const firstArea = m.areas.map((a) => areas.get(a)).find(Boolean);
             const href = hrefOf(m);
-            const external = href?.startsWith("http");
             const color = m.sample ? `var(--color-${firstArea?.accent ?? "yellow"})` : accentVar(m.accent);
             return (
               <Reveal as="li" key={m.slug} delay={(i % 3) * 60} className="card relative grid content-start gap-3 p-5" style={{ "--c": color } as React.CSSProperties}>
@@ -82,9 +82,9 @@ export default async function PeoplePage() {
                   <div className="grid gap-0.5">
                     <h3 className="text-lg font-bold leading-tight">
                       {href ? (
-                        <a href={href} className="after:absolute after:inset-0" {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                        <Link href={href} className="after:absolute after:inset-0">
                           {m.name}
-                        </a>
+                        </Link>
                       ) : (
                         m.name
                       )}
@@ -94,7 +94,7 @@ export default async function PeoplePage() {
                   {m.sample && <span className="tag ml-auto self-start">sample</span>}
                   {href && (
                     <span className="tag ml-auto self-start" style={{ "--c": color } as React.CSSProperties}>
-                      {external ? "Portfolio" : "CV"} <ArrowUpRight size={11} className="inline" aria-hidden />
+                      {hasSite(m) ? "Website" : "CV"} <ArrowUpRight size={11} className="inline" aria-hidden />
                     </span>
                   )}
                 </div>

@@ -24,7 +24,7 @@ export default async function ProfilePage({ searchParams }: Props) {
       <AppBar user={user} />
       <div className="wrap page">
         <PageHead eyebrow="Profile" title={<>{userId === user.id ? "My" : `${owner.name}'s`} <span className="hl">profile</span></>}>
-          Link the portfolio you designed yourself, or build a CV page here from a template. Nothing is public until you tick “Show on the People page”.
+          Show the website you designed yourself at your lab address, or build a CV page here from a template. Nothing is public until you tick “Show on the People page”.
         </PageHead>
         <ProfileEditor userId={userId} name={owner.name} initial={initial} saved={saved} forAdmin={userId !== user.id} />
       </div>

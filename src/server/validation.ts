@@ -134,7 +134,8 @@ const cvEntry = z.object({
   detail: optionalText(1000),
 });
 export const profileAccents = ["yellow", "blue", "teal", "red", "violet", "orange", "pink", "lime"] as const;
-export const profileTemplates = ["classic", "minimal"] as const;
+export const profileTemplates = ["classic", "minimal", "spotlight", "cards"] as const;
+export const profileDisplays = ["template", "portfolio", "redirect"] as const;
 export const profileInput = z.object({
   slug: z
     .string()
@@ -157,7 +158,7 @@ export const profileInput = z.object({
       awards: z.array(cvEntry).max(20).default([]),
     })
     .default({ education: [], experience: [], projects: [], awards: [] }),
-  display: z.enum(["template", "portfolio"]).default("template"),
+  display: z.enum(profileDisplays).default("template"),
   template: z.enum(profileTemplates).default("classic"),
   accent: z.enum(profileAccents).default("yellow"),
   published: z.boolean().default(false),
@@ -183,6 +184,15 @@ export const applicationInput = z.object({
   interests: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
   message: z.string().trim().min(30, "Tell us a little more (at least 30 characters).").max(4000),
   link: optionalUrl,
+  facebook: optionalUrl.refine((v) => !v || /^https?:\/\/([a-z0-9-]+\.)*(facebook\.com|fb\.com|fb\.me)\//i.test(v), "Use your Facebook profile link, e.g. https://facebook.com/your.name"),
+  zalo: z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^\+?[0-9][0-9 .-]{7,18}$/, "Use the phone number you use on Zalo, e.g. 0901 234 567")
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => null)),
   /** honeypot: people never fill it, bots usually do */
   website: z.string().max(200).optional(),
 });
@@ -190,6 +200,11 @@ export const applicationStatuses = ["new", "contacted", "accepted", "declined"] 
 export const applicationUpdateInput = z.object({
   status: z.enum(applicationStatuses).optional(),
   adminNote: optionalText(2000),
+});
+/** A message from an admin to the applicant, emailed from the site; it may also decide the application. */
+export const applicationReplyInput = z.object({
+  status: z.enum(["contacted", "accepted", "declined"]).default("contacted"),
+  message: z.string().trim().min(1, "Write a message.").max(4000),
 });
 
 export const publicationKinds = ["journal", "conference", "article"] as const;

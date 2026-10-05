@@ -8,7 +8,7 @@ const PROGRAMS = ["Undergraduate", "Master's", "PhD", "Other"] as const;
 
 /** The public application form; the result lands in the admin's inbox at /admin/applications. */
 export function ApplyForm({ areas }: { areas: { slug: string; title: string }[] }) {
-  const empty = { name: "", email: "", program: "Undergraduate", studentId: "", message: "", link: "", website: "" };
+  const empty = { name: "", email: "", program: "Undergraduate", studentId: "", message: "", link: "", facebook: "", zalo: "", website: "" };
   const [v, setV] = useState(empty);
   const [interests, setInterests] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -84,6 +84,14 @@ export function ApplyForm({ areas }: { areas: { slug: string; title: string }[] 
         About you
         <span className="hint">who you are, what you have built or read, and what you would like to try (at least 30 characters)</span>
         <textarea className="field min-h-36" value={v.message} onChange={set("message")} required minLength={30} maxLength={4000} />
+      </label>
+      <label className="label">
+        Zalo <span className="hint">optional: phone number</span>
+        <input className="field" type="tel" value={v.zalo} onChange={set("zalo")} maxLength={20} autoComplete="tel" placeholder="0901 234 567" pattern="\+?[0-9][0-9 .\-]{7,18}" />
+      </label>
+      <label className="label">
+        Facebook <span className="hint">optional: profile link</span>
+        <input className="field" type="url" value={v.facebook} onChange={set("facebook")} maxLength={2000} placeholder="https://facebook.com/your.name" />
       </label>
       <label className="label md:col-span-2">
         Link <span className="hint">optional: GitHub, CV or portfolio</span>

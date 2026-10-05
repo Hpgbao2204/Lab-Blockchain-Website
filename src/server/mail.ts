@@ -7,6 +7,8 @@ export interface Mail {
   subject: string;
   text: string;
   html: string;
+  /** where the recipient's "Reply" goes, since mail is sent from a no-reply address */
+  replyTo?: string;
 }
 
 export interface SendResult {
@@ -16,6 +18,15 @@ export interface SendResult {
   saved: number;
   error?: string;
 }
+
+const payload = (m: Mail) => ({
+  from: process.env.MAIL_FROM,
+  to: [m.to],
+  subject: m.subject,
+  text: m.text,
+  html: m.html,
+  ...(m.replyTo ? { reply_to: m.replyTo } : {}),
+});
 
 export function mailConfigured() {
   return Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
@@ -30,7 +41,7 @@ export async function sendMail(mail: Mail): Promise<{ sent: boolean; error?: str
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.MAIL_FROM, to: [mail.to], subject: mail.subject, text: mail.text, html: mail.html }),
+    body: JSON.stringify(payload(mail)),
   });
   if (!res.ok) return { sent: false, error: `Resend ${res.status}: ${(await res.text()).slice(0, 200)}` };
   return { sent: true };
@@ -50,7 +61,7 @@ export async function sendMails(mails: Mail[]): Promise<SendResult> {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     await Promise.all(
       mails.map((m, i) =>
-        writeFile(path.join(dir, `${stamp}-${i + 1}-${m.to.replace(/[^a-z0-9.@-]/gi, "_")}.html`), `<!-- To: ${m.to} | Subject: ${m.subject.replace(/--/g, "-")} -->\n${m.html}`),
+        writeFile(path.join(dir, `${stamp}-${i + 1}-${m.to.replace(/[^a-z0-9.@-]/gi, "_")}.html`), `<!-- To: ${m.to}${m.replyTo ? ` | Reply-To: ${m.replyTo}` : ""} | Subject: ${m.subject.replace(/--/g, "-")} -->\n${m.html}`),
       ),
     );
     return { sent: 0, saved: mails.length };
@@ -61,7 +72,7 @@ export async function sendMails(mails: Mail[]): Promise<SendResult> {
     const res = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify(chunk.map((m) => ({ from: process.env.MAIL_FROM, to: [m.to], subject: m.subject, text: m.text, html: m.html }))),
+      body: JSON.stringify(chunk.map(payload)),
     });
     if (!res.ok) return { sent, saved: 0, error: `Resend ${res.status}: ${(await res.text()).slice(0, 200)}` };
     sent += chunk.length;

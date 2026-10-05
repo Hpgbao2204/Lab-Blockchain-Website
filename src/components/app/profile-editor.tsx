@@ -16,13 +16,24 @@ export interface EditableProfile {
   links: { label: string; url: string }[];
   interests: string[];
   cv: CvSections;
-  display: "template" | "portfolio";
+  display: "template" | "portfolio" | "redirect";
   template: string;
   accent: string;
   published: boolean;
 }
 
 const ACCENTS = ["yellow", "blue", "teal", "red", "violet", "orange", "pink", "lime"];
+const DISPLAYS: { v: EditableProfile["display"]; title: string; text: string }[] = [
+  { v: "template", title: "A CV page on this site", text: "built from the sections below, in the template and colour you pick." },
+  { v: "portfolio", title: "My own website, shown here", text: "your site opens full screen at this address under a slim lab bar. Sites that refuse to be shown inside another page (Notion, LinkedIn…) are opened directly instead." },
+  { v: "redirect", title: "Go straight to my website", text: "this address forwards visitors to your site." },
+];
+const TEMPLATES = [
+  { v: "classic", t: "Classic · sidebar + timeline" },
+  { v: "minimal", t: "Minimal · one column" },
+  { v: "spotlight", t: "Spotlight · colour cover" },
+  { v: "cards", t: "Cards · a card per section" },
+];
 const SECTIONS: { key: keyof CvSections; title: string; hint: string }[] = [
   { key: "education", title: "Education", hint: "Degree, school, years" },
   { key: "experience", title: "Research & experience", hint: "Lab work, internships, teaching" },
@@ -43,6 +54,7 @@ function photoOf(p: EditableProfile) {
 
 export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { userId: string; name: string; initial: EditableProfile; saved: boolean; forAdmin: boolean }) {
   const [p, setP] = useState(initial);
+  const ownSite = p.display !== "template";
   const [interests, setInterests] = useState(initial.interests.join(", "));
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -105,24 +117,20 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
         }}
       >
         <fieldset className="grid gap-2">
-          <legend className="label mb-1">How should your profile look?</legend>
-          <label className="flex items-start gap-2 text-sm">
-            <input type="radio" name="display" className="mt-1 accent-ink" checked={p.display === "portfolio"} onChange={() => set("display", "portfolio")} />
-            <span>
-              <b>My own portfolio</b>: the People page links straight to a site you designed (GitHub Pages, Notion, your own domain…).
-            </span>
-          </label>
-          <label className="flex items-start gap-2 text-sm">
-            <input type="radio" name="display" className="mt-1 accent-ink" checked={p.display === "template"} onChange={() => set("display", "template")} />
-            <span>
-              <b>A CV page on this site</b>, built from the sections below with one of our templates.
-            </span>
-          </label>
+          <legend className="label mb-1">What opens at /people/{p.slug || "your-name"}?</legend>
+          {DISPLAYS.map((d) => (
+            <label key={d.v} className="flex items-start gap-2 text-sm">
+              <input type="radio" name="display" className="mt-1 accent-ink" checked={p.display === d.v} onChange={() => set("display", d.v)} />
+              <span>
+                <b>{d.title}</b>: {d.text}
+              </span>
+            </label>
+          ))}
         </fieldset>
 
         <label className="label">
-          Portfolio link {p.display === "template" && <span className="hint">optional, shown as a button</span>}
-          <input className="field field-sm" type="url" value={p.portfolioUrl ?? ""} onChange={text("portfolioUrl")} placeholder="https://your-name.github.io/" required={p.display === "portfolio"} />
+          Your website {ownSite ? <span className="hint">GitHub Pages, Vercel, Netlify, your own domain…</span> : <span className="hint">optional, shown as a button on your CV</span>}
+          <input className="field field-sm" type="url" value={p.portfolioUrl ?? ""} onChange={text("portfolioUrl")} placeholder="https://your-name.github.io/" required={ownSite} />
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -202,12 +210,11 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
         ))}
 
         <fieldset className="grid gap-2">
-          <legend className="label mb-1">Template</legend>
+          <legend className="label mb-1">
+            Template and colour {ownSite && <span className="hint">used if you switch back to the CV page, and for your card on /people</span>}
+          </legend>
           <div className="flex flex-wrap gap-2">
-            {[
-              { v: "classic", t: "Classic · sidebar + timeline" },
-              { v: "minimal", t: "Minimal · one column" },
-            ].map((o) => (
+            {TEMPLATES.map((o) => (
               <button key={o.v} type="button" className="chip" aria-pressed={p.template === o.v} style={{ "--c": "var(--color-yellow)" } as React.CSSProperties} onClick={() => set("template", o.v)}>
                 {o.t}
               </button>
@@ -238,7 +245,7 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
             {busy ? "Saving…" : "Save profile"}
           </button>
           {isSaved && (
-            <a href={p.display === "portfolio" && p.portfolioUrl ? `/people` : `/people/${p.slug}`} target="_blank" className="btn btn-sm">
+            <a href={`/people/${p.slug}`} target="_blank" className="btn btn-sm">
               View public page <ExternalLink size={13} aria-hidden />
             </a>
           )}
@@ -248,10 +255,24 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
       </form>
 
       <section aria-label="Live preview" className="grid gap-3 xl:sticky xl:top-24">
-        <p className="mono text-xs uppercase tracking-widest text-muted">Live preview{p.display === "portfolio" ? " · the People card links to your portfolio" : ""}</p>
-        <div className="card overflow-hidden p-5" style={{ background: "var(--color-paper)" }}>
-          <ProfileView person={preview} />
-        </div>
+        {ownSite && p.portfolioUrl && /^https?:\/\/\S+$/.test(p.portfolioUrl) ? (
+          <>
+            <p className="mono text-xs uppercase tracking-widest text-muted">
+              Preview · {p.display === "portfolio" ? `/people/${p.slug} shows your site` : `/people/${p.slug} forwards to your site`}
+            </p>
+            <div className="card overflow-hidden" style={{ boxShadow: "var(--shadow)" }}>
+              <iframe src={p.portfolioUrl} title="Your website" className="block h-[70vh] w-full border-0 bg-white" sandbox="allow-scripts allow-same-origin" />
+            </div>
+            <p className="text-xs text-muted">If this box stays empty, your site refuses to be shown inside other pages; visitors are then sent to it directly.</p>
+          </>
+        ) : (
+          <>
+            <p className="mono text-xs uppercase tracking-widest text-muted">Live preview</p>
+            <div className="card overflow-hidden p-5" style={{ background: "var(--color-paper)" }}>
+              <ProfileView person={preview} />
+            </div>
+          </>
+        )}
       </section>
     </div>
   );

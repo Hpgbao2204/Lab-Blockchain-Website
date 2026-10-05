@@ -13,7 +13,7 @@ export interface PersonView {
   interests: string[];
   links: { label: string; url: string }[];
   portfolioUrl: string | null;
-  display: "template" | "portfolio";
+  display: "template" | "portfolio" | "redirect";
   template: string;
   accent: string;
   cv: CvSections;
