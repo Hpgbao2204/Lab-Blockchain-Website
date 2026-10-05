@@ -95,7 +95,7 @@ export function ApplicationCard({ a, areaTitles }: { a: AdminApplication; areaTi
   const createAccount = `/admin?${new URLSearchParams({ name: a.name, email: a.email })}`;
 
   return (
-    <article className="card grid gap-3 p-4" style={{ "--c": STATUS[a.status].c } as React.CSSProperties}>
+    <article className="card grid min-w-0 gap-3 p-4 [overflow-wrap:anywhere]" style={{ "--c": STATUS[a.status].c } as React.CSSProperties}>
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="font-bold">{a.name}</h3>
