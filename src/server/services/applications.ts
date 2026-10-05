@@ -101,7 +101,7 @@ export function renderApplicationMail(a: Application, to: { email: string }, sit
         .filter(([, v]) => v)
         .map(([k, v]) => `<tr><td style="padding:2px 12px 2px 0;color:#555">${k}</td><td style="padding:2px 0">${factHtml(k, v!)}</td></tr>`)
         .join("")}</table>` +
-      `<div style="margin-top:12px;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0;white-space:pre-line">${esc(a.message)}</p></div>` +
+      `<div style="margin-top:12px;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0;white-space:pre-line;overflow-wrap:anywhere;word-break:break-word">${esc(a.message)}</p></div>` +
       `<p style="margin-top:20px">${button(`${siteUrl}/admin/applications`, "Accept, decline or answer")}</p>` +
       `<p style="font:13px Arial,sans-serif;color:#555">Or press Reply in your mail app to write to ${esc(a.name)} directly.</p>`,
     "Blockchainist lab · sent to admins when someone applies on /join",
@@ -147,7 +147,7 @@ export function renderReplyMail(a: Application, from: { name: string; email: str
   ].join("\n");
   const html = shell(
     `<p style="font:16px/1.5 Arial,sans-serif">Chào ${esc(a.name)},</p>` +
-      `<div style="margin:12px 0;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0;font:15px/1.6 Arial,sans-serif;white-space:pre-line">${esc(reply.message)}</p></div>` +
+      `<div style="margin:12px 0;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0;font:15px/1.6 Arial,sans-serif;white-space:pre-line;overflow-wrap:anywhere;word-break:break-word">${esc(reply.message)}</p></div>` +
       `<p style="font:15px/1.5 Arial,sans-serif;margin:0"><b>${esc(from.name)}</b><br>Nhóm nghiên cứu Blockchainist, UIT – VNU-HCM</p>`,
     `Trả lời email này để liên hệ trực tiếp với ${esc(from.name)}. Bạn nhận được email vì đã gửi đơn ứng tuyển trên blockchainist.id.vn.`,
   );
