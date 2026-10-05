@@ -49,7 +49,7 @@ export async function listUsers(db: Db, actor: SessionUser | null) {
 }
 
 /** Only admins create accounts. Returns the temporary password once; it is never stored in clear. */
-export async function createUser(db: Db, actor: SessionUser | null, input: z.infer<typeof createUserInput>) {
+export async function createUser(db: Db, actor: SessionUser | null, input: Omit<z.infer<typeof createUserInput>, "notify">) {
   requireAdmin(actor);
   const exists = await db.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
   if (exists.length) throw new AppError("conflict", "An account with this email already exists.");

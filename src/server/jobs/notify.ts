@@ -3,6 +3,7 @@ import type { Db } from "../db/client";
 import { sendMails } from "../mail";
 import { markEmailed, markReminded, meetingsDueForReminder, recipients, renderAnnouncementMail, renderMeetingMail, type MeetingMailKind, type MeetingView } from "../services/meetings";
 import { siteUrl } from "./weekly-digest";
+import { renderAccountMail, type AccountMailKind } from "../services/account-mail";
 import { adminRecipients, renderApplicationMail, type Application } from "../services/applications";
 
 /** Emails every active member about a meeting (new, changed, or the day-of reminder). */
@@ -35,4 +36,9 @@ export async function runMeetingReminders(db: Db, today: string) {
 export async function notifyApplication(db: Db, application: Application) {
   const admins = await adminRecipients(db);
   return sendMails(admins.map((a) => renderApplicationMail(application, a, siteUrl())));
+}
+
+/** Emails a new or reset account its login details. */
+export async function notifyAccount(to: { name: string; email: string }, password: string, kind: AccountMailKind) {
+  return sendMails([renderAccountMail(to, password, siteUrl(), kind)]);
 }

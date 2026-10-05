@@ -24,6 +24,8 @@ export const createUserInput = z.object({
   name: text(120),
   title: optionalText(160),
   role: z.enum(["admin", "member"]).default("member"),
+  /** email the login details to the new account */
+  notify: z.boolean().default(true),
 });
 export const updateUserInput = z.object({
   name: text(120).optional(),
