@@ -8,7 +8,9 @@ import { listGroups, listMembers } from "@/server/services/groups";
 import { listUsers } from "@/server/services/users";
 import { countNewApplications } from "@/server/services/applications";
 
-export default async function AdminPage() {
+/** `?name=…&email=…` prefills the new-account form (the "Create their account" link on an accepted application). */
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ name?: string; email?: string }> }) {
+  const { name, email } = await searchParams;
   const user = await requirePageUser({ admin: true });
   const db = await getDb();
   const [users, groups, newApplications] = await Promise.all([listUsers(db, user), listGroups(db, user, { includeArchived: true }), countNewApplications(db, user)]);
@@ -32,7 +34,7 @@ export default async function AdminPage() {
       )}
       <section aria-labelledby="people">
         <SectionHead id="people" no={String(users.length).padStart(2, "0")} title="Accounts" />
-        <AdminUsers users={users} me={user.id} />
+        <AdminUsers users={users} me={user.id} prefill={{ name: name?.slice(0, 120) ?? "", email: email?.slice(0, 200) ?? "" }} />
       </section>
       <section className="section" aria-labelledby="groups">
         <SectionHead id="groups" no={String(groups.length).padStart(2, "0")} title="Groups" />

@@ -22,7 +22,7 @@ export default async function ApplicationsAdminPage() {
     <div className="wrap page grid grid-cols-[minmax(0,1fr)] gap-8">
       <PageHead eyebrow="Admin · join" title={<>Applications</>}>
         Sent from the form on /join. {mailConfigured() ? "Each new one is also emailed to the admins." : "Once email is set up, each new one is also emailed to the admins."}{" "}
-        To let someone in, create their account under Accounts.
+        Answer from each card: the applicant gets your message by email, and their reply comes straight to your inbox.
       </PageHead>
       <section aria-labelledby="open" className="grid gap-4">
         <SectionHead id="open" no={String(open.length).padStart(2, "0")} title="To handle" />

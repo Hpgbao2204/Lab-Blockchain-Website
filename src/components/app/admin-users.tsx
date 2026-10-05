@@ -55,7 +55,7 @@ function Secret({ email, password, mail, onClose }: SecretData & { onClose: () =
   );
 }
 
-export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
+export function AdminUsers({ users, me, prefill }: { users: AdminUser[]; me: string; prefill?: { name: string; email: string } }) {
   const router = useRouter();
   const [secret, setSecret] = useState<SecretData | null>(null);
   const [error, setError] = useState("");
@@ -94,11 +94,11 @@ export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
       >
         <label className="label">
           Full name
-          <input className="field field-sm" name="name" required maxLength={120} />
+          <input className="field field-sm" name="name" required maxLength={120} defaultValue={prefill?.name} />
         </label>
         <label className="label">
           Email
-          <input className="field field-sm" name="email" type="email" required />
+          <input className="field field-sm" name="email" type="email" required defaultValue={prefill?.email} />
         </label>
         <label className="label">
           Title <span className="hint">optional</span>

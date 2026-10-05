@@ -18,7 +18,7 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 - Nhiều bạn làm chung một paper: tạo tài khoản riêng cho từng bạn, rồi thêm tất cả vào cùng một group (một wall). Thiếu bạn nào thì tạo và thêm sau.
 - **Reset** khi thành viên quên mật khẩu (mật khẩu tạm mới được gửi qua email); **Deactivate** khi thành viên rời lab (không đăng nhập được, không nhận email nữa).
 - **Groups**: mỗi nhóm thường là một paper. Đặt tên, paper, hội nghị/tạp chí, deadline nộp; chọn thành viên và **lead** (lead được giao việc, ghim link Overleaf/GitHub cho nhóm).
-- Nút **Profile** cạnh mỗi tài khoản: sửa hộ trang CV của thành viên.
+- Nút **Profile** cạnh mỗi tài khoản: sửa hộ trang của thành viên. Mỗi người chọn trang `/people/<tên>` hiện gì: trang CV (4 kiểu: Classic, Minimal, Spotlight, Cards, cùng màu nhấn), **website riêng hiển thị ngay trong trang** (ví dụ GitHub Pages), hoặc chuyển thẳng sang website đó. Website nào không cho nhúng (Notion, LinkedIn…) thì site tự chuyển hướng.
 
 ## 3. Meetings: họp lab và thông báo
 
@@ -37,10 +37,12 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 
 ## 5. Applications: đơn xin vào lab
 
-- Sinh viên điền form ở `/join` (họ tên, email, chương trình học, hướng quan tâm, giới thiệu bản thân, link GitHub/CV).
-- Đơn mới hiện ở **Applications** và trên trang Accounts (*N new applications waiting*). Khi đã bật email, admin nhận email cho mỗi đơn mới.
-- Mỗi đơn có: **Reply by email** (mở thư trả lời), **Status** (*New → Contacted → Accepted / Declined*), **Private note** (ghi chú riêng, tự lưu khi bấm ra ngoài ô), **Delete**.
-- Nhận người: đổi status *Accepted*, rồi tạo tài khoản cho họ ở mục Accounts.
+- Sinh viên điền form ở `/join` (họ tên, email, chương trình học, hướng quan tâm, giới thiệu bản thân, link GitHub/CV, Facebook, số Zalo).
+- Đơn mới hiện ở **Applications** và trên trang Accounts (*N new applications waiting*). Khi đã bật email, admin nhận email cho mỗi đơn mới; bấm **Reply** ngay trong email là thư đi thẳng tới người nộp (không phải địa chỉ noreply).
+- Trả lời trên site: ở thẻ đơn chọn **Accept** (nhận), **Decline** (từ chối) hoặc **Just reply** (chỉ nhắn, ví dụ hẹn phỏng vấn). Site điền sẵn một lời nhắn mẫu tiếng Việt, thầy sửa tuỳ ý rồi bấm **Send**. Người nộp nhận email có lời nhắn và tên thầy; họ bấm Reply là thư về email của thầy. Status đổi theo lựa chọn, lời nhắn được lưu trên thẻ để admin khác cũng thấy. Chưa quyết thì bấm **Later**, để sau.
+- Bấm số Zalo để mở chat Zalo, hoặc link Facebook.
+- **Status** chỉnh tay được (*New → Contacted → Accepted / Declined*), **Private note** là ghi chú riêng (tự lưu khi bấm ra ngoài ô), **Delete** xoá đơn.
+- Nhận người: sau khi Accept, bấm **Create their account** để mở Accounts với tên và email điền sẵn, rồi bấm Create account.
 
 ## 6. Publications: danh sách bài báo
 

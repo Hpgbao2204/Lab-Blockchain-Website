@@ -7,7 +7,7 @@ export const groupStatusEnum = pgEnum("group_status", ["active", "archived"]);
 export const postKindEnum = pgEnum("post_kind", ["note", "announcement"]);
 export const taskStatusEnum = pgEnum("task_status", ["todo", "doing", "review", "done"]);
 export const priorityEnum = pgEnum("task_priority", ["low", "normal", "high"]);
-export const profileDisplayEnum = pgEnum("profile_display", ["template", "portfolio"]);
+export const profileDisplayEnum = pgEnum("profile_display", ["template", "portfolio", "redirect"]);
 export const linkKindEnum = pgEnum("link_kind", ["overleaf", "github", "drive", "paper", "other"]);
 
 const timestamps = {
@@ -284,7 +284,7 @@ export interface CvSections {
 
 /**
  * A member's public profile on /people. Each member edits their own: either a CV built from the
- * site's templates, or a link out to a portfolio they designed themselves. Hidden until published.
+ * site's templates, or a portfolio they designed themselves. Hidden until published.
  */
 export const profiles = pgTable("profiles", {
   userId: uuid("user_id")
@@ -298,7 +298,10 @@ export const profiles = pgTable("profiles", {
   links: jsonb("links").$type<{ label: string; url: string }[]>().notNull().default([]),
   interests: jsonb("interests").$type<string[]>().notNull().default([]),
   cv: jsonb("cv").$type<CvSections>().notNull().default({ education: [], experience: [], projects: [], awards: [] }),
-  /** `portfolio`: the card links to `portfolioUrl`; `template`: the site renders the CV */
+  /**
+   * `template`: the site renders the CV. `portfolio`: /people/[slug] shows `portfolioUrl` inside the
+   * lab's frame (or redirects when that site refuses to be framed). `redirect`: always redirects.
+   */
   display: profileDisplayEnum("display").notNull().default("template"),
   template: text("template").notNull().default("classic"),
   accent: text("accent").notNull().default("yellow"),
@@ -344,13 +347,26 @@ export const applications = pgTable(
     interests: jsonb("interests").$type<string[]>().notNull().default([]),
     message: text("message").notNull(),
     link: text("link"),
+    facebook: text("facebook"),
+    /** phone number the applicant uses on Zalo */
+    zalo: text("zalo"),
     status: applicationStatusEnum("status").notNull().default("new"),
     adminNote: text("admin_note"),
+    /** messages the admins sent to the applicant from the site, oldest first */
+    replies: jsonb("replies").$type<ApplicationReply[]>().notNull().default([]),
     ...timestamps,
   },
   (t) => [index("applications_created_idx").on(t.createdAt)],
 );
 export type Application = typeof applications.$inferSelect;
+export interface ApplicationReply {
+  at: string;
+  by: string;
+  status: "new" | "contacted" | "accepted" | "declined";
+  message: string;
+  /** whether the email reached the mail provider */
+  emailed: boolean;
+}
 
 /** Publications the admin adds by hand, on top of the Crossref snapshot in `src/data`. */
 export const publicationEntries = pgTable("publication_entries", {

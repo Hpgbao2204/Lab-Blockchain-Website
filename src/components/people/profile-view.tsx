@@ -44,7 +44,7 @@ function Links({ person }: { person: PersonView }) {
     <div className="flex flex-wrap gap-2">
       {person.portfolioUrl && (
         <a href={person.portfolioUrl} className="btn btn-sm btn-ink" target="_blank" rel="noopener noreferrer">
-          Portfolio <ArrowUpRight size={14} aria-hidden />
+          Website <ArrowUpRight size={14} aria-hidden />
         </a>
       )}
       {person.links.map((l) => (
@@ -73,10 +73,14 @@ function Sections({ person }: { person: PersonView }) {
   );
 }
 
-/** "classic": sidebar card + timeline; "minimal": one centred column. Both use the member's accent colour. */
+/**
+ * The CV page, in the member's template and accent colour:
+ * "classic" sidebar card + timeline, "minimal" one centred column,
+ * "spotlight" a coloured cover band, "cards" each section on its own card.
+ */
 export function ProfileView({ person }: { person: PersonView }) {
   const style = { "--c": accentVar(person.accent) } as React.CSSProperties;
-  const portfolio = person.display === "portfolio" && person.portfolioUrl;
+  const hasCv = SECTIONS.some((s) => person.cv[s.key]?.length);
 
   const intro = (
     <>
@@ -98,16 +102,6 @@ export function ProfileView({ person }: { person: PersonView }) {
     </>
   );
 
-  const portfolioCall = portfolio && (
-    <a href={person.portfolioUrl!} target="_blank" rel="noopener noreferrer" className="card lift flex items-center justify-between gap-4 p-5" style={{ background: "var(--c)", boxShadow: "var(--shadow)" }}>
-      <span className="grid gap-1">
-        <span className="mono text-xs uppercase tracking-widest">Personal portfolio</span>
-        <span className="text-lg font-bold [font-family:var(--font-display)]">{new URL(person.portfolioUrl!).host + new URL(person.portfolioUrl!).pathname.replace(/\/$/, "")}</span>
-      </span>
-      <ArrowUpRight size={28} aria-hidden />
-    </a>
-  );
-
   if (person.template === "minimal") {
     return (
       <article className="mx-auto grid max-w-[760px] gap-8" style={style}>
@@ -116,15 +110,68 @@ export function ProfileView({ person }: { person: PersonView }) {
           <div className="grid justify-items-center gap-3">{intro}</div>
           <Links person={person} />
         </header>
-        {portfolioCall}
         <div className="card p-6" style={{ borderTop: "10px solid var(--c)" }}>
           <Sections person={person} />
-          {!SECTIONS.some((s) => person.cv[s.key]?.length) && (
+          {!hasCv && (
             <p className="flex items-center gap-2 text-ink-2">
-              <BookOpen size={16} aria-hidden /> More on {portfolio ? "the portfolio above" : "the links above"}.
+              <BookOpen size={16} aria-hidden /> More on the links above.
             </p>
           )}
         </div>
+      </article>
+    );
+  }
+
+  if (person.template === "spotlight") {
+    return (
+      <article className="grid gap-8" style={style}>
+        <header className="card relative grid items-center gap-6 overflow-hidden p-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-8" style={{ background: "var(--c)", boxShadow: "var(--shadow)" }}>
+          <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rotate-12 rounded-[36px] border-2 border-ink bg-paper opacity-40" />
+          <span aria-hidden className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 -rotate-6 rounded-[28px] border-2 border-ink bg-card opacity-30" />
+          <div className="relative w-fit rounded-[22px] border-2 border-ink bg-card p-2" style={{ boxShadow: "var(--shadow)" }}>
+            <Avatar person={person} size={168} />
+          </div>
+          <div className="relative grid gap-3 [&_.text-ink-2]:text-ink">
+            {intro}
+            <Links person={person} />
+          </div>
+        </header>
+        {hasCv && (
+          <div className="card p-6 sm:p-8">
+            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2 [&>div]:contents [&_section]:content-start">
+              <Sections person={person} />
+            </div>
+          </div>
+        )}
+      </article>
+    );
+  }
+
+  if (person.template === "cards") {
+    const filled = SECTIONS.filter((s) => person.cv[s.key]?.length);
+    return (
+      <article className="grid gap-6" style={style}>
+        <header className="grid items-center gap-5 sm:grid-cols-[auto_minmax(0,1fr)]">
+          <div className="w-fit -rotate-2 rounded-[20px] border-2 border-ink p-1.5" style={{ background: "var(--c)", boxShadow: "var(--shadow)" }}>
+            <Avatar person={person} size={132} />
+          </div>
+          <div className="grid gap-3">
+            {intro}
+            <Links person={person} />
+          </div>
+        </header>
+        {filled.length > 0 && (
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            {filled.map((s) => (
+              <section key={s.key} aria-labelledby={`cv-${s.key}`} className="card lift grid gap-3 p-5" style={{ boxShadow: "var(--shadow)" }}>
+                <h3 id={`cv-${s.key}`} className="flex w-fit items-center gap-2 rounded-lg border-2 border-ink px-2.5 py-1 text-base font-bold [font-family:var(--font-display)]" style={{ background: "var(--c)" }}>
+                  <s.icon size={16} aria-hidden /> {s.title}
+                </h3>
+                <Entries items={person.cv[s.key]} />
+              </section>
+            ))}
+          </div>
+        )}
       </article>
     );
   }
@@ -137,7 +184,6 @@ export function ProfileView({ person }: { person: PersonView }) {
       </aside>
       <div className="grid gap-8">
         <header className="grid gap-3">{intro}</header>
-        {portfolioCall}
         <Sections person={person} />
       </div>
     </article>

@@ -70,7 +70,7 @@ export async function saveProfile(db: Db, actor: SessionUser | null, userId: str
   canEdit(actor, userId);
   const [u] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
   if (!u) throw new AppError("not_found", "User not found.");
-  if (input.display === "portfolio" && !input.portfolioUrl) throw new AppError("invalid_input", "Add your portfolio link, or choose the built-in CV.");
+  if (input.display !== "template" && !input.portfolioUrl) throw new AppError("invalid_input", "Add your website link, or choose the CV page.");
   const [taken] = await db.select({ id: profiles.userId }).from(profiles).where(and(eq(profiles.slug, input.slug), ne(profiles.userId, userId)));
   if (taken) throw new AppError("conflict", "That page address is taken. Try another.");
   const values = {

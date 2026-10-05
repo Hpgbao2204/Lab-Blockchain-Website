@@ -40,6 +40,9 @@ describe("profiles", () => {
 
   it("a portfolio profile needs its link; addresses are unique", async () => {
     await expect(saveProfile(db, bao, bao.id, input({ slug: "huynh-phan-gia-bao", display: "portfolio" }))).rejects.toMatchObject({ code: "invalid_input" });
+    await expect(saveProfile(db, bao, bao.id, input({ slug: "huynh-phan-gia-bao", display: "redirect" }))).rejects.toMatchObject({ code: "invalid_input" });
+    expect(() => input({ slug: "ok-slug", template: "spotlight", display: "redirect" })).not.toThrow();
+    expect(() => input({ slug: "ok-slug", template: "neon" })).toThrow();
     await expect(saveProfile(db, bao, bao.id, input({ slug: "dang-khanh-linh" }))).rejects.toMatchObject({ code: "conflict" });
     const p = await saveProfile(db, bao, bao.id, input({ slug: "huynh-phan-gia-bao", display: "portfolio", portfolioUrl: "https://hpgbao2204.github.io/Hpgbao2204/", links: [{ label: "GitHub", url: "https://github.com/hpgbao2204" }] }));
     expect(p.published).toBe(false);

@@ -43,6 +43,13 @@
       "when": 1791006567338,
       "tag": "0005_news_applications_publications",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791194697364,
+      "tag": "0006_profile_modes_application_replies",
+      "breakpoints": true
     }
   ]
 }
