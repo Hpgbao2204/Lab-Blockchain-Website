@@ -14,8 +14,9 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 
 ## 2. Accounts: tài khoản và nhóm
 
-- **Tạo tài khoản**: nhập email (cũng là email nhận thông báo), họ tên, chức danh, vai trò *member* hoặc *admin* → site hiện **mật khẩu tạm**, thầy gửi cho thành viên. Không có đăng ký công khai.
-- **Reset** khi thành viên quên mật khẩu; **Deactivate** khi thành viên rời lab (không đăng nhập được, không nhận email nữa).
+- **Tạo tài khoản**: nhập email (cũng là email nhận thông báo), họ tên, chức danh, vai trò *member* hoặc *admin* → site tự **gửi email chào mừng** (tiếng Việt) tới địa chỉ đó, kèm username, mật khẩu tạm và link đăng nhập để kích hoạt và cập nhật hồ sơ. Mật khẩu tạm cũng hiện trên màn hình một lần, phòng khi email chưa tới. Bỏ tick *Email the username…* nếu không muốn gửi. Không có đăng ký công khai.
+- Nhiều bạn làm chung một paper: tạo tài khoản riêng cho từng bạn, rồi thêm tất cả vào cùng một group (một wall). Thiếu bạn nào thì tạo và thêm sau.
+- **Reset** khi thành viên quên mật khẩu (mật khẩu tạm mới được gửi qua email); **Deactivate** khi thành viên rời lab (không đăng nhập được, không nhận email nữa).
 - **Groups**: mỗi nhóm thường là một paper. Đặt tên, paper, hội nghị/tạp chí, deadline nộp; chọn thành viên và **lead** (lead được giao việc, ghim link Overleaf/GitHub cho nhóm).
 - Nút **Profile** cạnh mỗi tài khoản: sửa hộ trang CV của thành viên.
 

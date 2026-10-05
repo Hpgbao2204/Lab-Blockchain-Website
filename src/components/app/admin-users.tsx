@@ -16,12 +16,31 @@ export interface AdminUser {
   mustChangePassword: boolean;
 }
 
-function Secret({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
+interface EmailResult {
+  sent: number;
+  saved: number;
+  error?: string;
+}
+interface SecretData {
+  email: string;
+  password: string;
+  mail: EmailResult | null;
+}
+
+/** Whether the login details reached the person's inbox, in words the admin can act on. */
+function mailLine(email: string, mail: EmailResult | null) {
+  if (!mail) return <>Share these details with <b>{email}</b>.</>;
+  if (mail.sent) return <>Login details emailed to <b>{email}</b>. You can also copy them below.</>;
+  if (mail.saved) return <>Email is not set up here, so it was saved to <code>.data/outbox</code>. Share these details with <b>{email}</b>.</>;
+  return <>The email could not be sent ({mail.error}). Share these details with <b>{email}</b> yourself.</>;
+}
+
+function Secret({ email, password, mail, onClose }: SecretData & { onClose: () => void }) {
   const text = `Blockchainist members area\nEmail: ${email}\nTemporary password: ${password}\nSign in, then choose your own password.`;
   return (
     <div className="success grid gap-2" role="status">
       <p>
-        Share these details with <b>{email}</b>. The temporary password is shown only once.
+        {mailLine(email, mail)} The temporary password is shown only once.
       </p>
       <code className="code">{text}</code>
       <div className="flex gap-2">
@@ -38,7 +57,7 @@ function Secret({ email, password, onClose }: { email: string; password: string;
 
 export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
   const router = useRouter();
-  const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
+  const [secret, setSecret] = useState<SecretData | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -65,10 +84,10 @@ export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
           const form = e.currentTarget;
           const f = new FormData(form);
           run(async () => {
-            const res = await api<{ user: AdminUser; temporaryPassword: string }>("/admin/users", {
-              body: { name: f.get("name"), email: f.get("email"), title: f.get("title"), role: f.get("role") },
+            const res = await api<{ user: AdminUser; temporaryPassword: string; email: EmailResult | null }>("/admin/users", {
+              body: { name: f.get("name"), email: f.get("email"), title: f.get("title"), role: f.get("role"), notify: f.get("notify") === "on" },
             });
-            setSecret({ email: res.user.email, password: res.temporaryPassword });
+            setSecret({ email: res.user.email, password: res.temporaryPassword, mail: res.email });
             form.reset();
           });
         }}
@@ -95,6 +114,10 @@ export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
         <button className="btn btn-ink btn-sm" type="submit" disabled={busy}>
           <UserPlus size={15} aria-hidden /> Create account
         </button>
+        <label className="flex items-center gap-2 text-sm font-bold md:col-span-5">
+          <input type="checkbox" name="notify" className="accent-ink" defaultChecked />
+          Email the username and temporary password to this address (Vietnamese welcome email)
+        </label>
       </form>
 
       {secret && <Secret {...secret} onClose={() => setSecret(null)} />}
@@ -145,10 +168,10 @@ export function AdminUsers({ users, me }: { users: AdminUser[]; me: string }) {
                       className="btn btn-sm"
                       disabled={busy}
                       onClick={() =>
-                        confirm(`Reset the password of ${u.name}? They will be signed out.`) &&
+                        confirm(`Reset the password of ${u.name}? They will be signed out and get the new temporary password by email.`) &&
                         run(async () => {
-                          const res = await api<{ temporaryPassword: string }>(`/admin/users/${u.id}/reset-password`, { body: {} });
-                          setSecret({ email: u.email, password: res.temporaryPassword });
+                          const res = await api<{ temporaryPassword: string; email: EmailResult | null }>(`/admin/users/${u.id}/reset-password`, { body: { notify: true } });
+                          setSecret({ email: u.email, password: res.temporaryPassword, mail: res.email });
                         })
                       }
                     >

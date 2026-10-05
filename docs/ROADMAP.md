@@ -116,6 +116,8 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - **Publications do admin quản lý**: `/admin/publications` thêm bài Crossref chưa có (DOI hoặc link), sửa/xoá bài thêm tay, ẩn/hiện mọi bài. Bảng `publication_entries`, `hidden_publications` (migration `0005`). Nếu DB lỗi, trang public vẫn hiện bản Crossref.
 - Hướng dẫn cho thầy: `docs/HUONG-DAN-ADMIN.md`.
 
+**Cập nhật 05/10/2026:** tạo tài khoản (và reset mật khẩu) tự gửi email tiếng Việt cho người đó: username, mật khẩu tạm, link đăng nhập để kích hoạt (theo mẫu thầy gửi). Cần Resend đã xác thực domain.
+
 **Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 
 ## Milestones
