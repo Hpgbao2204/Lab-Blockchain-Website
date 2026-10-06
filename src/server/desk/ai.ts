@@ -134,6 +134,8 @@ function openAiCompatible(base: string, key: string, model: string, fetcher: typ
       const request = {
         model,
         temperature: 0.4,
+        // OpenRouter: keep reasoning models (e.g. Nemotron) from spending the whole reply on thinking
+        ...(new URL(base).host === "openrouter.ai" ? { reasoning: { effort: "low" } } : {}),
         messages: [
           { role: "system", content: `${system}\nReply with one JSON object only.` },
           { role: "user", content: user },
@@ -148,8 +150,10 @@ function openAiCompatible(base: string, key: string, model: string, fetcher: typ
         if (!(e instanceof AiError) || e.status !== 400) throw e;
         data = await post(fetcher, url, headers, request);
       }
-      const text = (data.choices as { message?: { content?: string } }[] | undefined)?.[0]?.message?.content;
-      if (!text) throw new Error(`AI returned no text: ${JSON.stringify(data).slice(0, 300)}`);
+      const choice = (data.choices as { finish_reason?: string; message?: { content?: string | null; reasoning?: string | null } }[] | undefined)?.[0];
+      // reasoning models sometimes leave `content` empty and put the answer at the end of `reasoning`
+      const text = choice?.message?.content?.trim() || (choice?.message?.reasoning?.includes("{") ? choice.message.reasoning : "");
+      if (!text) throw new Error(`AI returned no text (finish_reason: ${choice?.finish_reason ?? "none"})`);
       return parseJsonReply(text);
     },
   };
