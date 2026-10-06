@@ -397,3 +397,58 @@ html:has(.portfolio-frame) {
   border: 0;
   background: #fff;
 }
+
+/* ------------------------------------------------------------ blog posts -- */
+@layer components {
+  .post-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  .post-cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-bottom: 2px solid var(--color-ink); background: var(--color-paper-2); }
+  /* no cover: a coloured block with the kind, on the ledger grid */
+  .post-cover-blank {
+    display: grid; place-items: end start; padding: 14px 16px;
+    background-color: color-mix(in srgb, var(--c) 32%, var(--color-card));
+    background-image: linear-gradient(color-mix(in srgb, var(--color-ink) 9%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-ink) 9%, transparent) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .post-cover-blank span { font: 800 clamp(20px, 2.4vw, 30px)/1 var(--font-display); letter-spacing: -.02em; color: var(--color-ink); opacity: .85; }
+  .post-card:not(.post-feature) .post-cover-blank { aspect-ratio: 16 / 6; }
+  @media (min-width: 900px) {
+    .post-feature { grid-template-rows: none; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+    .post-feature .post-cover { aspect-ratio: auto; height: 100%; min-height: 300px; border-bottom: 0; border-right: 2px solid var(--color-ink); }
+    .post-feature > div:last-child { align-content: center; padding: 28px; }
+  }
+  .feed { display: grid; gap: 18px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .feed > .lead { grid-column: 1 / -1; }
+  @media (max-width: 980px) { .feed { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .feed { grid-template-columns: minmax(0, 1fr); } }
+  a.chip { text-decoration: none; display: inline-flex; align-items: center; }
+
+  /* Markdown body of a post */
+  .prose-post { font-size: 17.5px; line-height: 1.75; overflow-wrap: anywhere; }
+  .prose-post > :first-child { margin-top: 0; }
+  .prose-post > :last-child { margin-bottom: 0; }
+  .prose-post p, .prose-post ul, .prose-post ol, .prose-post blockquote, .prose-post pre, .prose-post .prose-table, .prose-post figure { margin: 0 0 1.1em; }
+  .prose-post h2, .prose-post h3, .prose-post h4 { margin: 1.6em 0 .5em; font-family: var(--font-display); font-weight: 800; letter-spacing: -.015em; line-height: 1.2; }
+  .prose-post h2 { font-size: 1.55em; }
+  .prose-post h3 { font-size: 1.25em; }
+  .prose-post h4 { font-size: 1.05em; }
+  .prose-post a { font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-blue); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .prose-post ul, .prose-post ol { padding-left: 1.4em; }
+  .prose-post ul { list-style: disc; }
+  .prose-post ol { list-style: decimal; }
+  .prose-post li + li { margin-top: .3em; }
+  .prose-post li > input[type="checkbox"] { margin-right: .4em; }
+  .prose-post blockquote { padding: 6px 0 6px 16px; border-left: 5px solid var(--color-yellow); color: var(--color-ink-2); font-style: italic; }
+  .prose-post code { padding: 1px 6px; border: 1.5px solid var(--color-line); border-radius: 6px; background: var(--color-paper); font: 400 .86em var(--font-mono); }
+  .prose-post pre { padding: 14px 16px; overflow-x: auto; background: var(--color-ink); color: #f5f2ec; border-radius: 12px; }
+  .prose-post pre code { padding: 0; border: 0; background: none; color: inherit; font-size: 13px; line-height: 1.7; }
+  .prose-post img { display: block; max-width: 100%; height: auto; margin: 1.2em auto; border: 2px solid var(--color-ink); border-radius: 12px; box-shadow: var(--shadow); }
+  .prose-post hr { margin: 2em 0; border: 0; border-top: 2px dashed var(--color-ink); }
+  .prose-post .prose-table { overflow-x: auto; }
+  .prose-post table { width: 100%; border-collapse: collapse; font-size: .9em; }
+  .prose-post th, .prose-post td { padding: 6px 10px; border: 1.5px solid var(--color-ink); text-align: left; }
+  .prose-post th { background: var(--color-paper-2); }
+
+  /* editor */
+  .md-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  .md-area { min-height: 420px; font: 400 14.5px/1.7 var(--font-mono); }
+}

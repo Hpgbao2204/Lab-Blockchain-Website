@@ -16,7 +16,9 @@ import { createPost, createTask, updateTask } from "../src/server/services/wall"
 import { createLink } from "../src/server/services/links";
 import { createAnnouncement, createMeeting } from "../src/server/services/meetings";
 import { saveProfile } from "../src/server/services/profiles";
-import { profileInput } from "../src/server/validation";
+import { newsInput, profileInput } from "../src/server/validation";
+import { news } from "../src/server/db/schema";
+import { createNews, reviewNews, submitNews } from "../src/server/services/news";
 import { people } from "../src/data/people";
 import { addDays, labToday, weekStart } from "../src/lib/weeks";
 
@@ -121,6 +123,53 @@ async function main() {
       accent: "blue",
       published: true,
     }));
+
+    // Blog posts: two published (one by each kind of member), one waiting for review, one draft.
+    const [anyPost] = await db.select({ id: news.id }).from(news).limit(1);
+    if (!anyPost) {
+      const asUser = async (slug: string) => (await userFromToken(db, (await createSession(db, u(slug).id)).token))!;
+      const write = async (slug: string, input: Record<string, unknown>, then: "publish" | "submit" | "draft") => {
+        const author = slug === "bao" ? (await userFromToken(db, (await createSession(db, bao.id)).token))! : await asUser(slug);
+        const post = await createNews(db, author, newsInput.parse(input));
+        if (then === "draft") return;
+        await submitNews(db, author, post.id);
+        if (then === "publish") await reviewNews(db, admin, post.id, { decision: "approve", note: "Clear and well sourced. Thanks!" });
+      };
+      await write(
+        "minh-anh-le",
+        {
+          kind: "protocol",
+          title: "How HTLCs make atomic swaps atomic",
+          summary: "A hashed timelock contract lets two people swap coins on two chains without trusting each other. Here is the trick, step by step.",
+          sources: "- M. Herlihy, *Atomic Cross-Chain Swaps*, PODC 2018. https://doi.org/10.1145/3212734.3212736\n- Bitcoin Wiki, *Hash Time Locked Contracts*. https://en.bitcoin.it/wiki/Hash_Time_Locked_Contracts",
+          body: "## The problem\n\nAlice has coins on chain A and wants Bob's coins on chain B. Whoever sends first takes a risk: the other side may simply keep both.\n\n## The trick: one secret, two locks\n\n1. Alice picks a random secret **s** and publishes only its hash **h = H(s)**.\n2. Alice locks her coins on chain A: *Bob can take them by revealing s before time T₁; after T₁ they return to Alice.*\n3. Bob sees the lock and creates a matching one on chain B, keyed to the same **h**, with an **earlier** deadline T₂ < T₁.\n4. Alice claims Bob's coins on chain B. To do it she must reveal **s** on chain B.\n5. Bob reads **s** from chain B and claims Alice's coins on chain A before T₁.\n\n> Either both transfers happen, or neither does. That is what *atomic* means here.\n\n## Why the deadlines must differ\n\nIf T₂ were later than T₁, Alice could wait until her own lock expires, take her coins back, and *then* claim Bob's. The shorter deadline on Bob's side leaves him time to use the secret.\n\n## What it does not solve\n\n| Issue | Why |\n|---|---|\n| Free option | Alice can watch prices and walk away before step 4 |\n| Privacy | The same hash appears on both chains, linking the swap |\n| Liveness | Bob must be online between step 4 and T₁ |\n\nOur group's zk-HTLC work targets the privacy row.",
+        },
+        "publish",
+      );
+      await write(
+        "gia-khang-vo",
+        {
+          kind: "incident",
+          title: "Ronin bridge, 2022: five keys out of nine",
+          summary: "Around $600M left the Ronin bridge after attackers controlled five of its nine validator keys. What failed was key management, not cryptography.",
+          sources: "- Ronin Network, *Community Alert: Ronin Validators Compromised*, March 2022. https://roninchain.com/blog/posts/community-alert-ronin-validators-compromised-6514dc5a5ed4\n- U.S. Treasury, OFAC update on the Ronin theft, April 2022.",
+          body: "## What happened\n\nRonin's bridge to Ethereum released funds when **5 of 9** validators signed a withdrawal. In March 2022 the attackers held five signatures: four validators run by one company, plus one third-party validator whose signing permission had never been revoked after a temporary arrangement.\n\n## Why it worked\n\n- **Concentration.** A threshold of 5/9 looks decentralised, but four keys sat with one operator.\n- **Stale permissions.** A delegation meant to be temporary was still valid months later.\n- **Slow detection.** The theft went unnoticed for days, until a user could not withdraw.\n\n## Lessons for bridge design\n\n1. Count *independent operators*, not keys.\n2. Expire delegated signing rights automatically.\n3. Rate-limit large withdrawals and alert on them.\n4. Prefer designs where the destination chain verifies the source chain (light clients, proofs) over pure multisig committees.",
+        },
+        "publish",
+      );
+      await write(
+        "quoc-huy-pham",
+        {
+          kind: "paper_review",
+          title: "Review: Groth16 in one page",
+          summary: "Why Groth16 proofs are tiny and fast to verify, what the trusted setup costs, and when to choose something else.",
+          sources: "- J. Groth, *On the Size of Pairing-based Non-interactive Arguments*, EUROCRYPT 2016. https://eprint.iacr.org/2016/260",
+          body: "## The claim\n\nA zk-SNARK whose proof is only **three group elements** and whose verifier checks a single pairing equation, whatever the size of the computation.\n\n## How\n\nThe circuit is turned into a quadratic arithmetic program. A one-time setup per circuit hides evaluation points in the exponent; the prover combines them into three elements A, B, C.\n\n## What I liked\n\n- Constant-size proofs (about 128 bytes on BN254) are ideal for on-chain verification.\n- The paper proves a lower bound showing the size is close to optimal for pairing-based arguments.\n\n## What to watch\n\n- The setup is per circuit and must be trusted; a leaked toxic waste allows forged proofs.\n- Changing the circuit means a new ceremony. PLONK-style universal setups avoid this.\n\n## Verdict\n\nStill the default when verifier cost dominates and the circuit is stable.",
+        },
+        "submit",
+      );
+      await write("bao", { kind: "article", title: "Notes on reputation for cross-chain relayers", summary: "Draft: how we might score relayers by the proofs they deliver.", body: "Draft notes. To be continued." }, "draft");
+    }
 
     console.log(`Demo data added for ${Object.keys(accounts).length} sample members (e.g. minh.anh.le@blockchainist.local). Password: ${demoPassword}`);
   }

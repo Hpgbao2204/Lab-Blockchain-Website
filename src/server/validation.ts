@@ -165,15 +165,41 @@ export const profileInput = z.object({
   published: z.boolean().default(false),
 });
 
-export const newsKinds = ["news", "award", "paper", "event"] as const;
+/** Lab news only the admin posts, then the kinds of article every member may write. */
+export const labNewsKinds = ["news", "award", "paper", "event"] as const;
+export const articleKinds = ["protocol", "paper_review", "incident", "article"] as const;
+export const newsKinds = [...labNewsKinds, ...articleKinds] as const;
+export const newsStatuses = ["draft", "submitted", "published", "rejected"] as const;
+
+/** An image uploaded to the site (`/api/v1/images/<key>`) or any https image. */
+const imageRef = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine((v) => /^\/api\/v1\/images\/[a-z0-9-]+$/i.test(v) || /^https:\/\/[^\s]+$/i.test(v), "Use an uploaded image or an https:// image link")
+  .optional()
+  .nullable()
+  .or(z.literal("").transform(() => null));
+
+/**
+ * A post on the blog. Members always save drafts and submit them for review; `status` and
+ * `publishedOn` are only honoured for admins (who may publish directly or schedule a date).
+ */
 export const newsInput = z.object({
-  kind: z.enum(newsKinds).default("news"),
+  kind: z.enum(newsKinds).default("article"),
   title: text(200),
   summary: text(400),
-  body: optionalText(10000),
+  body: optionalText(40000),
   link: optionalUrl,
-  publishedOn: isoDate,
-  published: z.boolean().default(true),
+  cover: imageRef,
+  sources: optionalText(4000),
+  publishedOn: isoDate.optional(),
+  status: z.enum(["draft", "published"]).optional(),
+});
+
+export const newsReviewInput = z.object({
+  decision: z.enum(["approve", "reject"]),
+  note: optionalText(2000),
 });
 
 export const applicationPrograms = ["Undergraduate", "Master's", "PhD", "Other"] as const;

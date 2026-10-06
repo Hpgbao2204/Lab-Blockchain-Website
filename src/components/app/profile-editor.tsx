@@ -98,7 +98,7 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
       };
       await api(`/profiles/${userId}`, { method: "PUT", body });
       setIsSaved(p.published);
-      setMsg({ ok: true, text: p.published ? "Saved. The profile is public on /people." : "Saved as a draft. Tick “Show on the People page” to make it public." });
+      setMsg({ ok: true, text: p.published ? "Saved. The profile is public on /team." : "Saved as a draft. Tick “Show on the Team page” to make it public." });
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
     } finally {
@@ -211,7 +211,7 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
 
         <fieldset className="grid gap-2">
           <legend className="label mb-1">
-            Template and colour {ownSite && <span className="hint">used if you switch back to the CV page, and for your card on /people</span>}
+            Template and colour {ownSite && <span className="hint">used if you switch back to the CV page, and for your card on /team</span>}
           </legend>
           <div className="flex flex-wrap gap-2">
             {TEMPLATES.map((o) => (
@@ -238,7 +238,7 @@ export function ProfileEditor({ userId, name, initial, saved, forAdmin }: { user
 
         <label className="flex items-center gap-2 text-sm font-bold">
           <input type="checkbox" className="accent-ink" checked={p.published} onChange={(e) => set("published", e.target.checked)} />
-          Show on the public People page
+          Show on the public Team page
         </label>
         <div className="flex flex-wrap items-center gap-2">
           <button type="submit" className="btn btn-ink btn-sm" disabled={busy}>

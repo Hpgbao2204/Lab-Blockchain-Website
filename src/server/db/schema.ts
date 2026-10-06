@@ -327,10 +327,15 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event"]);
+export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event", "protocol", "paper_review", "incident", "article"]);
+export const newsStatusEnum = pgEnum("news_status", ["draft", "submitted", "published", "rejected"]);
 export const applicationStatusEnum = pgEnum("application_status", ["new", "contacted", "accepted", "declined"]);
 
-/** Public news items (lab news, awards, accepted papers, events), written by the admin. */
+/**
+ * Posts on the public blog (/news and the home page): lab news written by the admin, and articles
+ * members write (protocol explainers, paper reviews, incident analyses). A member's post goes
+ * draft → submitted → published (or rejected with a note, then edited and submitted again).
+ */
 export const news = pgTable(
   "news",
   {
@@ -339,17 +344,31 @@ export const news = pgTable(
     kind: newsKindEnum("kind").notNull().default("news"),
     title: text("title").notNull(),
     summary: text("summary").notNull(),
+    /** Markdown */
     body: text("body"),
     link: text("link"),
-    /** the date shown on the item (Vietnam calendar day) */
+    /** cover image URL, usually an image uploaded through /api/v1/images */
+    cover: text("cover"),
+    /** where collected material comes from (Markdown); required for summaries of others' work */
+    sources: text("sources"),
+    /** the date shown on the item (Vietnam calendar day); set to the approval day for members' posts */
     publishedOn: date("published_on").notNull(),
-    /** drafts are only visible to admins */
+    /**
+     * Superseded by `status`; kept (and unused) so a preview build that migrates the shared
+     * database cannot break the code still running in production. Drop in a later migration.
+     */
     published: boolean("published").notNull().default(true),
+    status: newsStatusEnum("status").notNull().default("published"),
+    /** the admin's note when sending a post back (or approving with a comment) */
+    reviewNote: text("review_note"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
     authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("news_published_idx").on(t.publishedOn)],
+  (t) => [index("news_published_idx").on(t.publishedOn), index("news_status_idx").on(t.status), index("news_author_idx").on(t.authorId)],
 );
 export type NewsItem = typeof news.$inferSelect;
 

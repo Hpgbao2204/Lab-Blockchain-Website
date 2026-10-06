@@ -1,85 +1,89 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, PenLine } from "lucide-react";
 import { Hero } from "@/components/hero/hero";
 import { PublicationCard } from "@/components/pubs/publication-card";
 import { Reveal } from "@/components/site/reveal";
 import { SectionHead } from "@/components/site/page-head";
-import { NewsCard } from "@/components/news/news-card";
-import { getStats, listPublications, listResearchAreas } from "@/lib/content";
+import { NEWS_KIND, NewsCard, type NewsKind } from "@/components/news/news-card";
+import { listPublications } from "@/lib/content";
 import { getDb } from "@/server/db";
-import { listNews } from "@/server/services/news";
+import { getCurrentUser } from "@/server/auth/current";
+import { countLiveByKind, listNews } from "@/server/services/news";
 import { allPublications } from "@/server/services/publications";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * The home page is the lab's blog: the protocol hero, then the latest posts (the newest one large).
+ * Until the first post is live, the latest papers fill the space instead.
+ */
 export default async function Home() {
   const db = await getDb();
-  const [pubs, news] = await Promise.all([allPublications(db), listNews(db, null, { limit: 3 }).catch(() => [])]);
-  const stats = getStats(pubs);
-  const areas = listResearchAreas();
-  const latest = listPublications({ limit: 2 }, pubs);
-
-  const tiles = [
-    { href: "/research", title: "Research", text: areas.map((a) => a.title).slice(0, 3).join(" · ") + " and more.", big: stats.researchAreas, c: "var(--color-yellow)", wide: true },
-    { href: "/publications", title: "Publications", text: "Journal and conference papers, searchable by year, type and direction.", big: stats.publications, c: "var(--color-blue)", wide: true },
-    { href: "/people", title: "People", text: "The principal investigator and every member's profile.", c: "var(--color-card)" },
-    { href: "/news", title: "News", text: "Accepted papers, awards and events.", c: "var(--color-yellow)" },
-    { href: "/pioneers", title: "Pioneers", text: `${stats.pioneers} people whose ideas made blockchains possible.`, c: "var(--color-teal)" },
-    { href: "/join", title: "Join us", text: "Students who like hard problems in trust and privacy. Apply online.", c: "var(--color-pink)", full: true },
-  ];
+  const [posts, counts] = await Promise.all([listNews(db, null, { limit: 10 }).catch(() => []), countLiveByKind(db).catch(() => ({}) as Partial<Record<NewsKind, number>>)]);
+  const kinds = (Object.keys(NEWS_KIND) as NewsKind[]).filter((k) => counts[k]);
+  const signedIn = !!(await getCurrentUser().catch(() => null));
+  const latest = posts.length ? [] : listPublications({ limit: 4 }, await allPublications(db));
 
   return (
     <>
-      <Hero stats={stats} />
+      <Hero />
 
-      <section className="wrap section" aria-labelledby="explore">
-        <SectionHead id="explore" no="01" title="Explore the research group" />
-        <div className="tiles">
-          {tiles.map((t, i) => (
-            <Reveal key={t.href} delay={i * 60} className={`tile-cell ${t.wide ? "wide" : ""} ${t.full ? "full" : ""}`}>
-              <Link href={t.href} className="tile card lift h-full" style={{ "--c": t.c } as React.CSSProperties}>
-                <div className="flex items-start justify-between gap-4">
-                  <h3>{t.title}</h3>
-                  {t.big !== undefined && <span className="big">{t.big}</span>}
-                </div>
-                <p>{t.text}</p>
-                <span className="go">
-                  Open <ArrowUpRight size={18} aria-hidden />
-                </span>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {news.length > 0 && (
-        <section className="wrap section" aria-labelledby="news">
-          <SectionHead id="news" no="02" title="Latest news">
+      {posts.length > 0 && (
+        <section id="posts" className="wrap section" aria-labelledby="posts-title">
+          <SectionHead id="posts-title" no="01" title="Latest from the lab">
             <Link href="/news" className="btn btn-sm more">
-              All news <ArrowUpRight size={16} aria-hidden />
+              All posts <ArrowUpRight size={16} aria-hidden />
             </Link>
           </SectionHead>
-          <ul className="grid gap-4 md:grid-cols-3">
-            {news.map((n) => (
-              <li key={n.id}>
-                <NewsCard item={n} />
-              </li>
+          {kinds.length > 1 && (
+            <nav aria-label="Browse posts by kind" className="filters mb-6">
+              {kinds.map((k) => (
+                <Link key={k} href={`/news?kind=${k}`} className="chip" style={{ "--c": NEWS_KIND[k].c } as React.CSSProperties}>
+                  {NEWS_KIND[k].label} <b>{counts[k]}</b>
+                </Link>
+              ))}
+            </nav>
+          )}
+          <ul className="feed list-none p-0">
+            {posts.map((n, i) => (
+              <Reveal as="li" key={n.id} delay={Math.min(i, 4) * 60} className={i === 0 ? "lead" : ""}>
+                <NewsCard item={n} feature={i === 0} />
+              </Reveal>
             ))}
           </ul>
         </section>
       )}
 
-      <section className="wrap section" aria-labelledby="latest">
-        <SectionHead id="latest" no={news.length ? "03" : "02"} title="Latest papers">
-          <Link href="/publications" className="btn btn-sm more">
-            All publications <ArrowUpRight size={16} aria-hidden />
+      {posts.length === 0 && (
+        <section id="posts" className="wrap section" aria-labelledby="latest">
+          <SectionHead id="latest" no="01" title="Latest papers">
+            <Link href="/publications" className="btn btn-sm more">
+              All publications <ArrowUpRight size={16} aria-hidden />
+            </Link>
+          </SectionHead>
+          <ol className="pubs">
+            {latest.map((p, i) => (
+              <PublicationCard key={p.id} pub={p} no={i + 1} />
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <section className="wrap section" aria-labelledby="write">
+        <div className="card grid items-center gap-4 p-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-8" style={{ background: "color-mix(in srgb, var(--color-yellow) 26%, var(--color-card))" }}>
+          <div className="grid gap-2">
+            <h2 id="write" className="display text-[clamp(22px,2.6vw,32px)]">
+              Write for the lab
+            </h2>
+            <p className="text-ink-2">
+              Members share paper reviews, protocol explainers and incident write-ups here. Sign in, write your post, and an admin reviews it before it goes
+              live.
+            </p>
+          </div>
+          <Link href={signedIn ? "/app/posts/new" : "/login?next=/app/posts/new"} className="btn btn-ink w-fit">
+            <PenLine size={17} aria-hidden /> Write a post
           </Link>
-        </SectionHead>
-        <ol className="pubs">
-          {latest.map((p, i) => (
-            <PublicationCard key={p.id} pub={p} no={i + 1} />
-          ))}
-        </ol>
+        </div>
       </section>
     </>
   );

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api/client";
 
-export function LoginForm() {
+export function LoginForm({ next = "/app" }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -16,7 +16,7 @@ export function LoginForm() {
     setError("");
     try {
       const me = await api<{ mustChangePassword: boolean }>("/auth/login", { body: { email: f.get("email"), password: f.get("password") } });
-      router.replace(me.mustChangePassword ? "/account/password" : "/app");
+      router.replace(me.mustChangePassword ? "/account/password" : next);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

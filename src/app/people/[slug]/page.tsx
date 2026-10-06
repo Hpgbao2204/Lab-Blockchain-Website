@@ -32,8 +32,8 @@ export default async function PersonPage({ params }: Props) {
   }
   return (
     <div className="wrap page grid gap-8">
-      <Link href="/people" className="mono inline-flex w-fit items-center gap-1.5 text-sm">
-        <ArrowLeft size={15} aria-hidden /> All people
+      <Link href="/team" className="mono inline-flex w-fit items-center gap-1.5 text-sm">
+        <ArrowLeft size={15} aria-hidden /> The team
       </Link>
       <ProfileView person={person} />
     </div>

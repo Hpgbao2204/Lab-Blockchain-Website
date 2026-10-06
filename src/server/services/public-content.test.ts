@@ -4,7 +4,27 @@ import { createSession, userFromToken, type SessionUser } from "../auth/sessions
 import { applicationInput, applicationReplyInput, newsInput, publicationInput } from "../validation";
 import type { Mail } from "../mail";
 import { authenticate, createUser, ensureAdmin } from "./users";
-import { createNews, deleteNews, getNews, listNews, slugify, updateNews } from "./news";
+import {
+  authorStats,
+  countLiveByKind,
+  createNews,
+  deleteNews,
+  getNews,
+  getPostById,
+  listMyPosts,
+  listNews,
+  listSubmitted,
+  publishedBy,
+  renderReviewMail,
+  renderSubmittedMail,
+  reviewNews,
+  slugify,
+  submitNews,
+  updateNews,
+  withdrawNews,
+} from "./news";
+import { readImage, uploadImage } from "./images";
+import { memoryStorage } from "../storage";
 import { applicantsOf, countNewApplications, deleteApplication, listApplications, renderApplicationMail, replyToApplication, submitApplication, updateApplication } from "./applications";
 import { applications } from "../db/schema";
 import { zaloLink } from "@/lib/contact";
@@ -28,8 +48,9 @@ beforeAll(async () => {
 }, 60_000);
 
 const today = labToday();
-const item = (over: Partial<ReturnType<typeof newsInput.parse>> = {}) =>
-  newsInput.parse({ title: "Paper accepted at SoICT 2026", summary: "Our cross-chain paper was accepted.", publishedOn: today, ...over });
+const item = (over: Partial<Record<string, unknown>> = {}) =>
+  newsInput.parse({ kind: "news", title: "Paper accepted at SoICT 2026", summary: "Our cross-chain paper was accepted.", publishedOn: today, ...over });
+const longBody = "A hashed timelock contract locks coins until a secret is revealed. ".repeat(8);
 
 describe("news", () => {
   it("slugifies Vietnamese and punctuation", () => {
@@ -37,16 +58,16 @@ describe("news", () => {
     expect(slugify("!!!")).toBe("news");
   });
 
-  it("only the admin writes news", async () => {
-    await expect(createNews(db, member, item())).rejects.toMatchObject({ code: "forbidden" });
+  it("visitors need an account to write; awards, accepted papers and events are the admin's", async () => {
     await expect(createNews(db, null, item())).rejects.toMatchObject({ code: "unauthorized" });
+    for (const kind of ["award", "paper", "event"]) await expect(createNews(db, member, item({ kind }))).rejects.toMatchObject({ code: "forbidden" });
   });
 
   it("visitors see published items up to today; drafts and future items stay hidden", async () => {
     const live = await createNews(db, admin, item());
     const twin = await createNews(db, admin, item());
     expect(twin.slug).toBe(`${live.slug}-2`);
-    const draft = await createNews(db, admin, item({ title: "Draft", published: false }));
+    const draft = await createNews(db, admin, item({ title: "Draft", status: "draft" }));
     const later = await createNews(db, admin, item({ title: "Next month", publishedOn: addDays(today, 30) }));
 
     const visible = (await listNews(db, null)).map((n) => n.id);
@@ -59,18 +80,131 @@ describe("news", () => {
     await expect(getNews(db, null, draft.slug)).rejects.toMatchObject({ code: "not_found" });
     await expect(getNews(db, member, later.slug)).rejects.toMatchObject({ code: "not_found" });
     expect((await getNews(db, admin, draft.slug)).id).toBe(draft.id);
-    expect((await getNews(db, null, live.slug)).title).toBe(live.title);
+    const shown = await getNews(db, null, live.slug);
+    expect(shown.title).toBe(live.title);
+    expect(shown.author).toEqual({ name: "Tran Tuan Dung", slug: null });
   });
 
   it("renaming moves the slug; deleting removes it", async () => {
-    const n = await createNews(db, admin, item({ title: "Lab retreat" }));
+    const n = await createNews(db, admin, item({ title: "Lab retreat", status: "draft" }));
     const same = await updateNews(db, admin, n.id, item({ title: "Lab retreat", summary: "Changed" }));
     expect(same.slug).toBe(n.slug);
     const renamed = await updateNews(db, admin, n.id, item({ title: "Lab retreat in Da Lat", kind: "event" }));
     expect(renamed.slug).toBe("lab-retreat-in-da-lat");
-    await expect(updateNews(db, member, n.id, item())).rejects.toMatchObject({ code: "forbidden" });
+    await expect(updateNews(db, member, n.id, item())).rejects.toMatchObject({ code: "not_found" });
+    await expect(deleteNews(db, member, n.id)).rejects.toMatchObject({ code: "not_found" });
     await deleteNews(db, admin, n.id);
     await expect(deleteNews(db, admin, n.id)).rejects.toMatchObject({ code: "not_found" });
+  });
+});
+
+describe("member posts", () => {
+  let other: SessionUser;
+  beforeAll(async () => {
+    other = await login("binh@lab.test", (await createUser(db, admin, { email: "binh@lab.test", name: "Tran Thi Binh", title: null, role: "member" })).temporaryPassword);
+  });
+  const review = (over: Record<string, unknown> = {}) => item({ kind: "paper_review", title: "Review: zk-HTLC", summary: "What the paper does.", ...over });
+
+  it("a member's post is a draft only they and admins see, whatever status they send", async () => {
+    const p = await createNews(db, member, review({ status: "published", publishedOn: "2020-01-01" }));
+    expect(p.status).toBe("draft");
+    expect(p.publishedOn).toBe(today);
+    expect(p.authorId).toBe(member.id);
+    await expect(getNews(db, null, p.slug)).rejects.toMatchObject({ code: "not_found" });
+    await expect(getNews(db, other, p.slug)).rejects.toMatchObject({ code: "not_found" });
+    await expect(updateNews(db, other, p.id, review())).rejects.toMatchObject({ code: "not_found" });
+    await expect(submitNews(db, other, p.id)).rejects.toMatchObject({ code: "not_found" });
+    expect((await getNews(db, member, p.slug)).id).toBe(p.id);
+    expect((await getPostById(db, admin, p.id)).id).toBe(p.id);
+    expect((await listMyPosts(db, member)).map((x) => x.id)).toContain(p.id);
+    expect((await listMyPosts(db, other)).map((x) => x.id)).not.toContain(p.id);
+  });
+
+  it("submitting needs a real body and, for reviews and explainers, sources", async () => {
+    const p = await createNews(db, member, review({ body: "Too short." }));
+    await expect(submitNews(db, member, p.id)).rejects.toMatchObject({ code: "invalid_input" });
+    await updateNews(db, member, p.id, review({ body: longBody }));
+    await expect(submitNews(db, member, p.id)).rejects.toMatchObject({ code: "invalid_input", message: expect.stringMatching(/sources/i) });
+    await updateNews(db, member, p.id, review({ body: longBody, sources: "- The zk-HTLC paper, https://doi.org/10.1000/x" }));
+    expect((await submitNews(db, member, p.id)).status).toBe("submitted");
+    // an article of one's own needs no sources
+    const own = await createNews(db, member, item({ kind: "article", title: "My notes", body: longBody }));
+    expect((await submitNews(db, member, own.id)).status).toBe("submitted");
+    await withdrawNews(db, member, own.id);
+    expect((await getPostById(db, member, own.id)).status).toBe("draft");
+  });
+
+  it("the admin approves or sends back with a note; only then is it public", async () => {
+    const p = await createNews(db, member, review({ title: "Review: Lotus", body: longBody, sources: "Lotus paper" }));
+    await submitNews(db, member, p.id);
+    expect((await listSubmitted(db, admin)).map((x) => x.id)).toContain(p.id);
+    await expect(listSubmitted(db, member)).rejects.toMatchObject({ code: "forbidden" });
+    await expect(reviewNews(db, member, p.id, { decision: "approve" })).rejects.toMatchObject({ code: "forbidden" });
+    await expect(getNews(db, null, p.slug)).rejects.toMatchObject({ code: "not_found" });
+
+    await expect(reviewNews(db, admin, p.id, { decision: "reject" })).rejects.toMatchObject({ code: "invalid_input" });
+    const back = await reviewNews(db, admin, p.id, { decision: "reject", note: "Explain the threat model." });
+    expect(back).toMatchObject({ status: "rejected", reviewNote: "Explain the threat model.", reviewedBy: admin.id });
+    await expect(reviewNews(db, admin, p.id, { decision: "approve" })).rejects.toMatchObject({ code: "conflict" });
+
+    await updateNews(db, member, p.id, review({ title: "Review: Lotus", body: longBody + " Threat model: …", sources: "Lotus paper" }));
+    await submitNews(db, member, p.id);
+    const ok = await reviewNews(db, admin, p.id, { decision: "approve", note: "Nice." });
+    expect(ok).toMatchObject({ status: "published", publishedOn: today });
+    const shown = await getNews(db, null, p.slug);
+    expect(shown.author?.name).toBe("Nguyen Van An");
+    expect((await listNews(db, null, { kind: "paper_review" })).map((x) => x.id)).toContain(p.id);
+    expect((await countLiveByKind(db)).paper_review).toBeGreaterThanOrEqual(1);
+
+    // a live post no longer changes without the admin
+    await expect(updateNews(db, member, p.id, review())).rejects.toMatchObject({ code: "forbidden" });
+    await expect(deleteNews(db, member, p.id)).rejects.toMatchObject({ code: "forbidden" });
+    await expect(submitNews(db, member, p.id)).rejects.toMatchObject({ code: "conflict" });
+  });
+
+  it("authors keep their draft slug in step with the title, but not after publishing", async () => {
+    const p = await createNews(db, admin, item({ title: "Old title" }));
+    const kept = await updateNews(db, admin, p.id, item({ title: "New title" }));
+    expect(kept.slug).toBe(p.slug);
+  });
+
+  it("the admin sees who wrote what", async () => {
+    await expect(authorStats(db, member)).rejects.toMatchObject({ code: "forbidden" });
+    const rows = await authorStats(db, admin);
+    const an = rows.find((r) => r.id === member.id)!;
+    expect(an).toMatchObject({ name: "Nguyen Van An", published: 1, submitted: 1, drafts: 2 });
+    expect(an.lastPublished).toBe(today);
+    expect(rows.find((r) => r.id === other.id)).toBeUndefined();
+    expect((await publishedBy(db, [member.id])).map((t) => t.title)).toEqual(["Review: Lotus"]);
+  });
+
+  it("review emails go to the author, escaped", () => {
+    const m = renderReviewMail({ id: "x", slug: "s", title: "<b>Hi</b>", status: "rejected", reviewNote: "Fix <script>" }, { email: "an@lab.test", name: "An" }, "PI", "https://lab.test");
+    expect(m.to).toBe("an@lab.test");
+    expect(m.html).not.toContain("<script>");
+    expect(m.html).toContain("https://lab.test/app/posts/x");
+    expect(renderSubmittedMail({ title: "T", summary: "S", kind: "incident" }, "An", { email: "pi@lab.test" }, "https://lab.test").text).toContain("/admin/posts");
+  });
+});
+
+describe("post images", () => {
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+  it("members upload images only; anyone can read them back by key", async () => {
+    const storage = memoryStorage();
+    await expect(uploadImage(storage, null, png)).rejects.toMatchObject({ code: "unauthorized" });
+    await expect(uploadImage(storage, member, new TextEncoder().encode("%PDF-1.7"))).rejects.toMatchObject({ code: "invalid_input" });
+    await expect(uploadImage(storage, member, new TextEncoder().encode("<svg onload=alert(1)>"))).rejects.toMatchObject({ code: "invalid_input" });
+    const up = await uploadImage(storage, member, png);
+    expect(up.url).toMatch(/^\/api\/v1\/images\/img-[0-9a-f-]{36}-png$/);
+    expect((await readImage(storage, up.key)).mime).toBe("image/png");
+    await expect(readImage(storage, "../secret")).rejects.toMatchObject({ code: "not_found" });
+    await expect(readImage(storage, "att-123")).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("covers must be uploaded images or https links", () => {
+    expect(item({ cover: "/api/v1/images/img-abc" }).cover).toBe("/api/v1/images/img-abc");
+    expect(() => item({ cover: "javascript:alert(1)" })).toThrow();
+    expect(() => item({ cover: "http://x.test/a.png" })).toThrow();
   });
 });
 

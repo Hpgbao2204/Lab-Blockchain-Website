@@ -6,9 +6,10 @@ import { UnreadDot, useWallActivity } from "./wall-activity";
 
 const ITEMS = [
   { href: "/app", label: "My wall" },
+  { href: "/app/posts", label: "My posts" },
   { href: "/admin", label: "Accounts", admin: true },
   { href: "/admin/meetings", label: "Meetings", admin: true },
-  { href: "/admin/news", label: "News", admin: true },
+  { href: "/admin/posts", label: "Posts", admin: true },
   { href: "/admin/applications", label: "Applications", admin: true },
   { href: "/admin/publications", label: "Publications", admin: true },
   { href: "/admin/reports", label: "Report", admin: true },
