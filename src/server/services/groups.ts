@@ -1,9 +1,10 @@
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "../db/client";
-import { groupMembers, groups, tasks, users } from "../db/schema";
+import { attachments, groupMembers, groups, tasks, users, wallReads } from "../db/schema";
 import { AppError } from "../errors";
 import type { SessionUser } from "../auth/sessions";
+import type { Storage } from "../storage";
 import type { groupInput, groupPatch, membersInput } from "../validation";
 import { requireAdmin } from "./users";
 
@@ -77,6 +78,24 @@ export async function updateGroup(db: Db, actor: SessionUser | null, id: string,
   const [g] = await db.update(groups).set(input).where(eq(groups.id, id)).returning();
   if (!g) throw new AppError("not_found", "Group not found.");
   return g;
+}
+
+/**
+ * Deletes a group for good: its tasks, wall posts, comments, links and files go with it (the
+ * bytes too, when `storage` is given). Archiving keeps everything; this does not.
+ */
+export async function deleteGroup(db: Db, actor: SessionUser | null, id: string, storage?: Storage) {
+  requireAdmin(actor);
+  const [g] = await db.select({ id: groups.id }).from(groups).where(eq(groups.id, id)).limit(1);
+  if (!g) throw new AppError("not_found", "Group not found.");
+  const files = await db.select({ key: attachments.storageKey }).from(attachments).where(eq(attachments.groupId, id));
+  await db.transaction(async (tx) => {
+    await tx.delete(wallReads).where(eq(wallReads.scope, id));
+    await tx.delete(groups).where(eq(groups.id, id)); // the rest cascades
+  });
+  // a file that fails to delete only wastes space; the group is already gone
+  if (storage) await Promise.allSettled(files.map((f) => storage.remove(f.key)));
+  return { files: files.length };
 }
 
 /** Replaces the member list of a group. */

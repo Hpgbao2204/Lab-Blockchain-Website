@@ -46,8 +46,8 @@ export const endpoints: Endpoint[] = [
   { method: "GET", path: "/api/v1/admin/presenters", summary: "Who presented how often and when last, longest-ago first.", auth: "admin" },
   { method: "GET", path: "/api/v1/admin/publications", summary: "Every paper with its source and hidden flag. POST adds one; PATCH …/:id edits it or sets { hidden }; DELETE removes one added here.", auth: "admin" },
   { method: "GET", path: "/api/v1/admin/users", summary: "All accounts; POST creates one and returns a temporary password.", auth: "admin" },
-  { method: "PATCH", path: "/api/v1/admin/users/:id", summary: "Change role, title or deactivate. POST …/reset-password issues a new temporary password.", auth: "admin" },
-  { method: "POST", path: "/api/v1/admin/groups", summary: "Create a group; PATCH …/:id edits or archives, PUT …/:id/members sets members and leads.", auth: "admin" },
+  { method: "PATCH", path: "/api/v1/admin/users/:id", summary: "Change role, title or deactivate; DELETE removes the account for good. POST …/reset-password issues a new temporary password.", auth: "admin" },
+  { method: "POST", path: "/api/v1/admin/groups", summary: "Create a group; PATCH …/:id renames, edits or archives, DELETE …/:id removes it with its wall and files, PUT …/:id/members sets members and leads.", auth: "admin" },
   { method: "GET", path: "/api/v1/admin/reports", summary: "Monthly progress per paper group and member.", auth: "admin", params: "month (YYYY-MM), format (json|csv)" },
   { method: "GET", path: "/api/v1/admin/digest", summary: "Preview this Monday's deadline emails; POST sends them now.", auth: "admin" },
 ];

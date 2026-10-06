@@ -18,8 +18,9 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 
 - **Tạo tài khoản**: nhập email (cũng là email nhận thông báo), họ tên, chức danh, vai trò *member* hoặc *admin* → site tự **gửi email chào mừng** (tiếng Việt) tới địa chỉ đó, kèm username, mật khẩu tạm và link đăng nhập để kích hoạt và cập nhật hồ sơ. Mật khẩu tạm cũng hiện trên màn hình một lần, phòng khi email chưa tới. Bỏ tick *Email the username…* nếu không muốn gửi. Không có đăng ký công khai.
 - Nhiều bạn làm chung một paper: tạo tài khoản riêng cho từng bạn, rồi thêm tất cả vào cùng một group (một wall). Thiếu bạn nào thì tạo và thêm sau.
-- **Reset** khi thành viên quên mật khẩu (mật khẩu tạm mới được gửi qua email); **Deactivate** khi thành viên rời lab (không đăng nhập được, không nhận email nữa).
+- **Reset** khi thành viên quên mật khẩu (mật khẩu tạm mới được gửi qua email); **Deactivate** khi thành viên rời lab (không đăng nhập được, không nhận email nữa, giữ nguyên dữ liệu). **Delete** xoá hẳn tài khoản (tạo nhầm, test): người đó rời mọi nhóm, bài viết + bình luận + trang hồ sơ của họ bị xoá; task và file họ tạo vẫn giữ. Không hoàn tác được.
 - **Groups**: mỗi nhóm thường là một paper. Đặt tên, paper, hội nghị/tạp chí, deadline nộp; chọn thành viên và **lead** (lead được giao việc, ghim link Overleaf/GitHub cho nhóm).
+- **Edit group & members** (trên thẻ nhóm ở trang này, hoặc ngay đầu tường nhóm): đổi tên nhóm, paper, hội nghị, deadline, mô tả; thêm người (chọn tài khoản → *Add*), bỏ người (*Remove*, tài khoản vẫn còn), đổi lead/member. *Archive* ẩn nhóm nhưng giữ mọi thứ; muốn **xoá hẳn** thì gõ đúng tên nhóm rồi bấm *Delete group for good* (mất hết task, bài, link, file của nhóm).
 - Nút **Profile** cạnh mỗi tài khoản: sửa hộ trang của thành viên. Mỗi người chọn trang `/people/<tên>` hiện gì: trang CV (4 kiểu: Classic, Minimal, Spotlight, Cards, cùng màu nhấn), **website riêng hiển thị ngay trong trang** (ví dụ GitHub Pages), hoặc chuyển thẳng sang website đó. Website nào không cho nhúng (Notion, LinkedIn…) thì site tự chuyển hướng.
 
 ## 3. Meetings: họp lab và thông báo

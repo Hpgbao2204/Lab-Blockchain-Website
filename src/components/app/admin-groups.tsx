@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { api } from "@/lib/api/client";
+import { GroupSettings } from "./group-settings";
 
 interface Person {
   id: string;
@@ -17,6 +18,7 @@ export interface AdminGroup {
   paperTitle: string | null;
   targetVenue: string | null;
   submissionDeadline: string | null;
+  description: string | null;
   status: "active" | "archived";
   memberCount: number;
   openTasks: number;
@@ -97,23 +99,10 @@ export function AdminGroups({ groups, people }: { groups: AdminGroup[]; people: 
 }
 
 function GroupCard({ group, people }: { group: AdminGroup; people: Person[] }) {
-  const router = useRouter();
-  const [editing, setEditing] = useState(false);
-  const [sel, setSel] = useState(() => new Map(group.members.map((m) => [m.id, m.role])));
-  const [error, setError] = useState("");
-
-  const toggle = (id: string) =>
-    setSel((prev) => {
-      const next = new Map(prev);
-      if (next.has(id)) next.delete(id);
-      else next.set(id, "member");
-      return next;
-    });
-
   return (
-    <li className="card grid gap-3 p-4" style={{ boxShadow: "var(--shadow)", opacity: group.status === "archived" ? 0.6 : 1 }}>
+    <li className="card grid content-start gap-3 p-4" style={{ boxShadow: "var(--shadow)", opacity: group.status === "archived" ? 0.6 : 1 }}>
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-bold [font-family:var(--font-display)]">{group.name}</h3>
           {group.paperTitle && <p className="text-sm text-ink-2">{group.paperTitle}</p>}
           <p className="mono text-xs text-muted">
@@ -124,65 +113,7 @@ function GroupCard({ group, people }: { group: AdminGroup; people: Person[] }) {
           Wall <ArrowUpRight size={14} aria-hidden />
         </Link>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className="btn btn-sm" onClick={() => setEditing((v) => !v)} aria-expanded={editing}>
-          Members
-        </button>
-        <button
-          type="button"
-          className="btn btn-sm"
-          onClick={async () => {
-            await api(`/admin/groups/${group.id}`, { method: "PATCH", body: { status: group.status === "active" ? "archived" : "active" } }).catch((e) => setError(e.message));
-            router.refresh();
-          }}
-        >
-          {group.status === "active" ? "Archive" : "Restore"}
-        </button>
-      </div>
-      {editing && (
-        <div className="grid gap-2">
-          <ul className="grid gap-1.5">
-            {people
-              .filter((p) => p.active)
-              .map((p) => (
-                <li key={p.id} className="flex items-center gap-2 text-sm">
-                  <label className="flex flex-1 items-center gap-2">
-                    <input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} className="accent-ink" />
-                    {p.name}
-                  </label>
-                  {sel.has(p.id) && (
-                    <select
-                      className="field field-sm w-auto!"
-                      aria-label={`Role of ${p.name} in group`}
-                      value={sel.get(p.id)}
-                      onChange={(e) => setSel((prev) => new Map(prev).set(p.id, e.target.value as "lead" | "member"))}
-                    >
-                      <option value="member">member</option>
-                      <option value="lead">lead</option>
-                    </select>
-                  )}
-                </li>
-              ))}
-          </ul>
-          <button
-            type="button"
-            className="btn btn-ink btn-sm w-fit"
-            onClick={async () => {
-              setError("");
-              try {
-                await api(`/admin/groups/${group.id}/members`, { method: "PUT", body: { members: [...sel].map(([userId, role]) => ({ userId, role })) } });
-                setEditing(false);
-                router.refresh();
-              } catch (e) {
-                setError((e as Error).message);
-              }
-            }}
-          >
-            Save members
-          </button>
-        </div>
-      )}
-      {error && <p className="error">{error}</p>}
+      <GroupSettings group={group} people={people} label="Edit group & members" />
     </li>
   );
 }

@@ -128,6 +128,8 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
 **Cập nhật 06/10/2026 (domain mới):** domain chính đổi sang `www.blockchainist.net` (thầy mua `blockchainist.net`, DNS ở Cloudflare, apex chuyển sang www); `blockchainist.id.vn` chuyển hướng về đó. Code không còn hardcode domain (footer email trả lời đơn lấy từ `NEXT_PUBLIC_SITE_URL`). Email vẫn gửi từ `noreply@blockchainist.id.vn` cho tới khi chuyển Resend (`docs/DEPLOY.md` bước 5b, 6).
 
+**Cập nhật 06/10/2026 (sửa nhóm):** khung *Edit group & members* (trang Admin và đầu tường nhóm, chỉ admin): đổi tên/thông tin nhóm, thêm/bỏ từng thành viên, đổi lead, archive, xoá nhóm (gõ tên để xác nhận; xoá luôn file trong storage). Trang Accounts có *Delete* xoá hẳn tài khoản (không xoá được chính mình). API `DELETE /admin/groups/:id`, `DELETE /admin/users/:id`.
+
 **Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 
 ## Milestones
