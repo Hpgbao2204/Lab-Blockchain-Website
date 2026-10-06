@@ -57,21 +57,22 @@ describe("AI provider", () => {
     expect(aiFromEnv({ GEMINI_API_KEY: "k" })?.label).toBe("Gemini · gemini-flash-latest → Gemini · gemini-flash-lite-latest");
     expect(aiFromEnv({ GEMINI_API_KEY: "k", AI_MODEL: "gemini-x" })?.label).toBe("Gemini · gemini-x");
     expect(aiFromEnv({ AI_API_KEY: "k", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "a:free, b:free" })?.label).toBe("openrouter.ai · a:free → openrouter.ai · b:free");
-    expect(aiFromEnv({ GEMINI_API_KEY: "k", GEMINI_MODEL: "g", AI_API_KEY: "k", AI_BASE_URL: "https://open.bigmodel.cn/api/paas/v4", AI_MODEL: "glm" })?.label).toBe("Gemini · g → open.bigmodel.cn · glm");
+    expect(aiFromEnv({ GEMINI_API_KEY: "k", GEMINI_MODEL: "g", AI_API_KEY: "k", AI_BASE_URL: "https://open.bigmodel.cn/api/paas/v4", AI_MODEL: "glm" })?.label).toBe("open.bigmodel.cn · glm");
   });
 
-  it("retries a busy model once, then falls back to the next model and provider", async () => {
+  it("retries a busy model once, then falls back to the next model", async () => {
     const seen: string[] = [];
-    const fake = (async (url: string, init: RequestInit) => {
+    const fake = (async (_url: string, init: RequestInit) => {
       const body = JSON.parse(String(init.body));
-      seen.push(url.includes("googleapis") ? url.split("/models/")[1].split(":")[0] : `${body.model}${body.response_format ? "+json" : ""}`);
-      if (url.includes("googleapis")) return new Response('{"error":{"code":503,"message":"high demand"}}', { status: 503 });
+      seen.push(`${body.model}${body.response_format ? "+json" : ""}`);
+      if (body.model === "busy:free") return new Response('{"error":{"code":503,"message":"high demand"}}', { status: 503 });
       if (body.response_format) return new Response('{"error":"response_format not supported"}', { status: 400 });
       return new Response(JSON.stringify({ choices: [{ message: { content: 'Here: {"ok": 1}' } }] }));
     }) as unknown as typeof fetch;
-    const ai = aiFromEnv({ GEMINI_API_KEY: "g", GEMINI_MODEL: "flash,lite", AI_API_KEY: "o", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "deepseek:free" }, fake, async () => {})!;
+    const ai = aiFromEnv({ GEMINI_API_KEY: "g", AI_API_KEY: "o", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "busy:free,deepseek:free" }, fake, async () => {})!;
     expect(await ai.json("s", "u")).toEqual({ ok: 1 });
-    expect(seen).toEqual(["flash", "flash", "lite", "lite", "deepseek:free+json", "deepseek:free"]);
+    // Gemini is skipped when OpenRouter is configured
+    expect(seen).toEqual(["busy:free+json", "busy:free+json", "deepseek:free+json", "deepseek:free"]);
   });
 
   it("reports every model's error when all fail, without retrying a bad key", async () => {
