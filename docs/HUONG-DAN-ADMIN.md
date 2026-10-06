@@ -1,12 +1,12 @@
 # Hướng dẫn quản trị website Blockchainist
 
-Dành cho thầy (tài khoản admin `dungtrt@uit.edu.vn`). Website: https://blockchainist.id.vn
+Dành cho thầy (tài khoản admin `dungtrt@uit.edu.vn`). Website: https://blockchainist.net
 
 Nội dung hiển thị công khai trên site là tiếng Anh, nên tin tức, bài báo… thầy nhập bằng tiếng Anh.
 
 ## 1. Đăng nhập lần đầu
 
-1. Vào https://blockchainist.id.vn/login, nhập email và **mật khẩu tạm** (bạn Bảo gửi riêng).
+1. Vào https://blockchainist.net/login, nhập email và **mật khẩu tạm** (bạn Bảo gửi riêng).
 2. Site bắt đổi mật khẩu ngay (ít nhất 10 ký tự). Đổi xong là vào được trang quản trị.
 3. Quên mật khẩu: nhờ người quản lý Vercel đặt biến `ADMIN_RESET=1` rồi deploy lại; mật khẩu tạm mới nằm trong build log (xem `docs/DEPLOY.md`).
 

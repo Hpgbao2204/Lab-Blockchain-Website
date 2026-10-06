@@ -8,7 +8,7 @@ import type { Mail, SendResult } from "../mail";
 import type { applicationInput, applicationReplyInput, applicationUpdateInput } from "../validation";
 import { createUser, requireAdmin } from "./users";
 import { renderAccountMail } from "./account-mail";
-import { button, esc, shell } from "./meetings";
+import { button, esc, shell, siteHost } from "./meetings";
 import { formatStamp } from "@/lib/weeks";
 import { zaloLink } from "@/lib/contact";
 
@@ -166,7 +166,12 @@ const SUBJECTS: Record<ApplicationReply["status"], string> = {
  * no-reply address, with Reply-To set to the admin, so the applicant's answer reaches a person.
  * The wrapper is in Vietnamese, like the other mail to students; the admin writes the message.
  */
-export function renderReplyMail(a: { name: string; email: string }, from: { name: string; email: string }, reply: { status: ApplicationReply["status"]; message: string }): Mail {
+export function renderReplyMail(
+  a: { name: string; email: string },
+  from: { name: string; email: string },
+  reply: { status: ApplicationReply["status"]; message: string },
+  siteUrl: string,
+): Mail {
   const subject = `[Blockchainist] ${SUBJECTS[reply.status]}`;
   const text = [
     `Chào ${a.name},`,
@@ -182,7 +187,7 @@ export function renderReplyMail(a: { name: string; email: string }, from: { name
     `<p style="font:16px/1.5 Arial,sans-serif">Chào ${esc(a.name)},</p>` +
       `<div style="margin:12px 0;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0;font:15px/1.6 Arial,sans-serif;white-space:pre-line;overflow-wrap:anywhere;word-break:break-word">${esc(reply.message)}</p></div>` +
       `<p style="font:15px/1.5 Arial,sans-serif;margin:0"><b>${esc(from.name)}</b><br>Nhóm nghiên cứu Blockchainist, UIT – VNU-HCM</p>`,
-    `Trả lời email này để liên hệ trực tiếp với ${esc(from.name)}. Bạn nhận được email vì đã gửi đơn ứng tuyển trên blockchainist.id.vn.`,
+    `Trả lời email này để liên hệ trực tiếp với ${esc(from.name)}. Bạn nhận được email vì đã gửi đơn ứng tuyển trên ${esc(siteHost(siteUrl))}.`,
   );
   return { to: a.email, subject, text, html, replyTo: from.email };
 }
@@ -239,7 +244,7 @@ export async function replyToApplication(
   const a = await getApplication(db, actor, id);
   const made = input.status === "accepted" && input.createAccounts ? await createAccounts(db, actor!, a, opts.siteUrl, opts.send) : null;
   const team = applicantsOf(a);
-  const result = await opts.send(team.map((p) => renderReplyMail(p, actor!, input)));
+  const result = await opts.send(team.map((p) => renderReplyMail(p, actor!, input, opts.siteUrl)));
   const emailed = result.sent + result.saved > 0;
   const entry: ApplicationReply = { at: new Date().toISOString(), by: actor!.name, status: input.status, message: input.message, emailed };
   const [row] = await db

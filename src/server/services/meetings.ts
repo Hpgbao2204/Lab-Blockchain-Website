@@ -202,6 +202,8 @@ export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt
 const firstName = (name: string) => name.split(" ").at(-1) ?? name;
 export const shell = (inner: string, footer: string) =>
   `<div style="background:#f6f3ec;padding:24px;font-family:Arial,sans-serif;color:#16140f"><div style="max-width:560px;margin:auto">${inner}<p style="font-size:12px;color:#666;margin-top:24px">${footer}</p></div></div>`;
+/** The site's bare hostname, for the footer line of an email ("… on blockchainist.net"). */
+export const siteHost = (siteUrl: string) => siteUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 export const button = (href: string, label: string) =>
   `<a href="${esc(href)}" style="display:inline-block;padding:10px 16px;background:#ffd23f;border:2px solid #16140f;border-radius:10px;color:#16140f;font-weight:700;text-decoration:none">${label}</a>`;
 

@@ -6,7 +6,7 @@
 
 ## Mục tiêu
 
-Website nhóm nghiên cứu Blockchain (domain `blockchainist.id.vn`) gồm 2 tầng:
+Website nhóm nghiên cứu Blockchain (domain `blockchainist.net`) gồm 2 tầng:
 
 1. **Public** — trang quảng bá: thành tích, bài báo (từ ORCID), giải thưởng, core members; mỗi member có thể có trang CV/portfolio riêng (ai có CV thì gắn, không có thì thôi).
 2. **Private (cần đăng nhập)** — "tường" theo nhóm. Mỗi tháng thầy (admin) tạo nhóm, gắn thành viên; thầy note/giao việc cho 1 người, vài người hoặc cả nhóm; member comment, cập nhật trạng thái, đính kèm file. Cảm giác như trang cá nhân Facebook.
@@ -30,7 +30,7 @@ Ràng buộc đã chốt với chủ dự án:
 | DB + Auth + Storage | **Supabase** (Postgres + Auth + Storage, free tier) | RLS bảo vệ tường riêng tư |
 | Validation | zod | |
 | Test | vitest (+ Playwright smoke cho luồng chính) | |
-| Hosting | Vercel (Hobby) + domain `blockchainist.id.vn` | |
+| Hosting | Vercel (Hobby) + domain `blockchainist.net` | |
 | Chống spam form liên hệ | Cloudflare Turnstile | dùng lại ý tưởng từ code cũ |
 
 Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa vào): Supabase free tự **pause project nếu không hoạt động ~1 tuần** → thêm cron ping (GitHub Actions) ở M6; email mặc định của Supabase bị giới hạn rate rất thấp → **không phụ thuộc email** để tạo account (admin tạo user kèm mật khẩu tạm, bắt đổi khi đăng nhập lần đầu).
@@ -40,7 +40,7 @@ Lưu ý free tier (kiểm tra lại số liệu hiện hành trước khi dựa 
 Đánh dấu ✅ khi đã có.
 
 - [ ] Tạo project **Supabase** (region Singapore) → lấy `URL`, `anon key`, `service_role key`, `DB password`. Khuyến nghị đặt vào **environment secrets** của môi trường Claude Code / Vercel, không dán vào chat hay commit.
-- [ ] Tài khoản **Vercel** đã import repo; trỏ DNS `blockchainist.id.vn` (hoặc cho biết nhà đăng ký domain để hướng dẫn).
+- [ ] Tài khoản **Vercel** đã import repo; trỏ DNS `blockchainist.net` (hoặc cho biết nhà đăng ký domain để hướng dẫn).
 - [x] **Email admin**: tạm thời `hpgbao@gmail.com` (Bao), sau này đổi sang thầy `dungtrt@uit.edu.vn` (chốt 01/10/2026).
 - [ ] **Tên nhóm, logo, tagline, lĩnh vực nghiên cứu** (3–6 mục) — có thể lấy lại từ bản cũ nếu đúng.
 - [ ] **Danh sách core members** (thầy cung cấp; hiện dùng 10 hồ sơ mẫu có nhãn "sample"): tối thiểu `họ tên, vai trò/chức danh, email, ảnh, link (scholar/orcid/github), có CV công khai không`. Định dạng CSV/Google Sheet đều được.
@@ -110,7 +110,7 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 - Demo seed: hồ sơ CV cho 10 thành viên mẫu + tài khoản `gia.bao.huynh@blockchainist.local` link portfolio thật của Bao.
 
 **Cập nhật 03/10/2026 (go-live + tính năng còn lại):**
-- Site chạy ở https://blockchainist.id.vn (Vercel + Neon). `RESET_DATABASE` xoá sạch dữ liệu một lần; admin production là thầy `dungtrt@uit.edu.vn` (mật khẩu tạm in trong build log).
+- Site chạy ở https://blockchainist.net (Vercel + Neon). `RESET_DATABASE` xoá sạch dữ liệu một lần; admin production là thầy `dungtrt@uit.edu.vn` (mật khẩu tạm in trong build log).
 - **News** (`/news`, `/news/[slug]`, 3 tin mới nhất trên trang chủ, sitemap): admin viết ở `/admin/news`; loại News/Award/Paper accepted/Event, bản nháp, hẹn ngày đăng. Bảng `news`.
 - **Ứng tuyển**: form trên `/join` (giới hạn 3 lần/giờ/IP, honeypot chống bot), admin xem ở `/admin/applications` (trạng thái, ghi chú riêng, trả lời qua email), email báo admin khi có đơn mới. Bảng `applications`.
 - **Publications do admin quản lý**: `/admin/publications` thêm bài Crossref chưa có (DOI hoặc link), sửa/xoá bài thêm tay, ẩn/hiện mọi bài. Bảng `publication_entries`, `hidden_publications` (migration `0005`). Nếu DB lỗi, trang public vẫn hiện bản Crossref.
@@ -125,6 +125,8 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 **Cập nhật 05/10/2026 (đơn theo nhóm + tự tạo tài khoản):** form /join cho cả nhóm 1–6 người, mọi ô bắt buộc (họ tên lưu không dấu, MSSV, email, điện thoại, Zalo, Facebook). Admin Accept trên site thì tạo tài khoản cho từng người (username = email, mật khẩu tạm) và gửi email chào mừng. Captcha Cloudflare Turnstile (`TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`; Vercel không cho đặt tiền tố `NEXT_PUBLIC_`, tên cũ vẫn chạy), chặn email báo đơn khi >20 đơn/giờ. Trang chủ: "Explore the research group".
 
 **Cập nhật 05/10/2026 (chấm đỏ My wall):** nút *My wall* (thanh trên, menu mobile, thanh trong /app) hiện chấm đỏ đếm việc mới như thông báo Facebook: task mới hoặc bị đổi, bài viết, bình luận, link, file do **người khác** làm, cộng họp lab và thông báo mới. Mốc "đã xem" lưu ở bảng `wall_reads` (mỗi nhóm một dòng, `lab` cho họp/thông báo); mở /app xoá phần lab, mở tường nhóm xoá phần nhóm đó. Thẻ nhóm ở /app cũng có chấm riêng. API `GET|POST /api/v1/me/activity`, làm mới mỗi phút khi tab đang mở.
+
+**Cập nhật 06/10/2026 (domain mới):** domain chính đổi sang `blockchainist.net` (thầy mua, DNS ở Cloudflare); `blockchainist.id.vn` chuyển hướng về đó. Code không còn hardcode domain (footer email trả lời đơn lấy từ `NEXT_PUBLIC_SITE_URL`). Email vẫn gửi từ `noreply@blockchainist.id.vn` cho tới khi chuyển Resend (`docs/DEPLOY.md` bước 5b, 6).
 
 **Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 
