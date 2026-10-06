@@ -5,6 +5,7 @@ import { Feed, type FeedPost } from "@/components/app/feed";
 import { Initials } from "@/components/app/initials";
 import { TaskBoard } from "@/components/app/task-board";
 import { MarkWallSeen } from "@/components/app/wall-activity";
+import { GroupSettings } from "@/components/app/group-settings";
 import { AddResource, Resources, type WallFile, type WallLink } from "@/components/app/resources";
 import { SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
@@ -14,6 +15,7 @@ import { getGroup } from "@/server/services/groups";
 import { listPosts, listTasks } from "@/server/services/wall";
 import { listLinks } from "@/server/services/links";
 import { listAttachments } from "@/server/services/attachments";
+import { listUsers } from "@/server/services/users";
 import { formatDay, labToday } from "@/lib/weeks";
 
 export const metadata: Metadata = { title: "Group wall" };
@@ -33,7 +35,14 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
     if (e instanceof AppError && e.code === "not_found") notFound();
     throw e;
   }
-  const [tasks, posts, linkRows, fileRows] = await Promise.all([listTasks(db, user, id), listPosts(db, user, id), listLinks(db, user, id), listAttachments(db, user, id)]);
+  const admin = user.role === "admin";
+  const [tasks, posts, linkRows, fileRows, people] = await Promise.all([
+    listTasks(db, user, id),
+    listPosts(db, user, id),
+    listLinks(db, user, id),
+    listAttachments(db, user, id),
+    admin ? listUsers(db, user) : Promise.resolve([]),
+  ]);
   const links = JSON.parse(JSON.stringify(linkRows)) as WallLink[];
   const files = JSON.parse(JSON.stringify(fileRows)) as WallFile[];
   const groupLinks = links.filter((l) => !l.taskId);
@@ -81,6 +90,25 @@ export default async function GroupWall({ params }: { params: Promise<{ id: stri
             <Resources links={groupLinks} files={[]} me={user.id} canManage={group.canManage} />
             {group.canManage && <AddResource groupId={id} linkPlaceholder="https://www.overleaf.com/project/…" />}
           </div>
+          {admin && (
+            <div className="mt-2 border-t-2 border-dashed border-ink pt-3">
+              <GroupSettings
+                group={{
+                  id: group.id,
+                  name: group.name,
+                  paperTitle: group.paperTitle,
+                  targetVenue: group.targetVenue,
+                  submissionDeadline: group.submissionDeadline,
+                  description: group.description,
+                  status: group.status,
+                  members: group.members.map((m) => ({ id: m.id, role: m.role })),
+                }}
+                people={people.map((p) => ({ id: p.id, name: p.name, active: p.active }))}
+                afterDelete="/app"
+                label="Edit group & members"
+              />
+            </div>
+          )}
         </div>
         {group.submissionDeadline && (
           <div className="grid content-center justify-items-center gap-1 rounded-xl border-2 border-ink bg-yellow p-4 text-center" style={{ boxShadow: "var(--shadow)" }}>

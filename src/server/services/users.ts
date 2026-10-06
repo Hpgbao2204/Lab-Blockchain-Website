@@ -72,6 +72,18 @@ export async function updateUser(db: Db, actor: SessionUser | null, id: string, 
   return user;
 }
 
+/**
+ * Deletes an account for good: it leaves every group, and its own wall posts, comments and profile
+ * page go with it. Tasks and files it created stay, without an author. Deactivate keeps everything.
+ */
+export async function deleteUser(db: Db, actor: SessionUser | null, id: string) {
+  requireAdmin(actor);
+  if (id === actor.id) throw new AppError("invalid_input", "You cannot delete your own account.");
+  // the acting admin always remains, so the lab can never lose its last admin this way
+  const [gone] = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
+  if (!gone) throw new AppError("not_found", "User not found.");
+}
+
 export async function resetPassword(db: Db, actor: SessionUser | null, id: string) {
   requireAdmin(actor);
   const password = temporaryPassword();

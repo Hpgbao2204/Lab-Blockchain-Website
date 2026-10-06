@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Copy, KeyRound, UserPlus } from "lucide-react";
+import { Copy, KeyRound, Trash2, UserPlus } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { Initials } from "./initials";
 
@@ -180,6 +180,21 @@ export function AdminUsers({ users, me, prefill }: { users: AdminUser[]; me: str
                     {u.id !== me && (
                       <button type="button" className="btn btn-sm" disabled={busy} onClick={() => run(() => api(`/admin/users/${u.id}`, { method: "PATCH", body: { active: !u.active } }))}>
                         {u.active ? "Deactivate" : "Reactivate"}
+                      </button>
+                    )}
+                    {u.id !== me && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        disabled={busy}
+                        aria-label={`Delete the account of ${u.name}`}
+                        onClick={() =>
+                          confirm(
+                            `Delete the account of ${u.name} (${u.email}) for good?\n\nThey leave every group, and their wall posts, comments and profile page are removed. Tasks and files they made stay. This cannot be undone; Deactivate keeps everything instead.`,
+                          ) && run(() => api(`/admin/users/${u.id}`, { method: "DELETE" }))
+                        }
+                      >
+                        <Trash2 size={14} aria-hidden /> Delete
                       </button>
                     )}
                   </div>
