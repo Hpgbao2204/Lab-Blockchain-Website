@@ -71,13 +71,6 @@
       "when": 1791275691096,
       "tag": "0009_blog_posts",
       "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1791275691957,
-      "tag": "0010_news_status_replaces_published",
-      "breakpoints": true
     }
   ]
 }

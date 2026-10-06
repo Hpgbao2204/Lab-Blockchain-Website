@@ -353,6 +353,11 @@ export const news = pgTable(
     sources: text("sources"),
     /** the date shown on the item (Vietnam calendar day); set to the approval day for members' posts */
     publishedOn: date("published_on").notNull(),
+    /**
+     * Superseded by `status`; kept (and unused) so a preview build that migrates the shared
+     * database cannot break the code still running in production. Drop in a later migration.
+     */
+    published: boolean("published").notNull().default(true),
     status: newsStatusEnum("status").notNull().default("published"),
     /** the admin's note when sending a post back (or approving with a comment) */
     reviewNote: text("review_note"),
