@@ -17,7 +17,7 @@ export function PortfolioFrame({ person }: { person: PersonView }) {
         <Link href="/" aria-label="Blockchainist home" className="shrink-0">
           <Image src="/brand/logo-mark.svg" alt="" width={28} height={28} unoptimized />
         </Link>
-        <Link href="/people" className="btn btn-xs shrink-0" aria-label="All people">
+        <Link href="/team" className="btn btn-xs shrink-0" aria-label="The team">
           <ArrowLeft size={13} aria-hidden /> <span className="max-sm:hidden">People</span>
         </Link>
         <div className="flex min-w-0 items-center gap-2">

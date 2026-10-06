@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import type { getStats } from "@/lib/content";
 import { HeroShell } from "./hero-shell";
 import { Rotator } from "./rotator";
 
@@ -11,7 +10,7 @@ const letters = (word: string, offset = 0) =>
     </span>
   ));
 
-export function Hero({ stats }: { stats: ReturnType<typeof getStats> }) {
+export function Hero() {
   return (
     <HeroShell>
       <p className="eyebrow">
@@ -32,31 +31,13 @@ export function Hero({ stats }: { stats: ReturnType<typeof getStats> }) {
         so independent chains can trust each other without trusting a middleman.
       </p>
       <div className="flex flex-wrap gap-3.5">
-        <Link href="/research" className="btn btn-ink">
-          Explore research <ArrowRight size={17} aria-hidden />
+        <Link href="#posts" className="btn btn-ink">
+          Read the latest <ArrowRight size={17} aria-hidden />
         </Link>
         <Link href="/join" className="btn btn-yellow">
           Join the lab
         </Link>
       </div>
-      <dl className="stats">
-        <div>
-          <dt>Papers</dt>
-          <dd>{stats.publications}</dd>
-        </div>
-        <div>
-          <dt>Journals</dt>
-          <dd>{stats.journals}</dd>
-        </div>
-        <div>
-          <dt>Directions</dt>
-          <dd>{stats.researchAreas}</dd>
-        </div>
-        <div>
-          <dt>Since</dt>
-          <dd>{stats.since}</dd>
-        </div>
-      </dl>
     </HeroShell>
   );
 }

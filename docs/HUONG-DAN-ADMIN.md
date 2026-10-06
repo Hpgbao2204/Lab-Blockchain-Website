@@ -29,13 +29,20 @@ Thanh menu phía trên (sau khi đăng nhập) có các mục bên dưới.
 - **Edit / swap presenter** khi đổi người, có thể gửi lại email.
 - **Announcements**: thông báo chung, hiện trên trang của mọi thành viên, tuỳ chọn gửi email.
 
-## 4. News: tin tức trên trang công khai
+## 4. Posts: bài viết trên trang chủ (blog của lab)
 
-1. **Write a news item** → chọn loại: *News*, *Award* (giải thưởng), *Paper accepted* (bài được nhận), *Event*.
-2. Nhập ngày, tiêu đề, tóm tắt 1–2 câu (hiện trên thẻ tin), nội dung đầy đủ (tuỳ chọn, cách đoạn bằng một dòng trống), link (bài báo, trang sự kiện).
-3. **Publish**. Tin hiện ở `/news`, 3 tin mới nhất hiện trên trang chủ.
-- Bỏ tick *Published* để lưu nháp (chỉ admin thấy). Chọn ngày trong tương lai thì đến ngày đó tin mới hiện.
-- **Edit** / **Delete** trên từng tin. Đổi tiêu đề thì đường link của tin cũng đổi.
+Trang chủ giờ là blog: hero giao thức ở trên, bên dưới là bài mới nhất (bài mới nhất to nhất). Tất cả bài ở `/news`, lọc theo loại.
+
+**Thành viên viết bài:** đăng nhập → *My posts* → **Write a post**. Chọn loại (*Protocol*, *Paper review*, *Incident analysis*, *Article*, *News*), viết bằng Markdown (có nút định dạng, dán/tải ảnh, tab *Preview*), lưu nháp, rồi **Submit for review**. Bài loại Protocol / Paper review / Incident analysis bắt buộc ghi *Sources*.
+
+**Admin duyệt:** menu **Posts** (`/admin/posts`). Khi có bài gửi, admin nhận email.
+1. Mục *Waiting for review*: bấm **Preview** để đọc bài như trên trang thật.
+2. **Approve and publish**: bài lên trang chủ ngay, ngày đăng là hôm nay. Có thể **Add a note** (vd lời khen) trước khi duyệt.
+3. **Send back…**: bắt buộc ghi nhận xét. Bài về trạng thái *Sent back*, tác giả nhận email, sửa rồi gửi lại.
+- Bài đã đăng thì tác giả không sửa được nữa; chỉ admin sửa (**Edit**) hoặc **Unpublish** / **Delete**.
+- Bảng *Authors*: mỗi người có bao nhiêu bài đã đăng, đang chờ, bị trả lại, nháp, bài gần nhất; bấm *Published posts* để xem tên bài. Nút **CSV** tải bảng để chấm điểm quá trình.
+- Admin tự viết bài/tin (*Award*, *Paper accepted*, *Event* chỉ admin chọn được): **Write a post** → **Publish** (đăng luôn) hoặc *Save draft*. Chọn ngày tương lai thì đến ngày đó bài mới hiện.
+- Nhắc thành viên: viết bằng lời của mình, ghi nguồn, không chép nguyên bài hay hình của người khác; bài vi phạm thì trả lại.
 
 ## 5. Applications: đơn xin vào lab
 

@@ -6,9 +6,13 @@ import { getCurrentUser } from "@/server/auth/current";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
-export default async function LoginPage() {
+/** `?next=/app/posts/new` returns there after signing in; only paths on this site are accepted. */
+const safeNext = (n?: string) => (n && /^\/(?!\/)[\w\-/?=&.%]*$/.test(n) ? n : "/app");
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const next = safeNext((await searchParams).next);
   const user = await getCurrentUser();
-  if (user) redirect(user.mustChangePassword ? "/account/password" : "/app");
+  if (user) redirect(user.mustChangePassword ? "/account/password" : next);
 
   return (
     <div className="wrap page grid place-items-center">
@@ -18,9 +22,9 @@ export default async function LoginPage() {
         </span>
         <div>
           <h1 className="display text-3xl">Members area</h1>
-          <p className="mt-2 text-ink-2">Group walls and weekly task boards. Accounts are created by the lab admin; there is no public sign-up.</p>
+          <p className="mt-2 text-ink-2">Group walls, weekly task boards and your posts for the lab blog. Accounts are created by the lab admin; there is no public sign-up.</p>
         </div>
-        <LoginForm />
+        <LoginForm next={next} />
         <p className="mono text-xs text-muted">Forgot your password? Ask the admin to reset it.</p>
       </div>
     </div>
