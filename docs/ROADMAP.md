@@ -126,7 +126,7 @@ Chạy thử: `npm install && npm run dev` → http://localhost:3000.
 
 **Cập nhật 05/10/2026 (chấm đỏ My wall):** nút *My wall* (thanh trên, menu mobile, thanh trong /app) hiện chấm đỏ đếm việc mới như thông báo Facebook: task mới hoặc bị đổi, bài viết, bình luận, link, file do **người khác** làm, cộng họp lab và thông báo mới. Mốc "đã xem" lưu ở bảng `wall_reads` (mỗi nhóm một dòng, `lab` cho họp/thông báo); mở /app xoá phần lab, mở tường nhóm xoá phần nhóm đó. Thẻ nhóm ở /app cũng có chấm riêng. API `GET|POST /api/v1/me/activity`, làm mới mỗi phút khi tab đang mở.
 
-**Cập nhật 06/10/2026 (domain mới):** domain chính đổi sang `blockchainist.net` (thầy mua, DNS ở Cloudflare); `blockchainist.id.vn` chuyển hướng về đó. Code không còn hardcode domain (footer email trả lời đơn lấy từ `NEXT_PUBLIC_SITE_URL`). Email vẫn gửi từ `noreply@blockchainist.id.vn` cho tới khi chuyển Resend (`docs/DEPLOY.md` bước 5b, 6).
+**Cập nhật 06/10/2026 (domain mới):** domain chính đổi sang `www.blockchainist.net` (thầy mua `blockchainist.net`, DNS ở Cloudflare, apex chuyển sang www); `blockchainist.id.vn` chuyển hướng về đó. Code không còn hardcode domain (footer email trả lời đơn lấy từ `NEXT_PUBLIC_SITE_URL`). Email vẫn gửi từ `noreply@blockchainist.id.vn` cho tới khi chuyển Resend (`docs/DEPLOY.md` bước 5b, 6).
 
 **Bước tiếp theo:** Resend (email) và Cloudflare R2 (file) theo `docs/DEPLOY.md` bước 6–7; roster thành viên thật; đo Lighthouse.
 

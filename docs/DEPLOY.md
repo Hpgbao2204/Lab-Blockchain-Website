@@ -20,7 +20,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
 1. **Vercel**: *Add New → Project* → import `Hpgbao2204/Lab-Blockchain-Website`, nhánh `master`. Framework: Next.js, không cần sửa lệnh build.
 2. **Database**: trong project Vercel → *Storage → Neon → Create* (region Singapore) → *Connect* để Vercel thêm `DATABASE_URL` (pooled) và `DATABASE_URL_UNPOOLED`.
 3. **Biến môi trường** (Vercel → *Settings → Environment Variables*, môi trường Production):
-   - `NEXT_PUBLIC_SITE_URL` = `https://blockchainist.net` (đúng domain chính, không có `/` cuối; link trong email, sitemap, robots, ảnh chia sẻ đều lấy từ đây)
+   - `NEXT_PUBLIC_SITE_URL` = `https://www.blockchainist.net` (đúng domain chính, không có `/` cuối; link trong email, sitemap, robots, ảnh chia sẻ đều lấy từ đây)
    - `ADMIN_EMAIL` = `hpgbao@gmail.com`, `ADMIN_NAME` = tên hiển thị
    - `CRON_SECRET` = chuỗi ngẫu nhiên dài (vd. `openssl rand -hex 32`); Vercel Cron tự gửi `Authorization: Bearer $CRON_SECRET`
    - `RESEND_API_KEY`, `MAIL_FROM` = `Blockchainist <noreply@blockchainist.id.vn>` (sau bước Email; địa chỉ gửi không cần trùng domain website, xem bước 6)
@@ -46,9 +46,9 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    Site mới **không dùng Firebase**: không cần Firebase config hay API key.
 
 5b. **Domain chính `blockchainist.net` (DNS ở Cloudflare)**:
-   1. Vercel → *Settings → Domains → Add* `blockchainist.net`, **bỏ tick** *Redirect apex domains to www* để domain chính là `blockchainist.net` (không có www), *Connect to an environment: Production*. Thêm tiếp `www.blockchainist.net` → *Redirect to Another Domain* → `blockchainist.net` (308). Nếu muốn giữ www làm domain chính thì được, nhưng khi đó `NEXT_PUBLIC_SITE_URL` phải là `https://www.blockchainist.net`.
-   2. Cloudflare → *DNS → Records*: thêm đúng bản ghi Vercel hiển thị (A `@` → IP Vercel, CNAME `www` → giá trị Vercel đưa). Mỗi bản ghi để **DNS only** (đám mây xám), không bật Proxied, để Vercel tự cấp HTTPS. Đợi *Valid Configuration*.
-   3. Domain cũ: ở Vercel, sửa `blockchainist.id.vn` và `www.blockchainist.id.vn` thành *Redirect to Another Domain* → `blockchainist.net` (308), để link cũ (email đã gửi, bài đăng Facebook) vẫn mở được. Vẫn gia hạn `blockchainist.id.vn` hằng năm khi email còn gửi từ domain này.
+   1. Vercel → *Settings → Domains → Add* `blockchainist.net`, giữ tick *Redirect apex domains to www*, *Connect to an environment: Production*. Domain chính là **`www.blockchainist.net`**; `blockchainist.net` tự chuyển hướng 308 sang www (cấu hình đang dùng từ 06/10/2026).
+   2. Cloudflare → *DNS → Records*: thêm đúng bản ghi Vercel hiển thị (hiện là CNAME `@` và CNAME `www` cùng trỏ về giá trị dạng `xxxx.vercel-dns-017.com`; Cloudflare tự "flatten" CNAME ở `@`). Mỗi bản ghi để **DNS only** (đám mây xám), không bật Proxied, để Vercel tự cấp HTTPS. Đợi *Valid Configuration*.
+   3. Domain cũ: ở Vercel, sửa `blockchainist.id.vn` và `www.blockchainist.id.vn` thành *Redirect to Another Domain* → `www.blockchainist.net` (308), để link cũ (email đã gửi, bài đăng Facebook) vẫn mở được. Vẫn gia hạn `blockchainist.id.vn` hằng năm khi email còn gửi từ domain này.
    4. Đổi `NEXT_PUBLIC_SITE_URL` (bước 3), thêm domain mới vào Turnstile (bước 7b) và CORS của R2 (bước 7), rồi **Redeploy**.
 6. **Email (Resend)**: *Domains → Add* `blockchainist.id.vn` (domain gửi mail hiện tại; website đổi sang `blockchainist.net` không ảnh hưởng, Resend không cần chỉnh gì) (region gần nhất, vd. Tokyo) → thêm các bản ghi Resend hiển thị vào DNS: TXT DKIM `resend._domainkey`, MX + TXT SPF cho subdomain `send`. Thêm DMARC: TXT `_dmarc` = `v=DMARC1; p=none; rua=mailto:hpgbao@gmail.com`. Khi *Verified* → tạo API key → điền `RESEND_API_KEY`, `MAIL_FROM` → redeploy → thử ở `/admin/reminders`.
    **Chuyển email sang `blockchainist.net` (khi muốn, không bắt buộc):** Resend → *Domains → Add* `blockchainist.net` → thêm các bản ghi nó hiển thị vào Cloudflare DNS (TXT `resend._domainkey`, MX + TXT cho `send`, để DNS only), thêm TXT `_dmarc` như trên → đợi *Verified* → đổi `MAIL_FROM` = `Blockchainist <noreply@blockchainist.net>` → Redeploy → gửi thử. Gói free của Resend cho 1 domain: xác minh xong domain mới thì xoá domain cũ trong Resend. Nếu trên Cloudflare đã có MX của dịch vụ mail khác ở `@` thì không sao, bản ghi của Resend nằm ở subdomain `send`.
@@ -58,8 +58,8 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    ```
    Redeploy, rồi thử upload một PDF > 5 MB trên wall.
 7b. **Captcha form /join (Cloudflare Turnstile, miễn phí)**: Cloudflare → *Turnstile → Add widget* → tên `blockchainist-join`, hostname `blockchainist.net` và `www.blockchainist.net` (giữ `blockchainist.id.vn`; thêm `localhost` nếu muốn thử ở máy; widget đã tạo thì vào *Settings → Hostname Management* để thêm, key không đổi). Thiếu hostname thì captcha báo lỗi và **không ai gửi được form**, widget mode *Managed* → *Create*. Copy **Site Key** vào `TURNSTILE_SITE_KEY` (tên cũ `NEXT_PUBLIC_TURNSTILE_SITE_KEY` vẫn chạy) và **Secret Key** vào `TURNSTILE_SECRET_KEY` (Production) → Redeploy. Thiếu một trong hai thì captcha tắt hẳn, form vẫn gửi được. Chưa đặt hai biến này thì form vẫn chạy, chỉ còn honeypot + giới hạn 3 đơn/giờ/IP; quá 20 đơn/giờ thì admin không nhận thêm email báo đơn (đơn vẫn lưu).
-8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://blockchainist.net/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
-9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://blockchainist.net/sitemap.xml`. Đổi từ domain cũ: thêm cả hai domain rồi dùng *Settings → Change of address* ở property `blockchainist.id.vn`.
+8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://www.blockchainist.net/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
+9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://www.blockchainist.net/sitemap.xml`. Đổi từ domain cũ: thêm cả hai domain rồi dùng *Settings → Change of address* ở property `blockchainist.id.vn`.
 
 ## Lỗi thường gặp
 
