@@ -8,7 +8,7 @@ import type { SessionUser } from "../auth/sessions";
 import type { Mail } from "../mail";
 import { labNewsKinds, type newsInput, type newsKinds, type newsReviewInput } from "../validation";
 import { requireAdmin } from "./users";
-import { button, esc, shell } from "./meetings";
+import { button, esc, shell, siteHost } from "./meetings";
 import { labToday } from "@/lib/weeks";
 
 type NewsInput = z.infer<typeof newsInput>;
@@ -358,7 +358,7 @@ export function renderReviewMail(
         ? `<div style="margin:12px 0;padding:14px 16px;border:2px solid #16140f;border-radius:12px;background:#fff"><p style="margin:0 0 4px;font:12px Arial,sans-serif;color:#555">Nhận xét của ${esc(reviewerName)}</p><p style="margin:0;font:15px/1.6 Arial,sans-serif;white-space:pre-line;overflow-wrap:anywhere">${esc(post.reviewNote)}</p></div>`
         : "") +
       `<p>${button(url, ok ? "Xem bài" : "Sửa bài")}</p>`,
-    "Blockchainist lab · bạn nhận email này vì đã gửi bài trên blockchainist.id.vn",
+    `Blockchainist lab · bạn nhận email này vì đã gửi bài trên ${esc(siteHost(siteUrl))}`,
   );
   return { to: to.email, subject, text, html };
 }

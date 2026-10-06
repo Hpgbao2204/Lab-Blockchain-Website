@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canEmbed, fetchable, frameAllowed } from "./portfolio-frame";
 
-const site = "https://blockchainist.id.vn";
+const site = "https://blockchainist.net";
 const h = (o: Record<string, string>) => new Headers(o);
 
 describe("portfolio framing", () => {
@@ -9,8 +9,8 @@ describe("portfolio framing", () => {
     expect(frameAllowed(h({}), site)).toBe(true);
     expect(frameAllowed(h({ "content-security-policy": "default-src 'self'" }), site)).toBe(true);
     expect(frameAllowed(h({ "content-security-policy": "frame-ancestors *" }), site)).toBe(true);
-    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors 'self' https://blockchainist.id.vn" }), site)).toBe(true);
-    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors https://*.id.vn" }), site)).toBe(true);
+    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors 'self' https://blockchainist.net" }), site)).toBe(true);
+    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors https://*.net" }), site)).toBe(true);
     expect(frameAllowed(h({ "content-security-policy": "frame-ancestors https:" }), site)).toBe(true);
   });
 
@@ -19,7 +19,7 @@ describe("portfolio framing", () => {
     expect(frameAllowed(h({ "x-frame-options": "SAMEORIGIN" }), site)).toBe(false);
     expect(frameAllowed(h({ "content-security-policy": "frame-ancestors 'none'" }), site)).toBe(false);
     expect(frameAllowed(h({ "content-security-policy": "script-src 'self'; frame-ancestors 'self' https://notion.so" }), site)).toBe(false);
-    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors http://blockchainist.id.vn" }), site)).toBe(false);
+    expect(frameAllowed(h({ "content-security-policy": "frame-ancestors http://blockchainist.net" }), site)).toBe(false);
   });
 
   it("only checks public web addresses", () => {

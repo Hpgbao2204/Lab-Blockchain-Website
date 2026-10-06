@@ -6,7 +6,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp"; // ships with Next.js
 
-const UA = "BlockchainistLabWeb/0.1 (https://blockchainist.id.vn; admin.blockchainist.uit@gmail.com)";
+const UA = "BlockchainistLabWeb/0.1 (https://blockchainist.net; admin.blockchainist.uit@gmail.com)";
 const OUT_DIR = path.resolve("public/pioneers");
 const OUT_JSON = path.resolve("src/data/pioneers.generated.json");
 

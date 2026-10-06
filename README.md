@@ -1,6 +1,6 @@
 # Blockchainist Lab Web
 
-Website của nhóm nghiên cứu Blockchain, Mạng & Bảo mật — `blockchainist.id.vn`.
+Website của nhóm nghiên cứu Blockchain, Mạng & Bảo mật — `blockchainist.net`.
 
 - **Public**: thành tích, công bố khoa học (đồng bộ từ ORCID), giải thưởng, core members và trang CV từng thành viên.
 - **Private**: tường theo nhóm/tháng để giao việc, comment, theo dõi tiến độ. Chỉ tài khoản do admin tạo mới truy cập được.

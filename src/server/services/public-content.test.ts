@@ -230,7 +230,7 @@ describe("applications", () => {
     const sent: Mail[] = [];
     return { sent, send: async (mails: Mail[]) => (sent.push(...mails), { sent: mails.length, saved: 0 }) };
   };
-  const site = "https://blockchainist.id.vn";
+  const site = "https://blockchainist.net";
 
   it("requires every field for every person, and cleans them", () => {
     const f = form();
@@ -302,6 +302,7 @@ describe("applications", () => {
       ["cuong4@example.com", "pi@lab.test"],
     ]);
     expect(mail.sent[1].text).toContain("Chào Le Van Cuong 4,");
+    expect(mail.sent[0].html).toContain("đơn ứng tuyển trên blockchainist.net.");
     expect(mail.sent[0].html).not.toContain("<b>thứ");
 
     const failed = await replyToApplication(db, admin, a.id, applicationReplyInput.parse({ message: "Còn đó không?" }), { send: async () => ({ sent: 0, saved: 0, error: "Resend 500" }), siteUrl: site });
