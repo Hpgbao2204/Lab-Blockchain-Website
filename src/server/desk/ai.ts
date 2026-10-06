@@ -88,17 +88,23 @@ async function post(fetcher: typeof fetch, url: string, headers: Record<string, 
   return JSON.parse(text) as Record<string, unknown>;
 }
 
-/** Models sometimes wrap JSON in a ```json fence or add a sentence around it. */
+/**
+ * Models sometimes wrap JSON in a ```json fence, add a sentence around it, or return the object
+ * inside an array (`[{...}]`); all of these come back as the object.
+ */
 export function parseJsonReply(text: string): unknown {
   const t = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  let value: unknown;
   try {
-    return JSON.parse(t);
+    value = JSON.parse(t);
   } catch {
     const start = t.indexOf("{");
     const end = t.lastIndexOf("}");
-    if (start >= 0 && end > start) return JSON.parse(t.slice(start, end + 1));
-    throw new Error(`AI reply was not JSON: ${t.slice(0, 200)}`);
+    if (start < 0 || end <= start) throw new Error(`AI reply was not JSON: ${t.slice(0, 200)}`);
+    value = JSON.parse(t.slice(start, end + 1));
   }
+  if (Array.isArray(value) && value.length >= 1 && value[0] && typeof value[0] === "object" && !Array.isArray(value[0])) return value[0];
+  return value;
 }
 
 function gemini(key: string, model: string, fetcher: typeof fetch): Ai {

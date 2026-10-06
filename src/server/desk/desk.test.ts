@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { createTestDb, type Db } from "../db/client";
 import { deskRuns, feedItems, news } from "../db/schema";
@@ -86,6 +87,8 @@ describe("AI provider", () => {
   it("parses JSON replies wrapped in fences or text", () => {
     expect(parseJsonReply('```json\n{"a":1}\n```')).toEqual({ a: 1 });
     expect(parseJsonReply('Sure! {"a":2} hope this helps')).toEqual({ a: 2 });
+    expect(parseJsonReply('[{"a":3}]')).toEqual({ a: 3 });
+    expect(parseJsonReply('```json\n[{"a":4}, {"a":5}]\n```')).toEqual({ a: 4 });
     expect(() => parseJsonReply("no json")).toThrow();
   });
 
@@ -249,6 +252,7 @@ describe("desk errors", () => {
     const e = Object.assign(new Error('Failed query: insert into "news" ("id", "slug") values (default, $1)'), { cause: Object.assign(new Error("invalid byte sequence for encoding \"UTF8\": 0x00"), { code: "22021" }) });
     expect(errorText(e)).toBe('Database error: invalid byte sequence for encoding "UTF8": 0x00 (code 22021)');
     expect(errorText(new Error("AI request failed (503)"))).toBe("AI request failed (503)");
+    expect(errorText(new z.ZodError([{ code: "invalid_type", expected: "object", path: [], message: "Invalid input: expected object, received array" } as never]))).toBe("The AI reply had the wrong shape (reply: Invalid input: expected object, received array)");
     expect(clean("a\u0000b\r\nc\td")).toBe("ab\nc\td");
   });
 });
