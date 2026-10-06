@@ -7,7 +7,8 @@
  * - `AI_API_KEY` + `AI_BASE_URL` + `AI_MODEL`: any OpenAI-compatible chat API (OpenRouter, Groq,
  *   Zhipu GLM, DeepSeek, ...). `AI_MODEL` may also be a comma-separated list.
  *
- * With both set, Gemini models are tried first, then the others. A busy or rate-limited model
+ * With both set, only the OpenAI-compatible models are used (Gemini is the fallback setup for
+ * when no other provider is configured). A busy or rate-limited model
  * (429/5xx) is retried once, then the next model takes over. Without any key, the desk still
  * collects feed items but writes no posts.
  */
@@ -24,12 +25,13 @@ const list = (v: string | undefined) => (v ?? "").split(",").map((m) => m.trim()
 
 export function aiFromEnv(env: Env = process.env, fetcher: typeof fetch = fetch, wait: (ms: number) => Promise<void> = sleep): Ai | null {
   const models: Ai[] = [];
-  if (env.GEMINI_API_KEY) {
+  // An OpenAI-compatible provider (OpenRouter, ...) wins when configured; Gemini is not used then.
+  if (env.AI_API_KEY && env.AI_BASE_URL) for (const m of list(env.AI_MODEL)) models.push(openAiCompatible(env.AI_BASE_URL, env.AI_API_KEY, m, fetcher));
+  if (!models.length && env.GEMINI_API_KEY) {
     // AI_MODEL without AI_BASE_URL used to name the Gemini model; keep honouring it.
     const names = list(env.GEMINI_MODEL).length ? list(env.GEMINI_MODEL) : !env.AI_BASE_URL && list(env.AI_MODEL).length ? list(env.AI_MODEL) : ["gemini-flash-latest", "gemini-flash-lite-latest"];
     for (const m of names) models.push(gemini(env.GEMINI_API_KEY, m, fetcher));
   }
-  if (env.AI_API_KEY && env.AI_BASE_URL) for (const m of list(env.AI_MODEL)) models.push(openAiCompatible(env.AI_BASE_URL, env.AI_API_KEY, m, fetcher));
   if (!models.length) return null;
   return chain(models, wait);
 }
