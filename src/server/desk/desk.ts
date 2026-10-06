@@ -316,6 +316,7 @@ export function clean(s: string) {
  * own message (and code) first so it fits on the admin page.
  */
 export function errorText(e: unknown) {
+  if (e instanceof z.ZodError) return `The AI reply had the wrong shape (${e.issues.map((i) => `${i.path.join(".") || "reply"}: ${i.message}`).join("; ")})`.slice(0, 500);
   const err = e as Error & { cause?: { message?: string; code?: string; detail?: string } };
   const cause = err?.cause;
   if (cause?.message) return [`Database error: ${cause.message}`, cause.code && `(code ${cause.code})`, cause.detail].filter(Boolean).join(" ").slice(0, 500);
