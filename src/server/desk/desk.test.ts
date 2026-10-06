@@ -9,7 +9,7 @@ import { FEEDS } from "@/data/feeds";
 import { PROTOCOL_TOPICS } from "@/data/protocol-topics";
 import { aiFromEnv, parseJsonReply, type Ai } from "./ai";
 import { matchesFilter, parseFeed, toText } from "./rss";
-import { runDesk } from "./desk";
+import { clean, errorText, runDesk } from "./desk";
 
 const RSS = `<?xml version="1.0"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>X</title>
 <item><title><![CDATA[Bridge hack drains $10M &amp; more]]></title><link>https://example.com/a</link><pubDate>Mon, 05 Oct 2026 10:00:00 GMT</pubDate>
@@ -224,5 +224,31 @@ describe("daily desk", () => {
     expect(run.postId).toBeNull();
     expect(run.error).toBeTruthy();
     expect(await db.select().from(news)).toHaveLength(0);
+  });
+
+  it("saves a draft whose model output contains NUL and other control characters", async () => {
+    const base = fakeAi();
+    const ai: Ai = {
+      label: "nul",
+      async json(system, user) {
+        const r = (await base.json(system, user)) as Record<string, unknown>;
+        if (typeof r.title === "string") return { ...r, title: `${r.title}\u0000`, body: `${r.body}\u0000\r\nEnd\u0007.` };
+        return r;
+      },
+    };
+    const run = await runDesk(db, { ai, today, fetcher: feedFetcher, now });
+    expect(run.error).toBeNull();
+    const [post] = await db.select().from(news).where(eq(news.id, run.postId!));
+    expect(post.title).toBe("A bridge lost $10M to a signature bug");
+    expect(post.body).toMatch(/\nEnd\.$/);
+  });
+});
+
+describe("desk errors", () => {
+  it("shows the database's own message instead of the SQL text", () => {
+    const e = Object.assign(new Error('Failed query: insert into "news" ("id", "slug") values (default, $1)'), { cause: Object.assign(new Error("invalid byte sequence for encoding \"UTF8\": 0x00"), { code: "22021" }) });
+    expect(errorText(e)).toBe('Database error: invalid byte sequence for encoding "UTF8": 0x00 (code 22021)');
+    expect(errorText(new Error("AI request failed (503)"))).toBe("AI request failed (503)");
+    expect(clean("a\u0000b\r\nc\td")).toBe("ab\nc\td");
   });
 });

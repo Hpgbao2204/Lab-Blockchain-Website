@@ -278,28 +278,49 @@ export async function runDesk(db: Db, opts: RunOptions) {
       aiCheck = `- The automatic fact check did not run (${(e as Error).message.slice(0, 120)}). Check every claim against the sources.`;
     }
 
-    const [post] = await db
-      .insert(news)
-      .values({
-        slug: await freeSlug(db, draft.title),
-        kind: draft.kind,
-        title: draft.title,
-        summary: draft.summary,
-        body: draft.body,
-        sources: draft.sources.slice(0, 4000),
-        publishedOn: opts.today,
-        status: "submitted",
-        submittedAt: now,
-        authorId: null,
-        aiAssisted: true,
-        aiCheck: aiCheck || null,
-      })
-      .returning();
+    const row = {
+      kind: draft.kind,
+      title: clean(draft.title),
+      summary: clean(draft.summary),
+      body: clean(draft.body),
+      sources: clean(draft.sources).slice(0, 4000),
+      publishedOn: opts.today,
+      status: "submitted" as const,
+      submittedAt: now,
+      authorId: null,
+      aiAssisted: true,
+      aiCheck: clean(aiCheck) || null,
+    };
+    // One retry: a pooled connection can be closed by the database during the long AI calls.
+    let post: typeof news.$inferSelect;
+    try {
+      [post] = await db.insert(news).values({ slug: await freeSlug(db, row.title), ...row }).returning();
+    } catch (e) {
+      notes.push(`Saving the post failed once (${errorText(e)}); tried again.`);
+      [post] = await db.insert(news).values({ slug: await freeSlug(db, row.title), ...row }).returning();
+    }
     for (const it of used) await db.update(feedItems).set({ postId: post.id }).where(eq(feedItems.id, it.id));
     return record({ kind: draft.kind === "protocol" ? "protocol" : "news", topic: topic?.key ?? null, postId: post.id }, notes);
   } catch (e) {
-    return record({ error: (e as Error).message.slice(0, 500) }, notes);
+    return record({ error: errorText(e) }, notes);
   }
+}
+
+/** Postgres rejects NUL in text; other control characters (except tab and newline) are noise. */
+export function clean(s: string) {
+  return s.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "");
+}
+
+/**
+ * Drizzle's "Failed query: <the whole SQL>" hides the real reason in `cause`; put the database's
+ * own message (and code) first so it fits on the admin page.
+ */
+export function errorText(e: unknown) {
+  const err = e as Error & { cause?: { message?: string; code?: string; detail?: string } };
+  const cause = err?.cause;
+  if (cause?.message) return [`Database error: ${cause.message}`, cause.code && `(code ${cause.code})`, cause.detail].filter(Boolean).join(" ").slice(0, 500);
+  const msg = err?.message ?? String(e);
+  return (msg.startsWith("Failed query:") ? `Database error on: ${msg.slice(14, 120)}…` : msg).slice(0, 500);
 }
 
 /** For the admin page: recent runs, per-feed counts and the latest items. */
