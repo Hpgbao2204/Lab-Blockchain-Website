@@ -78,6 +78,13 @@
       "when": 1791318995423,
       "tag": "0010_daily_desk",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791324256858,
+      "tag": "0011_restore_news_published",
+      "breakpoints": true
     }
   ]
 }
