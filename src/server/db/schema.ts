@@ -365,6 +365,10 @@ export const news = pgTable(
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+    /** drafted by the daily desk bot (AI) from the sources listed; always reviewed by an admin */
+    aiAssisted: boolean("ai_assisted").notNull().default(false),
+    /** the bot's own fact check: sentences it could not match to a source (Markdown), for the reviewer */
+    aiCheck: text("ai_check"),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -439,3 +443,45 @@ export const hiddenPublications = pgTable("hidden_publications", {
   id: text("id").primaryKey(),
   ...timestamps,
 });
+
+/** Items the daily desk read from the RSS/Atom feeds in `src/data/feeds.ts`; kept for 30 days. */
+export const feedItems = pgTable(
+  "feed_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** key of the feed in src/data/feeds.ts */
+    source: text("source").notNull(),
+    url: text("url").notNull().unique(),
+    title: text("title").notNull(),
+    /** the summary or text the feed itself publishes, HTML stripped, at most a few thousand characters */
+    summary: text("summary").notNull().default(""),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+    /** the post written from this item, if any */
+    postId: uuid("post_id").references(() => news.id, { onDelete: "set null" }),
+  },
+  (t) => [index("feed_items_fetched_idx").on(t.fetchedAt), index("feed_items_source_idx").on(t.source)],
+);
+export type FeedItem = typeof feedItems.$inferSelect;
+
+/** One run of the daily desk (cron or "run now"): what it fetched, what it wrote, what failed. */
+export const deskRuns = pgTable(
+  "desk_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Vietnam calendar day of the run */
+    day: date("day").notNull(),
+    trigger: text("trigger").notNull().default("cron"),
+    /** "news" or "protocol" when a post was written */
+    kind: text("kind"),
+    /** key of the protocol topic (src/data/protocol-topics.ts) the post explains */
+    topic: text("topic"),
+    postId: uuid("post_id").references(() => news.id, { onDelete: "set null" }),
+    /** per-feed results, new item counts, and errors */
+    report: jsonb("report").notNull().default({}),
+    error: text("error"),
+    ...timestamps,
+  },
+  (t) => [index("desk_runs_day_idx").on(t.day)],
+);
+export type DeskRun = typeof deskRuns.$inferSelect;

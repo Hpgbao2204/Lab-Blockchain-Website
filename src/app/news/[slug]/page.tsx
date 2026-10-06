@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: item.title,
     description: item.summary,
-    authors: item.author ? [{ name: item.author.name }] : undefined,
+    authors: item.aiAssisted ? [{ name: "Blockchainist Desk" }] : item.author ? [{ name: item.author.name }] : undefined,
     robots: item.status === "published" ? undefined : { index: false },
     openGraph: { title: item.title, description: item.summary, type: "article", publishedTime: item.publishedOn, images: item.cover ? [item.cover] : undefined },
   };
@@ -79,7 +79,7 @@ export default async function NewsItemPage({ params }: Props) {
         <p className="text-lg text-ink-2">{item.summary}</p>
         <p className="flex flex-wrap items-center gap-3 text-sm">
           <span>
-            By <Byline author={item.author} />
+            By <Byline author={item.author} ai={item.aiAssisted} />
           </span>
           {canEdit && (
             <Link href={`/app/posts/${item.id}`} className="btn btn-xs">
@@ -88,6 +88,15 @@ export default async function NewsItemPage({ params }: Props) {
           )}
         </p>
       </header>
+      {item.aiAssisted && (
+        <p className="note">
+          <b>Daily desk</b>
+          <span>
+            Drafted with AI from the sources listed at the end{item.reviewer ? `, then checked and approved by ${item.reviewer.name}` : ""}. Each [n] points to a
+            source; read the originals for the full story.
+          </span>
+        </p>
+      )}
       {item.cover && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.cover} alt="" className="w-full rounded-[14px] border-2 border-ink shadow-[var(--shadow-lg)]" />

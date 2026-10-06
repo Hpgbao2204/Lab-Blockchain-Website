@@ -32,7 +32,7 @@ export function slugify(title: string) {
   return s || "news";
 }
 
-async function freeSlug(db: Db, title: string, exceptId?: string) {
+export async function freeSlug(db: Db, title: string, exceptId?: string) {
   const base = slugify(title);
   const taken = new Set(
     (
@@ -66,6 +66,8 @@ const postColumns = {
   reviewedAt: news.reviewedAt,
   submittedAt: news.submittedAt,
   authorId: news.authorId,
+  aiAssisted: news.aiAssisted,
+  aiCheck: news.aiCheck,
   createdAt: news.createdAt,
   updatedAt: news.updatedAt,
   author: { name: users.name, slug: profiles.slug },
@@ -89,6 +91,8 @@ const shape = (r: Row) => ({
   reviewer: r.reviewer?.name ? { name: r.reviewer.name } : null,
 });
 const shapeAll = (rows: Row[]) => rows.map(shape);
+/** The bot's fact-check notes are for reviewers only. */
+const forViewer = <T extends { aiCheck: string | null }>(actor: SessionUser | null, p: T): T => (isAdmin(actor) ? p : { ...p, aiCheck: null });
 export type PostView = ReturnType<typeof shape>;
 
 const live = () => and(eq(news.status, "published"), lte(news.publishedOn, labToday()));
@@ -98,17 +102,18 @@ const live = () => and(eq(news.status, "published"), lte(news.publishedOn, labTo
  * one kind. Admins may ask for everything, including drafts, posts waiting for review and
  * scheduled items.
  */
-export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: boolean; limit?: number; kind?: NewsKind; offset?: number } = {}) {
+export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: boolean; limit?: number; kind?: NewsKind; offset?: number; ai?: boolean } = {}) {
   const where: SQL[] = [];
   if (!(opts.all && isAdmin(actor))) where.push(live()!);
   if (opts.kind) where.push(eq(news.kind, opts.kind));
+  if (opts.ai !== undefined) where.push(eq(news.aiAssisted, opts.ai));
   return shapeAll(
     await selectPosts(db)
       .where(where.length ? and(...where) : undefined)
       .orderBy(desc(news.publishedOn), desc(news.createdAt))
       .limit(opts.limit ?? 100)
       .offset(opts.offset ?? 0),
-  );
+  ).map((p) => forViewer(actor, p));
 }
 
 /** How many live posts there are of each kind, for the filter on /news. */
@@ -136,14 +141,14 @@ export async function listSubmitted(db: Db, actor: SessionUser | null) {
 export async function getNews(db: Db, actor: SessionUser | null, slug: string) {
   const [item] = await selectPosts(db).where(eq(news.slug, slug)).limit(1);
   if (!item || !canSee(actor, item)) throw new AppError("not_found", "Post not found.");
-  return shape(item);
+  return forViewer(actor, shape(item));
 }
 
 export async function getPostById(db: Db, actor: SessionUser | null, id: string) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new AppError("not_found", "Post not found.");
   const [item] = await selectPosts(db).where(eq(news.id, id)).limit(1);
   if (!item || !canSee(actor, item)) throw new AppError("not_found", "Post not found.");
-  return shape(item);
+  return forViewer(actor, shape(item));
 }
 
 function canSee(actor: SessionUser | null, item: { status: string; publishedOn: string; authorId: string | null }) {

@@ -13,6 +13,9 @@ export interface PostRowData {
   updatedAt: Date;
   reviewNote: string | null;
   author: { name: string; slug: string | null } | null;
+  aiAssisted?: boolean;
+  /** the bot's fact-check notes (admins only) */
+  aiCheck?: string | null;
 }
 
 export const POST_STATE: Record<PostRowData["status"], { label: string; c: string }> = {
@@ -35,10 +38,23 @@ export function PostRow({ post, showAuthor = false, today, children }: { post: P
           {state.label}
         </span>
         <span className="mono text-xs text-muted">{post.status === "published" ? newsDate(post.publishedOn) : `edited ${newsDate(post.updatedAt.toISOString().slice(0, 10))}`}</span>
-        {showAuthor && <span className="text-sm">· {post.author?.name ?? "former member"}</span>}
+        {showAuthor && <span className="text-sm">· {post.aiAssisted ? "Daily desk (AI draft)" : (post.author?.name ?? "former member")}</span>}
       </div>
       <h3 className="font-bold leading-snug">{post.title}</h3>
       <p className="line-clamp-2 text-sm text-ink-2">{post.summary}</p>
+      {post.aiAssisted && post.status === "submitted" && (
+        <div className="grid gap-1 rounded-[10px] border-2 border-dashed border-ink p-2 text-sm">
+          <b>AI draft: check it against the sources before approving.</b>
+          {post.aiCheck ? (
+            <>
+              <span>The automatic check could not match these sentences to a source:</span>
+              <span className="whitespace-pre-line text-ink-2">{post.aiCheck}</span>
+            </>
+          ) : (
+            <span className="text-ink-2">The automatic check found no unsupported claims.</span>
+          )}
+        </div>
+      )}
       {post.status === "rejected" && post.reviewNote && (
         <p className="whitespace-pre-line rounded-[10px] border-2 border-dashed border-ink p-2 text-sm">
           <b>Admin note:</b> {post.reviewNote}

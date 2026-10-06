@@ -10,6 +10,7 @@ const ITEMS = [
   { href: "/admin", label: "Accounts", admin: true },
   { href: "/admin/meetings", label: "Meetings", admin: true },
   { href: "/admin/posts", label: "Posts", admin: true },
+  { href: "/admin/desk", label: "Daily desk", admin: true },
   { href: "/admin/applications", label: "Applications", admin: true },
   { href: "/admin/publications", label: "Publications", admin: true },
   { href: "/admin/reports", label: "Report", admin: true },
