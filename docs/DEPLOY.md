@@ -58,6 +58,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    ```
    Redeploy, rồi thử upload một PDF > 5 MB trên wall.
 7b. **Captcha form /join (Cloudflare Turnstile, miễn phí)**: Cloudflare → *Turnstile → Add widget* → tên `blockchainist-join`, hostname `blockchainist.net` và `www.blockchainist.net` (giữ `blockchainist.id.vn`; thêm `localhost` nếu muốn thử ở máy; widget đã tạo thì vào *Settings → Hostname Management* để thêm, key không đổi). Thiếu hostname thì captcha báo lỗi và **không ai gửi được form**, widget mode *Managed* → *Create*. Copy **Site Key** vào `TURNSTILE_SITE_KEY` (tên cũ `NEXT_PUBLIC_TURNSTILE_SITE_KEY` vẫn chạy) và **Secret Key** vào `TURNSTILE_SECRET_KEY` (Production) → Redeploy. Thiếu một trong hai thì captcha tắt hẳn, form vẫn gửi được. Chưa đặt hai biến này thì form vẫn chạy, chỉ còn honeypot + giới hạn 3 đơn/giờ/IP; quá 20 đơn/giờ thì admin không nhận thêm email báo đơn (đơn vẫn lưu).
+7c. **Daily desk (bot viết bài mỗi ngày, miễn phí)**: vào Google AI Studio (aistudio.google.com) → *Get API key* → tạo key (miễn phí, không cần thẻ). Thêm biến `GEMINI_API_KEY` (Production) → Redeploy. Tuỳ chọn `AI_MODEL` (mặc định `gemini-flash-latest`; đổi nếu Google báo model không tồn tại hoặc hết hạn mức). Muốn dùng nhà cung cấp khác kiểu OpenAI (Groq, OpenRouter…): đặt `AI_API_KEY` + `AI_BASE_URL` + `AI_MODEL` thay cho `GEMINI_API_KEY`. Không có key thì bot vẫn lấy tin về trang `/admin/desk`, chỉ không viết bài. Lưu ý: dữ liệu gửi lên gói miễn phí của Google có thể được Google dùng để cải thiện model (chỉ là tin công khai nên không sao).
 8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://www.blockchainist.net/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
 9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://www.blockchainist.net/sitemap.xml`. Đổi từ domain cũ: thêm cả hai domain rồi dùng *Settings → Change of address* ở property `blockchainist.id.vn`.
 
@@ -68,6 +69,6 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
 
 ## Vận hành
 
-- Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN) và nhắc họp hằng ngày 00:00 UTC (07:00 VN). Gói Hobby có thể lệch trong vòng 1 giờ.
+- Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN), nhắc họp hằng ngày 00:00 UTC (07:00 VN) và daily desk 23:00 UTC (06:00 VN, lấy tin + viết 1 bài nháp, tối đa 5 phút). Gói Hobby có thể lệch trong vòng 1 giờ.
 - Backup: Neon có point-in-time restore ngắn hạn; nên `pg_dump "$DATABASE_URL_UNPOOLED" > backup.sql` hàng tháng.
 - Chuyển admin sang thầy: tạo tài khoản admin cho `dungtrt@uit.edu.vn` trong `/admin`, thầy đăng nhập và đổi mật khẩu, rồi hạ quyền tài khoản cũ nếu muốn.

@@ -12,6 +12,7 @@ export interface NewsCardData {
   cover?: string | null;
   body?: string | null;
   author?: { name: string; slug: string | null } | null;
+  aiAssisted?: boolean;
 }
 
 /** Article kinds members write first, then the lab's own news. `hint` guides authors in the editor. */
@@ -35,7 +36,8 @@ export const newsDate = (d: string) => `${Number(d.slice(8, 10))} ${MONTHS[Numbe
 export const readingMinutes = (body: string | null | undefined) => Math.max(1, Math.round((body ?? "").split(/\s+/).filter(Boolean).length / 220));
 
 /** "By Name" with a link to their page when they have a public profile. */
-export function Byline({ author, className = "" }: { author: NewsCardData["author"]; className?: string }) {
+export function Byline({ author, ai = false, className = "" }: { author: NewsCardData["author"]; ai?: boolean; className?: string }) {
+  if (ai) return <span className={`font-bold ${className}`}>Blockchainist Desk</span>;
   if (!author) return <span className={className}>Blockchainist</span>;
   return author.slug ? (
     <Link href={`/people/${author.slug}`} className={`relative z-[1] font-bold underline-offset-4 hover:underline ${className}`}>
@@ -79,7 +81,7 @@ export function NewsCard({ item, feature = false }: { item: NewsCardData; featur
         <p className={`text-ink-2 ${feature ? "" : "line-clamp-3 text-sm"}`}>{item.summary}</p>
         <p className="mt-1 flex items-center justify-between gap-3 text-sm">
           <span>
-            By <Byline author={item.author} />
+            By <Byline author={item.author} ai={item.aiAssisted} />
           </span>
           <ArrowUpRight size={17} aria-hidden />
         </p>
