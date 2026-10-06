@@ -50,7 +50,7 @@ Trang chủ giờ là blog: hero giao thức ở trên, bên dưới là bài m�
 Mỗi sáng khoảng 6 giờ, bot đọc các blog nghiên cứu và trang tin (Chainalysis, Ethereum, IACR ePrint, arXiv, Rekt, The Block…) rồi viết **một bài nháp**: xen kẽ giữa *tin nghiên cứu tổng hợp* (gom nhiều nguồn cùng một sự kiện, chú thích [1][2] theo từng nguồn) và *bài giải thích một giao thức kinh điển* (PBFT, Nakamoto, HotStuff, zk-SNARK…, chỉ trích các paper gốc có sẵn trong danh sách). Hôm nào không có tin đáng viết thì viết bài giao thức.
 - Bài bot **không tự đăng**: nó nằm ở *Posts → Waiting for review* với nhãn *Daily desk (AI draft)*, kèm danh sách câu mà bước tự kiểm tra không khớp được với nguồn. Đọc, sửa (**Edit**), rồi **Approve** như bài của thành viên. Bài đăng có dòng "Drafted with AI from the sources… approved by <tên thầy>".
 - Menu **Daily desk** (`/admin/desk`): xem các lần chạy, nguồn nào đang lỗi, tin mới lấy về; nút **Fetch and write now** để viết thêm một bài ngay.
-- Cần biến `GEMINI_API_KEY` (miễn phí, xem `docs/DEPLOY.md` bước 7c). Muốn thêm/bớt nguồn hoặc chủ đề: sửa `src/data/feeds.ts`, `src/data/protocol-topics.ts`.
+- Cần `GEMINI_API_KEY` và/hoặc một API miễn phí kiểu OpenAI như OpenRouter (xem `docs/DEPLOY.md` bước 7c); bot tự chuyển sang model khác khi một model bận. Muốn thêm/bớt nguồn hoặc chủ đề: sửa `src/data/feeds.ts`, `src/data/protocol-topics.ts`.
 - Trang chủ: mục *Daily brief* (bài bot mới nhất to + 4 bài trước) ở trên, mục *From our members* (bài thành viên) ở dưới.
 
 ## 5. Applications: đơn xin vào lab
