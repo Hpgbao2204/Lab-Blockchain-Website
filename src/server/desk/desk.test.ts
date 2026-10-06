@@ -53,8 +53,34 @@ describe("feed parsing", () => {
 describe("AI provider", () => {
   it("is off without a key, Gemini with GEMINI_API_KEY, and OpenAI-compatible with base URL + model", () => {
     expect(aiFromEnv({})).toBeNull();
-    expect(aiFromEnv({ GEMINI_API_KEY: "k" })?.label).toBe("Gemini · gemini-flash-latest");
-    expect(aiFromEnv({ AI_API_KEY: "k", AI_BASE_URL: "https://api.groq.com/openai/v1", AI_MODEL: "m" })?.label).toBe("api.groq.com · m");
+    expect(aiFromEnv({ GEMINI_API_KEY: "k" })?.label).toBe("Gemini · gemini-flash-latest → Gemini · gemini-flash-lite-latest");
+    expect(aiFromEnv({ GEMINI_API_KEY: "k", AI_MODEL: "gemini-x" })?.label).toBe("Gemini · gemini-x");
+    expect(aiFromEnv({ AI_API_KEY: "k", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "a:free, b:free" })?.label).toBe("openrouter.ai · a:free → openrouter.ai · b:free");
+    expect(aiFromEnv({ GEMINI_API_KEY: "k", GEMINI_MODEL: "g", AI_API_KEY: "k", AI_BASE_URL: "https://open.bigmodel.cn/api/paas/v4", AI_MODEL: "glm" })?.label).toBe("Gemini · g → open.bigmodel.cn · glm");
+  });
+
+  it("retries a busy model once, then falls back to the next model and provider", async () => {
+    const seen: string[] = [];
+    const fake = (async (url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      seen.push(url.includes("googleapis") ? url.split("/models/")[1].split(":")[0] : `${body.model}${body.response_format ? "+json" : ""}`);
+      if (url.includes("googleapis")) return new Response('{"error":{"code":503,"message":"high demand"}}', { status: 503 });
+      if (body.response_format) return new Response('{"error":"response_format not supported"}', { status: 400 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'Here: {"ok": 1}' } }] }));
+    }) as unknown as typeof fetch;
+    const ai = aiFromEnv({ GEMINI_API_KEY: "g", GEMINI_MODEL: "flash,lite", AI_API_KEY: "o", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "deepseek:free" }, fake, async () => {})!;
+    expect(await ai.json("s", "u")).toEqual({ ok: 1 });
+    expect(seen).toEqual(["flash", "flash", "lite", "lite", "deepseek:free+json", "deepseek:free"]);
+  });
+
+  it("reports every model's error when all fail, without retrying a bad key", async () => {
+    let calls = 0;
+    const fake = (async () => {
+      calls++;
+      return new Response('{"error":"bad key"}', { status: 401 });
+    }) as unknown as typeof fetch;
+    await expect(aiFromEnv({ GEMINI_API_KEY: "g", GEMINI_MODEL: "a,b" }, fake, async () => {})!.json("s", "u")).rejects.toThrow(/Gemini · a: .*401.*\| Gemini · b: .*401/);
+    expect(calls).toBe(2);
   });
 
   it("parses JSON replies wrapped in fences or text", () => {
@@ -69,7 +95,7 @@ describe("AI provider", () => {
       seen = { url, key: new Headers(init.headers).get("x-goog-api-key") };
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"ok":' }, { text: "true}" }] } }] }));
     }) as unknown as typeof fetch;
-    expect(await aiFromEnv({ GEMINI_API_KEY: "secret" }, fake)!.json("s", "u")).toEqual({ ok: true });
+    expect(await aiFromEnv({ GEMINI_API_KEY: "secret", GEMINI_MODEL: "gemini-flash-latest" }, fake)!.json("s", "u")).toEqual({ ok: true });
     expect(seen!.url).toContain("/models/gemini-flash-latest:generateContent");
     expect(seen!.url).not.toContain("secret");
     expect(seen!.key).toBe("secret");
