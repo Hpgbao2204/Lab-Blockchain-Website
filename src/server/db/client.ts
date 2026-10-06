@@ -14,7 +14,8 @@ export async function createDb(opts: { url?: string; dir?: string }): Promise<Db
   if (opts.url) {
     const [{ default: postgres }, { drizzle }] = await Promise.all([import("postgres"), import("drizzle-orm/postgres-js")]);
     // `prepare: false` keeps it compatible with transaction poolers (Supabase/Neon pooled URLs).
-    const sql = postgres(opts.url, { prepare: false, max: 5 });
+    // `idle_timeout` closes idle connections ourselves before the server drops them (long AI calls).
+    const sql = postgres(opts.url, { prepare: false, max: 5, idle_timeout: 20 });
     return drizzle(sql, { schema }) as unknown as Db;
   }
   if (opts.dir) mkdirSync(opts.dir, { recursive: true });
