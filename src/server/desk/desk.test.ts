@@ -85,6 +85,19 @@ describe("AI provider", () => {
     expect(calls).toBe(2);
   });
 
+  it("asks OpenRouter for low reasoning effort and reads an answer left in `reasoning`", async () => {
+    let body: Record<string, unknown> = {};
+    const fake = (async (_url: string, init: RequestInit) => {
+      body = JSON.parse(String(init.body));
+      return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: null, reasoning: 'Thinking... final: {"ok": 2}' } }] }));
+    }) as unknown as typeof fetch;
+    const ai = aiFromEnv({ AI_API_KEY: "o", AI_BASE_URL: "https://openrouter.ai/api/v1", AI_MODEL: "nvidia/nemotron:free" }, fake, async () => {})!;
+    expect(await ai.json("s", "u")).toEqual({ ok: 2 });
+    expect(body.reasoning).toEqual({ effort: "low" });
+    const empty = (async () => new Response(JSON.stringify({ choices: [{ finish_reason: "length", message: { content: "" } }] }))) as unknown as typeof fetch;
+    await expect(aiFromEnv({ AI_API_KEY: "o", AI_BASE_URL: "https://api.groq.com/openai/v1", AI_MODEL: "m" }, empty, async () => {})!.json("s", "u")).rejects.toThrow(/no text \(finish_reason: length\)/);
+  });
+
   it("parses JSON replies wrapped in fences or text", () => {
     expect(parseJsonReply('```json\n{"a":1}\n```')).toEqual({ a: 1 });
     expect(parseJsonReply('Sure! {"a":2} hope this helps')).toEqual({ a: 2 });
