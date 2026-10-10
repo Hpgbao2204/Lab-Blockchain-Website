@@ -11,10 +11,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return found ? postMetadata(found.item) : {};
 }
 
-/** A blog post; a tutorial found here moves to its address under /tutorials. */
-export default async function NewsItemPage({ params }: Props) {
+/** A tutorial; any other post found here moves to its address on the blog. */
+export default async function TutorialPage({ params }: Props) {
   const found = await loadPost((await params).slug);
   if (!found) notFound();
-  if (found.item.kind === "tutorial") permanentRedirect(`/tutorials/${found.item.slug}`);
+  if (found.item.kind !== "tutorial") permanentRedirect(`/news/${found.item.slug}`);
   return <PostArticle item={found.item} user={found.user} />;
 }

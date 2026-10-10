@@ -168,7 +168,9 @@ export const profileInput = z.object({
 /** Lab news only the admin posts, then the kinds of article every member may write. */
 export const labNewsKinds = ["news", "award", "paper", "event"] as const;
 export const articleKinds = ["protocol", "paper_review", "incident", "article"] as const;
-export const newsKinds = [...labNewsKinds, ...articleKinds] as const;
+/** Tutorials are written by admins only and listed on /tutorials, not on the blog. */
+export const TUTORIAL = "tutorial" as const;
+export const newsKinds = [...labNewsKinds, ...articleKinds, TUTORIAL] as const;
 export const newsStatuses = ["draft", "submitted", "published", "rejected"] as const;
 
 /** An image uploaded to the site (`/api/v1/images/<key>`) or any https image. */

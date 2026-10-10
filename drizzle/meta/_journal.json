@@ -85,6 +85,13 @@
       "when": 1791324256858,
       "tag": "0011_restore_news_published",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791605576195,
+      "tag": "0012_tutorials",
+      "breakpoints": true
     }
   ]
 }

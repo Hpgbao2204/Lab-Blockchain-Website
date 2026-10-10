@@ -13,16 +13,19 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [ready, setReady] = useState(false);
+  const [admin, setAdmin] = useState(false);
   useEffect(() => {
     fetch("/api/v1/me", { credentials: "same-origin" })
       .then((r) => r.json())
       .then((j) => {
         setSignedIn(!!j?.data);
         setReady(!!j?.data && !j.data.mustChangePassword);
+        setAdmin(j?.data?.role === "admin");
       })
       .catch(() => {
         setSignedIn(false);
         setReady(false);
+        setAdmin(false);
       });
   }, [pathname]);
   // the red dot: what others did on my walls since I last looked
@@ -30,7 +33,7 @@ export function Nav() {
   useEffect(() => {
     if (ready) refreshWallActivity();
   }, [ready, pathname]);
-  const account = signedIn ? { href: "/app", label: "My wall" } : { href: "/login", label: "Sign in" };
+  const account = signedIn ? { href: admin ? "/admin" : "/app", label: "My wall" } : { href: "/login", label: "Sign in" };
   const current = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -73,7 +76,7 @@ export function Nav() {
               aria-current={current(l.href) ? "page" : undefined}
             >
               {l.label}
-              {l.href === "/app" && <UnreadDot n={unread} className="unread-inline" />}
+              {l === account && <UnreadDot n={unread} className="unread-inline" />}
             </Link>
           ))}
         </nav>

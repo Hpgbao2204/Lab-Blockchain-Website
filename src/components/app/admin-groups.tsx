@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { GroupSettings } from "./group-settings";
+import { UnreadDot, useWallActivity } from "./wall-activity";
 
 interface Person {
   id: string;
@@ -99,6 +100,7 @@ export function AdminGroups({ groups, people }: { groups: AdminGroup[]; people: 
 }
 
 function GroupCard({ group, people }: { group: AdminGroup; people: Person[] }) {
+  const unread = useWallActivity()?.groups[group.id];
   return (
     <li className="card grid content-start gap-3 p-4" style={{ boxShadow: "var(--shadow)", opacity: group.status === "archived" ? 0.6 : 1 }}>
       <div className="flex items-start justify-between gap-2">
@@ -109,8 +111,9 @@ function GroupCard({ group, people }: { group: AdminGroup; people: Person[] }) {
             {group.memberCount} members · {group.openTasks} open tasks · {group.status}
           </p>
         </div>
-        <Link href={`/app/groups/${group.id}`} className="btn btn-sm">
+        <Link href={`/app/groups/${group.id}`} className="btn btn-sm relative">
           Wall <ArrowUpRight size={14} aria-hidden />
+          <UnreadDot n={unread} />
         </Link>
       </div>
       <GroupSettings group={group} people={people} label="Edit group & members" />

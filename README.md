@@ -7,7 +7,7 @@ Website của nhóm nghiên cứu Blockchain, Mạng & Bảo mật — `blockcha
 
 Trạng thái: **đang xây lại từ đầu**. Xem kế hoạch và milestone tại [`docs/ROADMAP.md`](docs/ROADMAP.md), kiến trúc tại [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), thiết kế tại [`docs/DESIGN.md`](docs/DESIGN.md). Hướng dẫn chức năng, cách test và tài khoản test: [`docs/huong-dan-chuc-nang-va-test.pdf`](docs/huong-dan-chuc-nang-va-test.pdf). Đưa lên domain: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-Nội dung site: tiếng Anh. Trang: `/research`, `/publications`, `/people`, `/pioneers`, `/join`, `/developers` (API công khai `/api/v1`).
+Nội dung site: tiếng Anh. Trang: `/research`, `/publications`, `/people`, `/pioneers`, `/join`, `/tutorials`, `/developers` (API công khai `/api/v1`, không còn trên menu).
 
 Stack: Next.js + TypeScript + Tailwind v4, Drizzle + Postgres (PGlite khi chạy local), Three.js.
 

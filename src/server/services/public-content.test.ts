@@ -98,6 +98,26 @@ describe("news", () => {
   });
 });
 
+describe("tutorials", () => {
+  it("only admins write tutorials; they stay off the blog and show only on /tutorials", async () => {
+    const draft = await createNews(db, member, item({ kind: "article", title: "My article", status: undefined }));
+    await expect(createNews(db, member, item({ kind: "tutorial" }))).rejects.toMatchObject({ code: "forbidden" });
+    await expect(updateNews(db, member, draft.id, item({ kind: "tutorial", title: "My article" }))).rejects.toMatchObject({ code: "forbidden" });
+
+    const t = await createNews(db, admin, item({ kind: "tutorial", title: "Run a local Ethereum node" }));
+    expect(t.status).toBe("published");
+    expect((await listNews(db, null)).map((n) => n.id)).not.toContain(t.id);
+    expect((await listNews(db, admin, { all: true })).map((n) => n.id)).not.toContain(t.id);
+    expect((await listNews(db, null, { kind: "tutorial" })).map((n) => n.id)).toEqual([t.id]);
+    expect((await countLiveByKind(db)).tutorial).toBeUndefined();
+    expect((await listMyPosts(db, admin)).map((n) => n.id)).not.toContain(t.id);
+    expect((await authorStats(db, admin)).find((a) => a.id === admin.id)?.published ?? 0).toBe((await listNews(db, admin, { all: true })).filter((n) => n.authorId === admin.id && n.status === "published").length);
+    expect((await getNews(db, null, t.slug)).kind).toBe("tutorial");
+    await deleteNews(db, admin, t.id);
+    await deleteNews(db, member, draft.id);
+  });
+});
+
 describe("member posts", () => {
   let other: SessionUser;
   beforeAll(async () => {

@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UnreadDot, useWallActivity } from "./wall-activity";
 
-const ITEMS = [
-  { href: "/app", label: "My wall" },
+const ITEMS: { href: string; label: string; admin?: boolean; member?: boolean }[] = [
+  // admins land on the lab console (/admin) instead; /app sends them there
+  { href: "/app", label: "My wall", member: true },
   { href: "/app/posts", label: "My posts" },
   { href: "/admin", label: "Accounts", admin: true },
   { href: "/admin/meetings", label: "Meetings", admin: true },
   { href: "/admin/posts", label: "Posts", admin: true },
-  { href: "/admin/desk", label: "Daily desk", admin: true },
+  { href: "/admin/tutorials", label: "Tutorials", admin: true },
   { href: "/admin/applications", label: "Applications", admin: true },
   { href: "/admin/publications", label: "Publications", admin: true },
   { href: "/admin/reports", label: "Report", admin: true },
@@ -25,10 +26,10 @@ export function AppNav({ admin }: { admin: boolean }) {
   const current = ITEMS.filter((i) => path === i.href || path.startsWith(`${i.href}/`)).sort((a, b) => b.href.length - a.href.length)[0]?.href;
   return (
     <>
-      {ITEMS.filter((i) => admin || !i.admin).map((i) => (
+      {ITEMS.filter((i) => (admin ? !i.member : !i.admin)).map((i) => (
         <Link key={i.href} href={i.href} className="nav-link whitespace-nowrap" aria-current={current === i.href ? "page" : undefined}>
           {i.label}
-          {i.href === "/app" && <UnreadDot n={unread} className="unread-inline" />}
+          {i.href === (admin ? "/admin" : "/app") && <UnreadDot n={unread} className="unread-inline" />}
         </Link>
       ))}
     </>

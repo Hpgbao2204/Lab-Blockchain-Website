@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Bold, Code, Eye, Heading2, ImagePlus, Italic, Link2, List, Quote, Send, Undo2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api/client";
-import { ARTICLE_KINDS, NEWS_KIND, type NewsKind } from "@/components/news/news-card";
+import { ARTICLE_KINDS, BLOG_KINDS, NEWS_KIND, postHref, type NewsKind } from "@/components/news/news-card";
 import { Markdown } from "@/components/news/markdown";
 
 export interface EditablePost {
@@ -51,8 +51,12 @@ async function uploadImage(file: File) {
 /**
  * Writing a post: Markdown with a small toolbar, image upload and a live preview. Members save
  * drafts and submit them for review; admins can also publish directly and pick the date.
+ * With `initial.kind === "tutorial"` it edits an admin's tutorial (no kind picker, lives under
+ * /admin/tutorials and /tutorials).
  */
 export function PostEditor({ initial, admin }: { initial: EditablePost; admin: boolean }) {
+  const tutorial = initial.kind === "tutorial";
+  const home = tutorial ? "/admin/tutorials" : admin ? "/admin/posts" : "/app/posts";
   const router = useRouter();
   const [v, setV] = useState(initial);
   const [tab, setTab] = useState<"write" | "preview">("write");
@@ -63,7 +67,7 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
   const coverInput = useRef<HTMLInputElement>(null);
 
   const locked = !admin && v.status === "published";
-  const kinds = admin ? (Object.keys(NEWS_KIND) as NewsKind[]) : ARTICLE_KINDS;
+  const kinds = admin ? BLOG_KINDS : ARTICLE_KINDS;
   const set = (k: keyof EditablePost) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setV({ ...v, [k]: e.target.value });
 
   /** Wraps the selection (or inserts a placeholder) with Markdown marks. */
@@ -106,7 +110,7 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
       const saved = await api<{ id: string; slug: string; status: EditablePost["status"] }>(v.id ? `/news/${v.id}` : "/news", { method: v.id ? "PATCH" : "POST", body });
       // remember the new post right away, so a failed submit does not create a second copy
       setV((x) => ({ ...x, id: saved.id, slug: saved.slug, status: saved.status }));
-      if (!v.id) window.history.replaceState(null, "", `/app/posts/${saved.id}`);
+      if (!v.id) window.history.replaceState(null, "", tutorial ? `${home}/${saved.id}` : `/app/posts/${saved.id}`);
       let status = saved.status;
       if (then === "submit") {
         const r = await api<{ post: { status: EditablePost["status"] } }>(`/news/${saved.id}/submit`, { method: "POST" });
@@ -148,7 +152,7 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
     if (!v.id || !confirm(`Delete "${v.title || "this post"}"? This cannot be undone.`)) return;
     try {
       await api(`/news/${v.id}`, { method: "DELETE" });
-      router.push(admin ? "/admin/posts" : "/app/posts");
+      router.push(home);
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
     }
@@ -182,10 +186,10 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
     >
       <div className="flex flex-wrap items-center gap-3">
         <span className="tag" style={{ "--c": v.status === "published" ? "var(--color-lime)" : v.status === "rejected" ? "var(--color-red)" : v.status === "submitted" ? "var(--color-yellow)" : "var(--color-card)" } as React.CSSProperties}>
-          {STATUS_TEXT[v.status]}
+          {tutorial && v.status === "draft" ? "Draft · only admins see it" : STATUS_TEXT[v.status]}
         </span>
         {v.slug && (
-          <Link href={`/news/${v.slug}`} className="btn btn-xs" target="_blank">
+          <Link href={postHref({ kind: v.kind, slug: v.slug })} className="btn btn-xs" target="_blank">
             <Eye size={12} aria-hidden /> {v.status === "published" ? "View live" : "Preview page"}
           </Link>
         )}
@@ -204,32 +208,34 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
         </p>
       )}
 
-      <fieldset className="grid gap-2" disabled={locked}>
-        <legend className="label mb-2">What are you writing?</legend>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {kinds.map((k) => (
-            <label
-              key={k}
-              className="card flex cursor-pointer gap-3 p-3 text-sm shadow-[3px_3px_0_var(--color-ink)]! has-[:checked]:bg-[color-mix(in_srgb,var(--c)_28%,var(--color-card))]"
-              style={{ "--c": NEWS_KIND[k].c } as React.CSSProperties}
-            >
-              <input type="radio" name="kind" value={k} checked={v.kind === k} onChange={set("kind")} className="mt-1 accent-ink" />
-              <span className="grid gap-0.5">
-                <b>{NEWS_KIND[k].label}</b>
-                <span className="text-xs text-ink-2">{NEWS_KIND[k].hint}</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {!tutorial && (
+        <fieldset className="grid gap-2" disabled={locked}>
+          <legend className="label mb-2">What are you writing?</legend>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {kinds.map((k) => (
+              <label
+                key={k}
+                className="card flex cursor-pointer gap-3 p-3 text-sm shadow-[3px_3px_0_var(--color-ink)]! has-[:checked]:bg-[color-mix(in_srgb,var(--c)_28%,var(--color-card))]"
+                style={{ "--c": NEWS_KIND[k].c } as React.CSSProperties}
+              >
+                <input type="radio" name="kind" value={k} checked={v.kind === k} onChange={set("kind")} className="mt-1 accent-ink" />
+                <span className="grid gap-0.5">
+                  <b>{NEWS_KIND[k].label}</b>
+                  <span className="text-xs text-ink-2">{NEWS_KIND[k].hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <fieldset className="grid gap-4" disabled={locked}>
         <label className="label">
           Title
-          <input className="field" value={v.title} onChange={set("title")} required maxLength={200} placeholder="e.g. How HTLCs make atomic swaps atomic" />
+          <input className="field" value={v.title} onChange={set("title")} required maxLength={200} placeholder={tutorial ? "e.g. Deploy your first smart contract on a testnet" : "e.g. How HTLCs make atomic swaps atomic"} />
         </label>
         <label className="label">
-          Summary <span className="hint">one or two sentences for the card on the home page · {v.summary.length}/400</span>
+          Summary <span className="hint">one or two sentences for the card {tutorial ? "on /tutorials" : "on the home page"} · {v.summary.length}/400</span>
           <textarea className="field min-h-0!" rows={2} value={v.summary} onChange={set("summary")} required maxLength={400} />
         </label>
 
@@ -314,13 +320,15 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
             placeholder={"- Nakamoto, S. Bitcoin: A Peer-to-Peer Electronic Cash System (2008). https://bitcoin.org/bitcoin.pdf"}
           />
         </label>
-        <p className="note">
-          <b>Copyright</b>
-          <span>
-            Summarise in your own words and link to what you read. Do not paste whole articles or figures you did not make without credit; the admin
-            sends such posts back.
-          </span>
-        </p>
+        {!tutorial && (
+          <p className="note">
+            <b>Copyright</b>
+            <span>
+              Summarise in your own words and link to what you read. Do not paste whole articles or figures you did not make without credit; the admin
+              sends such posts back.
+            </span>
+          </p>
+        )}
 
         <label className="label">
           Link <span className="hint">optional, e.g. the paper&apos;s DOI or your code; shown as a button at the end</span>

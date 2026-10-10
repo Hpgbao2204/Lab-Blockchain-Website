@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin, UserPlus } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, UserPlus } from "lucide-react";
 import { Brand } from "./brand";
 import { siteLinks } from "./links";
 
@@ -10,6 +10,9 @@ export const CONTACT = {
   email: "dungtrt@uit.edu.vn",
   place: "University of Information Technology – VNU-HCM, Thu Duc, Ho Chi Minh City, Vietnam",
 };
+
+/** A friendly site we link to (and that links back to us). */
+const FRIEND = { name: "Impaq.top", url: "https://impaq.top" };
 
 export function Footer() {
   return (
@@ -52,6 +55,10 @@ export function Footer() {
               See credits
             </Link>
           </p>
+          <p className="eyebrow mt-3 mb-1">Friends</p>
+          <a href={FRIEND.url} target="_blank" rel="noopener" className="flex w-fit items-center gap-1.5 font-bold text-ink underline-offset-4 hover:underline">
+            {FRIEND.name} <ArrowUpRight size={15} aria-hidden />
+          </a>
           <p className="mono text-xs">© {new Date().getFullYear()} Blockchainist Research Group</p>
         </div>
       </div>

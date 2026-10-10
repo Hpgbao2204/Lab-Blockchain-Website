@@ -58,10 +58,7 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
    ```
    Redeploy, rồi thử upload một PDF > 5 MB trên wall.
 7b. **Captcha form /join (Cloudflare Turnstile, miễn phí)**: Cloudflare → *Turnstile → Add widget* → tên `blockchainist-join`, hostname `blockchainist.net` và `www.blockchainist.net` (giữ `blockchainist.id.vn`; thêm `localhost` nếu muốn thử ở máy; widget đã tạo thì vào *Settings → Hostname Management* để thêm, key không đổi). Thiếu hostname thì captcha báo lỗi và **không ai gửi được form**, widget mode *Managed* → *Create*. Copy **Site Key** vào `TURNSTILE_SITE_KEY` (tên cũ `NEXT_PUBLIC_TURNSTILE_SITE_KEY` vẫn chạy) và **Secret Key** vào `TURNSTILE_SECRET_KEY` (Production) → Redeploy. Thiếu một trong hai thì captcha tắt hẳn, form vẫn gửi được. Chưa đặt hai biến này thì form vẫn chạy, chỉ còn honeypot + giới hạn 3 đơn/giờ/IP; quá 20 đơn/giờ thì admin không nhận thêm email báo đơn (đơn vẫn lưu).
-7c. **Daily desk (bot viết bài mỗi ngày, miễn phí)**: cần ít nhất một nhà cung cấp AI; đặt cả hai thì bot chỉ dùng OpenRouter (hoặc nhà cung cấp tương thích OpenAI), bỏ qua Gemini; Gemini chỉ dùng khi chưa đặt `AI_API_KEY`.
-   - **Gemini**: Google AI Studio (aistudio.google.com) → *Get API key* → tạo key trong project **không gắn billing** (cột *Plan* ghi *Free tier*; project trả trước hết tiền sẽ báo lỗi 402). Đặt `GEMINI_API_KEY`. Tuỳ chọn `GEMINI_MODEL` = danh sách model cách nhau dấu phẩy, thử lần lượt (mặc định `gemini-flash-latest,gemini-flash-lite-latest`).
-   - **OpenRouter / Groq / Zhipu GLM / DeepSeek… (API kiểu OpenAI)**: đặt `AI_API_KEY`, `AI_BASE_URL` (vd `https://openrouter.ai/api/v1`) và `AI_MODEL` (danh sách cách nhau dấu phẩy; với OpenRouter chọn model có đuôi `:free`).
-   - Model bận/hết hạn mức (429, 5xx) được thử lại 1 lần rồi chuyển sang model tiếp theo. Không có key nào thì bot vẫn lấy tin về `/admin/desk`, chỉ không viết bài. Redeploy sau khi đổi biến. Gói miễn phí có thể dùng dữ liệu gửi lên để cải thiện model (chỉ là tin công khai nên không sao).
+7c. *(Đã bỏ 10/2026)* Bot daily desk không còn; có thể xoá các biến `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` trên Vercel. Bảng `feed_items`, `desk_runs` và cột `news.ai_assisted`, `news.ai_check` còn trong DB (không dùng nữa), sẽ xoá ở một migration sau.
 8. **Kiểm tra sau deploy**: `/api/v1/health`, đăng nhập admin, tạo 1 nhóm + task thử, `https://www.blockchainist.net/robots.txt` và `/sitemap.xml`, dán link vào Facebook/Zalo xem ảnh chia sẻ.
 9. **Google**: Search Console → thêm domain (bản ghi TXT xác minh) → gửi `https://www.blockchainist.net/sitemap.xml`. Đổi từ domain cũ: thêm cả hai domain rồi dùng *Settings → Change of address* ở property `blockchainist.id.vn`.
 
@@ -72,6 +69,6 @@ Supabase (Postgres + Storage có S3 API trong 1 tài khoản) cũng được, nh
 
 ## Vận hành
 
-- Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN), nhắc họp hằng ngày 00:00 UTC (07:00 VN) và daily desk 23:00 UTC (06:00 VN, lấy tin + viết 1 bài nháp, tối đa 5 phút). Gói Hobby có thể lệch trong vòng 1 giờ.
+- Cron `vercel.json`: email việc thứ Hai 01:00 UTC (08:00 VN), nhắc họp hằng ngày 00:00 UTC (07:00 VN). Gói Hobby có thể lệch trong vòng 1 giờ.
 - Backup: Neon có point-in-time restore ngắn hạn; nên `pg_dump "$DATABASE_URL_UNPOOLED" > backup.sql` hàng tháng.
 - Chuyển admin sang thầy: tạo tài khoản admin cho `dungtrt@uit.edu.vn` trong `/admin`, thầy đăng nhập và đổi mật khẩu, rồi hạ quyền tài khoản cũ nếu muốn.

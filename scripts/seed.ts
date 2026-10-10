@@ -169,6 +169,18 @@ async function main() {
         "submit",
       );
       await write("bao", { kind: "article", title: "Notes on reputation for cross-chain relayers", summary: "Draft: how we might score relayers by the proofs they deliver.", body: "Draft notes. To be continued." }, "draft");
+      // a tutorial: admins only, shown on /tutorials
+      await createNews(
+        db,
+        admin,
+        newsInput.parse({
+          kind: "tutorial",
+          title: "Set up a local Ethereum devnet with Foundry",
+          summary: "Install Foundry, start a local chain with Anvil, deploy a contract and call it, in about fifteen minutes.",
+          body: "## 1. Install Foundry\n\n```\ncurl -L https://foundry.paradigm.xyz | bash\nfoundryup\n```\n\n## 2. Start a local chain\n\n```\nanvil\n```\n\nAnvil prints ten funded accounts and their private keys. They exist only on your machine.\n\n## 3. Create and deploy a contract\n\n```\nforge init counter && cd counter\nforge create src/Counter.sol:Counter --rpc-url http://127.0.0.1:8545 --private-key <key from step 2> --broadcast\n```\n\n## 4. Call it\n\n```\ncast send <address> \"increment()\" --rpc-url http://127.0.0.1:8545 --private-key <key>\ncast call <address> \"number()(uint256)\" --rpc-url http://127.0.0.1:8545\n```\n\nThe second command prints `1`. That is the whole loop we use for every smart-contract experiment in the lab.",
+          sources: "- Foundry Book. https://book.getfoundry.sh",
+        }),
+      );
     }
 
     console.log(`Demo data added for ${Object.keys(accounts).length} sample members (e.g. minh.anh.le@blockchainist.local). Password: ${demoPassword}`);
