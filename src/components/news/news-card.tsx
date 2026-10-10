@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
-export type NewsKind = "news" | "award" | "paper" | "event" | "protocol" | "paper_review" | "incident" | "article";
+export type NewsKind = "news" | "award" | "paper" | "event" | "protocol" | "paper_review" | "incident" | "article" | "tutorial";
 
 export interface NewsCardData {
   slug: string;
@@ -25,8 +25,14 @@ export const NEWS_KIND: Record<NewsKind, { label: string; c: string; hint: strin
   award: { label: "Award", c: "var(--color-yellow)", hint: "An award or prize (admin only)." },
   paper: { label: "Paper accepted", c: "var(--color-orange)", hint: "A paper of ours that was accepted (admin only)." },
   event: { label: "Event", c: "var(--color-pink)", hint: "A talk, workshop or event (admin only)." },
+  tutorial: { label: "Tutorial", c: "var(--color-teal)", hint: "A step-by-step guide on /tutorials (admin only)." },
 };
 export const ARTICLE_KINDS: NewsKind[] = ["protocol", "paper_review", "incident", "article", "news"];
+/** Kinds an admin can pick for a blog post; tutorials are written from /admin/tutorials. */
+export const BLOG_KINDS = (Object.keys(NEWS_KIND) as NewsKind[]).filter((k) => k !== "tutorial");
+
+/** Where a post is read: tutorials on /tutorials, everything else on the blog. */
+export const postHref = (p: { kind: NewsKind; slug: string }) => (p.kind === "tutorial" ? `/tutorials/${p.slug}` : `/news/${p.slug}`);
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 /** `2026-10-03` → `3 Oct 2026` (dates are calendar days, no time zone involved). */
@@ -74,7 +80,7 @@ export function NewsCard({ item, feature = false }: { item: NewsCardData; featur
           {item.body && <span className="mono text-xs text-muted">· {readingMinutes(item.body)} min read</span>}
         </div>
         <h3 className={`font-bold leading-snug ${feature ? "display text-[clamp(24px,2.6vw,34px)] leading-[1.1]!" : "text-lg"}`}>
-          <Link href={`/news/${item.slug}`} className="after:absolute after:inset-0">
+          <Link href={postHref(item)} className="after:absolute after:inset-0">
             {item.title}
           </Link>
         </h3>

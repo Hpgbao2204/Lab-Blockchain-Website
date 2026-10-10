@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowUpRight, CalendarClock, Megaphone } from "lucide-react";
 import { MeetingCard } from "@/components/app/meeting-card";
 import { MarkWallSeen, UnreadDot } from "@/components/app/wall-activity";
@@ -15,6 +16,8 @@ const bucketColor = { overdue: "var(--color-red)", "this-week": "var(--color-yel
 
 export default async function Dashboard() {
   const user = await requirePageUser();
+  // admins see every group from the lab console, so "My wall" takes them there
+  if (user.role === "admin") redirect("/admin");
   const db = await getDb();
   const [groups, tasks, meetings, notices, activity] = await Promise.all([
     listGroups(db, user),
@@ -127,7 +130,7 @@ export default async function Dashboard() {
           ) : (
             <p className="note">
               <b>None yet</b>
-              <span>{user.role === "admin" ? "Create a group in Admin." : "The admin has not added you to a group yet."}</span>
+              <span>The admin has not added you to a group yet.</span>
             </p>
           )}
         </section>

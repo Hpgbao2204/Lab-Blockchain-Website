@@ -45,13 +45,12 @@ Trang chủ giờ là blog: hero giao thức ở trên, bên dưới là bài m�
 - Admin tự viết bài/tin (*Award*, *Paper accepted*, *Event* chỉ admin chọn được): **Write a post** → **Publish** (đăng luôn) hoặc *Save draft*. Chọn ngày tương lai thì đến ngày đó bài mới hiện.
 - Nhắc thành viên: viết bằng lời của mình, ghi nguồn, không chép nguyên bài hay hình của người khác; bài vi phạm thì trả lại.
 
-### Daily desk: bot viết bài mỗi ngày
+### Tutorials: bài hướng dẫn của thầy
 
-Mỗi sáng khoảng 6 giờ, bot đọc các blog nghiên cứu và trang tin (Chainalysis, Ethereum, IACR ePrint, arXiv, Rekt, The Block…) rồi viết **một bài nháp**: xen kẽ giữa *tin nghiên cứu tổng hợp* (gom nhiều nguồn cùng một sự kiện, chú thích [1][2] theo từng nguồn) và *bài giải thích một giao thức kinh điển* (PBFT, Nakamoto, HotStuff, zk-SNARK…, chỉ trích các paper gốc có sẵn trong danh sách). Hôm nào không có tin đáng viết thì viết bài giao thức.
-- Bài bot **không tự đăng**: nó nằm ở *Posts → Waiting for review* với nhãn *Daily desk (AI draft)*, kèm danh sách câu mà bước tự kiểm tra không khớp được với nguồn. Đọc, sửa (**Edit**), rồi **Approve** như bài của thành viên. Bài đăng có dòng "Drafted with AI from the sources… approved by <tên thầy>".
-- Menu **Daily desk** (`/admin/desk`): xem các lần chạy, nguồn nào đang lỗi, tin mới lấy về; nút **Fetch and write now** để viết thêm một bài ngay.
-- Cần `GEMINI_API_KEY` và/hoặc một API miễn phí kiểu OpenAI như OpenRouter (xem `docs/DEPLOY.md` bước 7c); bot tự chuyển sang model khác khi một model bận. Muốn thêm/bớt nguồn hoặc chủ đề: sửa `src/data/feeds.ts`, `src/data/protocol-topics.ts`.
-- Trang chủ: mục *Daily brief* (bài bot mới nhất to + 4 bài trước) ở trên, mục *From our members* (bài thành viên) ở dưới.
+- Menu **Tutorials** (`/admin/tutorials`) → **Write a tutorial**: cùng trình soạn thảo như Posts (Markdown, ảnh, xem trước). **Publish** để đăng luôn hoặc *Save draft*; chọn ngày tương lai thì đến ngày đó mới hiện.
+- Bài hiện ở trang public **Tutorials** (`/tutorials`, có trên menu chính), không lẫn vào blog/trang chủ và không tính vào bảng *Authors*.
+- Chỉ admin viết được tutorial; thành viên viết bài ở *My posts* như cũ.
+- Bot viết bài tự động (Daily desk) đã bỏ từ 10/2026. Bài bot đã đăng trước đó vẫn ở trên blog như bài thường; bài bot còn nằm trong *Waiting for review* thì **Send back** hoặc xoá.
 
 ## 5. Applications: đơn xin vào lab
 

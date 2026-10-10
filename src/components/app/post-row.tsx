@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Eye, PenLine } from "lucide-react";
-import { NEWS_KIND, newsDate, type NewsKind } from "@/components/news/news-card";
+import { NEWS_KIND, newsDate, postHref, type NewsKind } from "@/components/news/news-card";
 
 export interface PostRowData {
   id: string;
@@ -61,10 +61,10 @@ export function PostRow({ post, showAuthor = false, today, children }: { post: P
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        <Link href={`/app/posts/${post.id}`} className="btn btn-xs">
+        <Link href={post.kind === "tutorial" ? `/admin/tutorials/${post.id}` : `/app/posts/${post.id}`} className="btn btn-xs">
           <PenLine size={12} aria-hidden /> {post.status === "published" && !showAuthor ? "Open" : "Edit"}
         </Link>
-        <Link href={`/news/${post.slug}`} className="btn btn-xs">
+        <Link href={postHref(post)} className="btn btn-xs">
           <Eye size={12} aria-hidden /> {post.status === "published" && !scheduled ? "View" : "Preview"}
         </Link>
         {children}

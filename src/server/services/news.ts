@@ -6,7 +6,7 @@ import { news, profiles, users, type NewsItem } from "../db/schema";
 import { AppError } from "../errors";
 import type { SessionUser } from "../auth/sessions";
 import type { Mail } from "../mail";
-import { labNewsKinds, type newsInput, type newsKinds, type newsReviewInput } from "../validation";
+import { TUTORIAL, labNewsKinds, type newsInput, type newsKinds, type newsReviewInput } from "../validation";
 import { requireAdmin } from "./users";
 import { button, esc, shell, siteHost } from "./meetings";
 import { labToday } from "@/lib/weeks";
@@ -96,17 +96,18 @@ const forViewer = <T extends { aiCheck: string | null }>(actor: SessionUser | nu
 export type PostView = ReturnType<typeof shape>;
 
 const live = () => and(eq(news.status, "published"), lte(news.publishedOn, labToday()));
+/** Blog posts, i.e. everything but the admins' tutorials (those live on /tutorials). */
+const blog = () => ne(news.kind, TUTORIAL);
 
 /**
  * Visitors see published posts dated today or earlier (Vietnam time), newest first, optionally of
  * one kind. Admins may ask for everything, including drafts, posts waiting for review and
- * scheduled items.
+ * scheduled items. Tutorials are left out unless asked for with `kind: "tutorial"`.
  */
-export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: boolean; limit?: number; kind?: NewsKind; offset?: number; ai?: boolean } = {}) {
+export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: boolean; limit?: number; kind?: NewsKind; offset?: number } = {}) {
   const where: SQL[] = [];
   if (!(opts.all && isAdmin(actor))) where.push(live()!);
-  if (opts.kind) where.push(eq(news.kind, opts.kind));
-  if (opts.ai !== undefined) where.push(eq(news.aiAssisted, opts.ai));
+  where.push(opts.kind ? eq(news.kind, opts.kind) : blog());
   return shapeAll(
     await selectPosts(db)
       .where(where.length ? and(...where) : undefined)
@@ -118,14 +119,14 @@ export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: 
 
 /** How many live posts there are of each kind, for the filter on /news. */
 export async function countLiveByKind(db: Db) {
-  const rows = await db.select({ kind: news.kind, n: sql<number>`count(*)::int` }).from(news).where(live()).groupBy(news.kind);
+  const rows = await db.select({ kind: news.kind, n: sql<number>`count(*)::int` }).from(news).where(and(live(), blog())).groupBy(news.kind);
   return Object.fromEntries(rows.map((r) => [r.kind, r.n])) as Partial<Record<NewsKind, number>>;
 }
 
 /** Everything a member wrote, in any state, newest first. */
 export async function listMyPosts(db: Db, actor: SessionUser | null) {
   if (!actor) throw new AppError("unauthorized", "Sign in first.");
-  return shapeAll(await selectPosts(db).where(eq(news.authorId, actor.id)).orderBy(desc(news.updatedAt)));
+  return shapeAll(await selectPosts(db).where(and(eq(news.authorId, actor.id), blog())).orderBy(desc(news.updatedAt)));
 }
 
 /** Posts waiting for review, oldest first, so nobody waits longest. */
@@ -161,6 +162,7 @@ function requireMember(actor: SessionUser | null): asserts actor is SessionUser 
 }
 
 function checkKind(actor: SessionUser, kind: NewsKind) {
+  if (!isAdmin(actor) && kind === TUTORIAL) throw new AppError("forbidden", "Tutorials are written by the admins.");
   if (!isAdmin(actor) && (labNewsKinds as readonly string[]).includes(kind) && kind !== "news")
     throw new AppError("forbidden", "Awards, accepted papers and events are posted by the admin.");
 }
@@ -307,6 +309,7 @@ export async function authorStats(db: Db, actor: SessionUser | null) {
     })
     .from(news)
     .innerJoin(users, eq(users.id, news.authorId))
+    .where(blog())
     .groupBy(users.id, users.name, users.email, users.role)
     .orderBy(desc(n("published")), asc(users.name));
 }
@@ -317,7 +320,7 @@ export async function publishedBy(db: Db, authorIds: string[]) {
   return db
     .select({ authorId: news.authorId, title: news.title, slug: news.slug, publishedOn: news.publishedOn })
     .from(news)
-    .where(and(inArray(news.authorId, authorIds), eq(news.status, "published")))
+    .where(and(inArray(news.authorId, authorIds), eq(news.status, "published"), blog()))
     .orderBy(desc(news.publishedOn));
 }
 
@@ -330,6 +333,7 @@ export const KIND_LABEL: Record<NewsKind, string> = {
   paper_review: "Paper review",
   incident: "Incident analysis",
   article: "Article",
+  tutorial: "Tutorial",
 };
 
 /** To the admins: a member submitted a post. */

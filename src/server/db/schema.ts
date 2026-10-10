@@ -327,7 +327,7 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event", "protocol", "paper_review", "incident", "article"]);
+export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event", "protocol", "paper_review", "incident", "article", "tutorial"]);
 export const newsStatusEnum = pgEnum("news_status", ["draft", "submitted", "published", "rejected"]);
 export const applicationStatusEnum = pgEnum("application_status", ["new", "contacted", "accepted", "declined"]);
 
@@ -335,6 +335,7 @@ export const applicationStatusEnum = pgEnum("application_status", ["new", "conta
  * Posts on the public blog (/news and the home page): lab news written by the admin, and articles
  * members write (protocol explainers, paper reviews, incident analyses). A member's post goes
  * draft → submitted → published (or rejected with a note, then edited and submitted again).
+ * Kind `tutorial` is written by admins only and shown on /tutorials instead of the blog.
  */
 export const news = pgTable(
   "news",
@@ -365,9 +366,9 @@ export const news = pgTable(
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
-    /** drafted by the daily desk bot (AI) from the sources listed; always reviewed by an admin */
+    /** drafted by the daily desk bot (AI, removed in Oct 2026); its published posts stay up with this label */
     aiAssisted: boolean("ai_assisted").notNull().default(false),
-    /** the bot's own fact check: sentences it could not match to a source (Markdown), for the reviewer */
+    /** the bot's own fact check (Markdown), for the reviewer; no longer written */
     aiCheck: text("ai_check"),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -444,12 +445,16 @@ export const hiddenPublications = pgTable("hidden_publications", {
   ...timestamps,
 });
 
-/** Items the daily desk read from the RSS/Atom feeds in `src/data/feeds.ts`; kept for 30 days. */
+/**
+ * Items the daily desk bot read from RSS feeds. The bot was removed in Oct 2026; this table and
+ * `desk_runs` are no longer written and stay only because preview builds migrate the shared
+ * database. Drop both in a later migration.
+ */
 export const feedItems = pgTable(
   "feed_items",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** key of the feed in src/data/feeds.ts */
+    /** key of the feed the item came from */
     source: text("source").notNull(),
     url: text("url").notNull().unique(),
     title: text("title").notNull(),
@@ -464,7 +469,7 @@ export const feedItems = pgTable(
 );
 export type FeedItem = typeof feedItems.$inferSelect;
 
-/** One run of the daily desk (cron or "run now"): what it fetched, what it wrote, what failed. */
+/** One run of the removed daily desk bot; unused, see `feedItems`. */
 export const deskRuns = pgTable(
   "desk_runs",
   {
@@ -474,7 +479,7 @@ export const deskRuns = pgTable(
     trigger: text("trigger").notNull().default("cron"),
     /** "news" or "protocol" when a post was written */
     kind: text("kind"),
-    /** key of the protocol topic (src/data/protocol-topics.ts) the post explains */
+    /** key of the protocol topic the post explained */
     topic: text("topic"),
     postId: uuid("post_id").references(() => news.id, { onDelete: "set null" }),
     /** per-feed results, new item counts, and errors */

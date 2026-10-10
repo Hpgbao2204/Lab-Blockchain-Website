@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminGroups } from "@/components/app/admin-groups";
 import { AdminUsers } from "@/components/app/admin-users";
+import { MarkWallSeen } from "@/components/app/wall-activity";
 import { PageHead, SectionHead } from "@/components/site/page-head";
 import { getDb } from "@/server/db";
 import { requirePageUser } from "@/server/auth/current";
@@ -18,6 +19,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="wrap page grid gap-4">
+      <MarkWallSeen scope="lab" />
       <PageHead eyebrow="Admin" title={<>Lab <span className="hl">console</span></>}>
         Create accounts, form groups for each paper and choose who leads them. Only admins can create accounts.
       </PageHead>
