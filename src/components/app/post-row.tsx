@@ -61,7 +61,7 @@ export function PostRow({ post, showAuthor = false, today, children }: { post: P
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        <Link href={post.kind === "tutorial" ? `/admin/tutorials/${post.id}` : `/app/posts/${post.id}`} className="btn btn-xs">
+        <Link href={post.kind === "tutorial" ? `/tutorials/edit/${post.id}` : `/app/posts/${post.id}`} className="btn btn-xs">
           <PenLine size={12} aria-hidden /> {post.status === "published" && !showAuthor ? "Open" : "Edit"}
         </Link>
         <Link href={postHref(post)} className="btn btn-xs">

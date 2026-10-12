@@ -28,7 +28,7 @@ export default async function TutorialsAdminPage() {
             <Link href="/tutorials" className="btn btn-sm">
               Public page <ArrowUpRight size={15} aria-hidden />
             </Link>
-            <Link href="/admin/tutorials/new" className="btn btn-yellow btn-sm">
+            <Link href="/tutorials/new" className="btn btn-yellow btn-sm">
               <PenLine size={15} aria-hidden /> Write a tutorial
             </Link>
           </span>

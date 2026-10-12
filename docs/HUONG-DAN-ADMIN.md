@@ -47,7 +47,8 @@ Trang chủ giờ là blog: hero giao thức ở trên, bên dưới là bài m�
 
 ### Tutorials: bài hướng dẫn của thầy
 
-- Menu **Tutorials** (`/admin/tutorials`) → **Write a tutorial**: cùng trình soạn thảo như Posts (Markdown, ảnh, xem trước). **Publish** để đăng luôn hoặc *Save draft*; chọn ngày tương lai thì đến ngày đó mới hiện.
+- Vào trang **Tutorials** trên menu chính (đăng nhập admin) → nút **Write a tutorial** (hoặc menu admin *Tutorials*): cùng trình soạn thảo như Posts (Markdown, ảnh, xem trước). **Publish** để đăng luôn hoặc *Save draft*; chọn ngày tương lai thì đến ngày đó mới hiện. Nút **Edit** ngay trên trang bài.
+- **Who can read it?**: *Everyone* (ai cũng đọc), *Members only* (ai có tài khoản lab), *Selected people* (chỉ những người thầy tick trong danh sách; admin luôn đọc được). Khách mở link bài members-only sẽ được chuyển sang trang đăng nhập; member không được chọn thì thấy 404. Bài giới hạn không vào sitemap/Google.
 - Bài hiện ở trang public **Tutorials** (`/tutorials`, có trên menu chính), không lẫn vào blog/trang chủ và không tính vào bảng *Authors*.
 - Chỉ admin viết được tutorial; thành viên viết bài ở *My posts* như cũ.
 - Bot viết bài tự động (Daily desk) đã bỏ từ 10/2026. Bài bot đã đăng trước đó vẫn ở trên blog như bài thường; bài bot còn nằm trong *Waiting for review* thì **Send back** hoặc xoá.

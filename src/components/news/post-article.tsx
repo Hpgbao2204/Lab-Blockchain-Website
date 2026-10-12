@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, PenLine } from "lucide-react";
-import { Byline, NEWS_KIND, newsDate, readingMinutes } from "@/components/news/news-card";
+import { AUDIENCE, Byline, NEWS_KIND, newsDate, readingMinutes } from "@/components/news/news-card";
 import { Markdown } from "@/components/news/markdown";
 import { getDb } from "@/server/db";
 import { getCurrentUser } from "@/server/auth/current";
@@ -26,7 +26,7 @@ export function postMetadata(item: PostView): Metadata {
     title: item.title,
     description: item.summary,
     authors: item.aiAssisted ? [{ name: "Blockchainist Desk" }] : item.author ? [{ name: item.author.name }] : undefined,
-    robots: item.status === "published" ? undefined : { index: false },
+    robots: item.status === "published" && item.audience === "public" ? undefined : { index: false },
     openGraph: { title: item.title, description: item.summary, type: "article", publishedTime: item.publishedOn, images: item.cover ? [item.cover] : undefined },
   };
 }
@@ -61,7 +61,14 @@ export function PostArticle({ item, user }: { item: PostView; user: SessionUser 
       <header className="grid gap-4">
         <p className="flex flex-wrap items-center gap-3">
           {tutorial ? (
-            <span className="tag">{k.label}</span>
+            <>
+              <span className="tag">{k.label}</span>
+              {item.audience !== "public" && (
+                <span className="tag" style={{ "--c": "var(--color-yellow)" } as React.CSSProperties}>
+                  {AUDIENCE[item.audience].label}
+                </span>
+              )}
+            </>
           ) : (
             <Link href={`/news?kind=${item.kind}`} className="tag no-underline">
               {k.label}
@@ -79,7 +86,7 @@ export function PostArticle({ item, user }: { item: PostView; user: SessionUser 
             By <Byline author={item.author} ai={item.aiAssisted} />
           </span>
           {canEdit && (
-            <Link href={tutorial ? `/admin/tutorials/${item.id}` : `/app/posts/${item.id}`} className="btn btn-xs">
+            <Link href={tutorial ? `/tutorials/edit/${item.id}` : `/app/posts/${item.id}`} className="btn btn-xs">
               <PenLine size={12} aria-hidden /> Edit
             </Link>
           )}

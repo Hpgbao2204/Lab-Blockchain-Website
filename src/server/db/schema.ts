@@ -329,6 +329,8 @@ export const profiles = pgTable("profiles", {
 
 export const newsKindEnum = pgEnum("news_kind", ["news", "award", "paper", "event", "protocol", "paper_review", "incident", "article", "tutorial"]);
 export const newsStatusEnum = pgEnum("news_status", ["draft", "submitted", "published", "rejected"]);
+/** Who may read a published tutorial: everyone, any signed-in member, or only the people picked. */
+export const newsAudienceEnum = pgEnum("news_audience", ["public", "members", "selected"]);
 export const applicationStatusEnum = pgEnum("application_status", ["new", "contacted", "accepted", "declined"]);
 
 /**
@@ -370,12 +372,28 @@ export const news = pgTable(
     aiAssisted: boolean("ai_assisted").notNull().default(false),
     /** the bot's own fact check (Markdown), for the reviewer; no longer written */
     aiCheck: text("ai_check"),
+    /** who may read it once published; only tutorials use anything but `public` */
+    audience: newsAudienceEnum("audience").notNull().default("public"),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("news_published_idx").on(t.publishedOn), index("news_status_idx").on(t.status), index("news_author_idx").on(t.authorId)],
 );
 export type NewsItem = typeof news.$inferSelect;
+
+/** The people allowed to read a tutorial whose audience is `selected` (admins always can). */
+export const newsReaders = pgTable(
+  "news_readers",
+  {
+    newsId: uuid("news_id")
+      .notNull()
+      .references(() => news.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.newsId, t.userId] }), index("news_readers_user_idx").on(t.userId)],
+);
 
 /** Applications sent from the public Join form; only admins read them. */
 export const applications = pgTable(

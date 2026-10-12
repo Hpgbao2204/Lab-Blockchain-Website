@@ -171,6 +171,7 @@ export const articleKinds = ["protocol", "paper_review", "incident", "article"] 
 /** Tutorials are written by admins only and listed on /tutorials, not on the blog. */
 export const TUTORIAL = "tutorial" as const;
 export const newsKinds = [...labNewsKinds, ...articleKinds, TUTORIAL] as const;
+export const newsAudiences = ["public", "members", "selected"] as const;
 export const newsStatuses = ["draft", "submitted", "published", "rejected"] as const;
 
 /** An image uploaded to the site (`/api/v1/images/<key>`) or any https image. */
@@ -197,6 +198,9 @@ export const newsInput = z.object({
   sources: optionalText(4000),
   publishedOn: isoDate.optional(),
   status: z.enum(["draft", "published"]).optional(),
+  /** tutorials only (admins): who may read it, and the readers when `selected` */
+  audience: z.enum(newsAudiences).default("public"),
+  readerIds: z.array(z.string().uuid()).max(500).default([]),
 });
 
 export const newsReviewInput = z.object({
