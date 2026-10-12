@@ -11,6 +11,10 @@ import {
   deleteNews,
   getNews,
   getPostById,
+  freeSlug,
+  hasPrivateTutorials,
+  needsSignIn,
+  readerIds,
   listMyPosts,
   listNews,
   listSubmitted,
@@ -115,6 +119,42 @@ describe("tutorials", () => {
     expect((await getNews(db, null, t.slug)).kind).toBe("tutorial");
     await deleteNews(db, admin, t.id);
     await deleteNews(db, member, draft.id);
+  });
+});
+
+describe("tutorial readers", () => {
+  it("tutorials can be for everyone, members only, or picked people", async () => {
+    const other = await login("reader2@lab.test", (await createUser(db, admin, { email: "reader2@lab.test", name: "Le Reader", title: null, role: "member" })).temporaryPassword);
+    const pub = await createNews(db, admin, item({ kind: "tutorial", title: "Public guide" }));
+    const mem = await createNews(db, admin, item({ kind: "tutorial", title: "Members guide", audience: "members" }));
+    const sel = await createNews(db, admin, item({ kind: "tutorial", title: "Picked guide", audience: "selected", readerIds: [member.id] }));
+    // a blog post cannot be limited
+    const post = await createNews(db, admin, item({ title: "Blog news", audience: "members" }));
+    expect(post.audience).toBe("public");
+
+    const ids = async (who: SessionUser | null) => (await listNews(db, who, { kind: "tutorial" })).map((n) => n.id);
+    expect(await ids(null)).toEqual([pub.id]);
+    expect(await ids(other)).toEqual(expect.arrayContaining([pub.id, mem.id]));
+    expect(await ids(other)).not.toContain(sel.id);
+    expect(await ids(member)).toEqual(expect.arrayContaining([pub.id, mem.id, sel.id]));
+    expect(await ids(admin)).toEqual(expect.arrayContaining([pub.id, mem.id, sel.id]));
+
+    await expect(getNews(db, null, mem.slug)).rejects.toMatchObject({ code: "not_found" });
+    await expect(getNews(db, other, sel.slug)).rejects.toMatchObject({ code: "not_found" });
+    expect((await getNews(db, member, sel.slug)).id).toBe(sel.id);
+    expect(await needsSignIn(db, mem.slug)).toBe(true);
+    expect(await needsSignIn(db, pub.slug)).toBe(false);
+    expect(await hasPrivateTutorials(db)).toBe(true);
+    expect(await readerIds(db, admin, sel.id)).toEqual([member.id]);
+    await expect(readerIds(db, member, sel.id)).rejects.toMatchObject({ code: "forbidden" });
+
+    // switching back to everyone forgets the picked readers
+    await updateNews(db, admin, sel.id, item({ kind: "tutorial", title: "Picked guide", audience: "public", readerIds: [member.id] }));
+    expect(await readerIds(db, admin, sel.id)).toEqual([]);
+    expect(await ids(null)).toContain(sel.id);
+
+    expect((await freeSlug(db, "New")).startsWith("new-")).toBe(true);
+    for (const n of [pub, mem, sel, post]) await deleteNews(db, admin, n.id);
   });
 });
 

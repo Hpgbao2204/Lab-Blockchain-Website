@@ -13,7 +13,17 @@ export interface NewsCardData {
   body?: string | null;
   author?: { name: string; slug: string | null } | null;
   aiAssisted?: boolean;
+  audience?: Audience;
+  /** shown as a tag when not published (admins see drafts on /tutorials) */
+  status?: string;
 }
+
+export type Audience = "public" | "members" | "selected";
+export const AUDIENCE: Record<Audience, { label: string; hint: string }> = {
+  public: { label: "Everyone", hint: "Anyone on the internet can read it." },
+  members: { label: "Members only", hint: "Anyone signed in with a lab account." },
+  selected: { label: "Selected people", hint: "Only the people you pick below (admins always can)." },
+};
 
 /** Article kinds members write first, then the lab's own news. `hint` guides authors in the editor. */
 export const NEWS_KIND: Record<NewsKind, { label: string; c: string; hint: string }> = {
@@ -74,6 +84,16 @@ export function NewsCard({ item, feature = false }: { item: NewsCardData; featur
       <div className="grid content-start gap-2 p-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="tag">{k.label}</span>
+          {item.status && item.status !== "published" && (
+            <span className="tag" style={{ "--c": "var(--color-card)" } as React.CSSProperties}>
+              Draft
+            </span>
+          )}
+          {item.audience && item.audience !== "public" && (
+            <span className="tag" style={{ "--c": "var(--color-yellow)" } as React.CSSProperties}>
+              {AUDIENCE[item.audience].label}
+            </span>
+          )}
           <time className="mono text-xs text-muted" dateTime={item.publishedOn}>
             {newsDate(item.publishedOn)}
           </time>

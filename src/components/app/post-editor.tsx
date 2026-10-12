@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Bold, Code, Eye, Heading2, ImagePlus, Italic, Link2, List, Quote, Send, Undo2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api/client";
-import { ARTICLE_KINDS, BLOG_KINDS, NEWS_KIND, postHref, type NewsKind } from "@/components/news/news-card";
+import { ARTICLE_KINDS, AUDIENCE, BLOG_KINDS, NEWS_KIND, postHref, type Audience, type NewsKind } from "@/components/news/news-card";
 import { Markdown } from "@/components/news/markdown";
 
 export interface EditablePost {
@@ -21,6 +21,9 @@ export interface EditablePost {
   publishedOn: string;
   status: "draft" | "submitted" | "published" | "rejected";
   reviewNote?: string | null;
+  /** tutorials only: who may read it, and the picked readers when `selected` */
+  audience?: Audience;
+  readerIds?: string[];
 }
 
 const NEEDS_SOURCES: NewsKind[] = ["protocol", "paper_review", "incident"];
@@ -54,9 +57,10 @@ async function uploadImage(file: File) {
  * With `initial.kind === "tutorial"` it edits an admin's tutorial (no kind picker, lives under
  * /admin/tutorials and /tutorials).
  */
-export function PostEditor({ initial, admin }: { initial: EditablePost; admin: boolean }) {
+export function PostEditor({ initial, admin, people = [] }: { initial: EditablePost; admin: boolean; people?: { id: string; name: string }[] }) {
   const tutorial = initial.kind === "tutorial";
-  const home = tutorial ? "/admin/tutorials" : admin ? "/admin/posts" : "/app/posts";
+  const home = tutorial ? "/tutorials" : admin ? "/admin/posts" : "/app/posts";
+  const [find, setFind] = useState("");
   const router = useRouter();
   const [v, setV] = useState(initial);
   const [tab, setTab] = useState<"write" | "preview">("write");
@@ -100,6 +104,7 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
     cover: v.cover,
     link: v.link,
     ...(admin ? { publishedOn: v.publishedOn } : {}),
+    ...(tutorial ? { audience: v.audience ?? "public", readerIds: v.audience === "selected" ? (v.readerIds ?? []) : [] } : {}),
   });
 
   async function save(then?: "submit" | "publish" | "draft") {
@@ -110,7 +115,7 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
       const saved = await api<{ id: string; slug: string; status: EditablePost["status"] }>(v.id ? `/news/${v.id}` : "/news", { method: v.id ? "PATCH" : "POST", body });
       // remember the new post right away, so a failed submit does not create a second copy
       setV((x) => ({ ...x, id: saved.id, slug: saved.slug, status: saved.status }));
-      if (!v.id) window.history.replaceState(null, "", tutorial ? `${home}/${saved.id}` : `/app/posts/${saved.id}`);
+      if (!v.id) window.history.replaceState(null, "", tutorial ? `/tutorials/edit/${saved.id}` : `/app/posts/${saved.id}`);
       let status = saved.status;
       if (then === "submit") {
         const r = await api<{ post: { status: EditablePost["status"] } }>(`/news/${saved.id}/submit`, { method: "POST" });
@@ -334,6 +339,50 @@ export function PostEditor({ initial, admin }: { initial: EditablePost; admin: b
           Link <span className="hint">optional, e.g. the paper&apos;s DOI or your code; shown as a button at the end</span>
           <input className="field field-sm" type="url" value={v.link} onChange={set("link")} maxLength={2000} placeholder="https://…" />
         </label>
+
+        {tutorial && (
+          <fieldset className="grid gap-2">
+            <legend className="label mb-2">Who can read it?</legend>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {(Object.keys(AUDIENCE) as Audience[]).map((a) => (
+                <label key={a} className="card flex cursor-pointer gap-3 p-3 text-sm shadow-[3px_3px_0_var(--color-ink)]! has-[:checked]:bg-[color-mix(in_srgb,var(--color-yellow)_35%,var(--color-card))]">
+                  <input type="radio" name="audience" value={a} checked={(v.audience ?? "public") === a} onChange={() => setV({ ...v, audience: a })} className="mt-1 accent-ink" />
+                  <span className="grid gap-0.5">
+                    <b>{AUDIENCE[a].label}</b>
+                    <span className="text-xs text-ink-2">{AUDIENCE[a].hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            {v.audience === "selected" && (
+              <div className="card grid gap-2 p-3" style={{ boxShadow: "var(--shadow)" }}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-bold">{(v.readerIds ?? []).length} picked</span>
+                  <input className="field field-sm max-w-60" type="search" placeholder="Find a person…" value={find} onChange={(e) => setFind(e.target.value)} />
+                </div>
+                <div className="grid max-h-64 gap-1 overflow-y-auto sm:grid-cols-2">
+                  {people
+                    .filter((p) => p.name.toLowerCase().includes(find.trim().toLowerCase()))
+                    .map((p) => {
+                      const on = (v.readerIds ?? []).includes(p.id);
+                      return (
+                        <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="accent-ink"
+                            checked={on}
+                            onChange={() => setV({ ...v, readerIds: on ? (v.readerIds ?? []).filter((x) => x !== p.id) : [...(v.readerIds ?? []), p.id] })}
+                          />
+                          {p.name}
+                        </label>
+                      );
+                    })}
+                </div>
+                {!people.length && <p className="text-sm text-muted">No accounts yet.</p>}
+              </div>
+            )}
+          </fieldset>
+        )}
 
         {admin && (
           <label className="label max-w-xs">

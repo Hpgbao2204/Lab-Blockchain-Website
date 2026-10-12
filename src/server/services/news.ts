@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray, like, lte, ne, sql, type SQL } from "drizz
 import { alias } from "drizzle-orm/pg-core";
 import type { z } from "zod";
 import type { Db } from "../db/client";
-import { news, profiles, users, type NewsItem } from "../db/schema";
+import { news, newsReaders, profiles, users, type NewsItem } from "../db/schema";
 import { AppError } from "../errors";
 import type { SessionUser } from "../auth/sessions";
 import type { Mail } from "../mail";
@@ -42,6 +42,8 @@ export async function freeSlug(db: Db, title: string, exceptId?: string) {
         .where(exceptId ? and(like(news.slug, `${base}%`), ne(news.id, exceptId)) : like(news.slug, `${base}%`))
     ).map((r) => r.slug),
   );
+  // `/tutorials/new` and `/tutorials/edit/<id>` are the editor, so no post may take those addresses
+  if (base === "new" || base === "edit") taken.add(base);
   if (!taken.has(base)) return base;
   for (let i = 2; ; i++) if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
 }
@@ -60,6 +62,7 @@ const postColumns = {
   link: news.link,
   cover: news.cover,
   sources: news.sources,
+  audience: news.audience,
   publishedOn: news.publishedOn,
   status: news.status,
   reviewNote: news.reviewNote,
@@ -98,6 +101,15 @@ export type PostView = ReturnType<typeof shape>;
 const live = () => and(eq(news.status, "published"), lte(news.publishedOn, labToday()));
 /** Blog posts, i.e. everything but the admins' tutorials (those live on /tutorials). */
 const blog = () => ne(news.kind, TUTORIAL);
+/**
+ * Live posts this person may read: visitors only public ones, members also members-only ones
+ * and those they were picked for (or wrote); admins everything.
+ */
+function readableBy(actor: SessionUser | null): SQL | undefined {
+  if (isAdmin(actor)) return undefined;
+  if (!actor) return eq(news.audience, "public");
+  return sql`(${news.audience} in ('public', 'members') or ${news.authorId} = ${actor.id} or exists (select 1 from ${newsReaders} where ${newsReaders.newsId} = ${news.id} and ${newsReaders.userId} = ${actor.id}))`;
+}
 
 /**
  * Visitors see published posts dated today or earlier (Vietnam time), newest first, optionally of
@@ -107,6 +119,8 @@ const blog = () => ne(news.kind, TUTORIAL);
 export async function listNews(db: Db, actor: SessionUser | null, opts: { all?: boolean; limit?: number; kind?: NewsKind; offset?: number } = {}) {
   const where: SQL[] = [];
   if (!(opts.all && isAdmin(actor))) where.push(live()!);
+  const readable = readableBy(actor);
+  if (readable) where.push(readable);
   where.push(opts.kind ? eq(news.kind, opts.kind) : blog());
   return shapeAll(
     await selectPosts(db)
@@ -141,20 +155,44 @@ export async function listSubmitted(db: Db, actor: SessionUser | null) {
  */
 export async function getNews(db: Db, actor: SessionUser | null, slug: string) {
   const [item] = await selectPosts(db).where(eq(news.slug, slug)).limit(1);
-  if (!item || !canSee(actor, item)) throw new AppError("not_found", "Post not found.");
+  if (!item || !(await canSee(db, actor, item))) throw new AppError("not_found", "Post not found.");
   return forViewer(actor, shape(item));
 }
 
 export async function getPostById(db: Db, actor: SessionUser | null, id: string) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new AppError("not_found", "Post not found.");
   const [item] = await selectPosts(db).where(eq(news.id, id)).limit(1);
-  if (!item || !canSee(actor, item)) throw new AppError("not_found", "Post not found.");
+  if (!item || !(await canSee(db, actor, item))) throw new AppError("not_found", "Post not found.");
   return forViewer(actor, shape(item));
 }
 
-function canSee(actor: SessionUser | null, item: { status: string; publishedOn: string; authorId: string | null }) {
-  if (item.status === "published" && item.publishedOn <= labToday()) return true;
-  return isAdmin(actor) || (!!actor && actor.id === item.authorId);
+async function canSee(db: Db, actor: SessionUser | null, item: { id: string; status: string; publishedOn: string; authorId: string | null; audience: string }) {
+  if (isAdmin(actor) || (!!actor && actor.id === item.authorId)) return true;
+  if (item.status !== "published" || item.publishedOn > labToday()) return false;
+  if (item.audience === "public") return true;
+  if (!actor) return false;
+  if (item.audience === "members") return true;
+  const [picked] = await db
+    .select({ id: newsReaders.userId })
+    .from(newsReaders)
+    .where(and(eq(newsReaders.newsId, item.id), eq(newsReaders.userId, actor.id)))
+    .limit(1);
+  return !!picked;
+}
+
+/** The people picked to read a tutorial shown only to selected readers (admins only). */
+export async function readerIds(db: Db, actor: SessionUser | null, id: string) {
+  requireAdmin(actor);
+  return (await db.select({ id: newsReaders.userId }).from(newsReaders).where(eq(newsReaders.newsId, id))).map((r) => r.id);
+}
+
+/** Replaces the picked readers; kept only while the audience is `selected`. */
+async function saveReaders(db: Db, id: string, input: NewsInput) {
+  await db.delete(newsReaders).where(eq(newsReaders.newsId, id));
+  const ids = input.kind === TUTORIAL && input.audience === "selected" ? [...new Set(input.readerIds)] : [];
+  if (!ids.length) return;
+  const known = (await db.select({ id: users.id }).from(users).where(inArray(users.id, ids))).map((u) => ({ newsId: id, userId: u.id }));
+  if (known.length) await db.insert(newsReaders).values(known);
 }
 
 function requireMember(actor: SessionUser | null): asserts actor is SessionUser {
@@ -182,6 +220,8 @@ const fields = (input: NewsInput) => ({
   link: input.link ?? null,
   cover: input.cover ?? null,
   sources: input.sources ?? null,
+  // only tutorials (admins only) can be limited to members or picked readers
+  audience: input.kind === TUTORIAL ? input.audience : ("public" as const),
 });
 
 /**
@@ -204,6 +244,7 @@ export async function createNews(db: Db, actor: SessionUser | null, input: NewsI
       ...(admin && status === "published" ? { reviewedBy: actor.id, reviewedAt: new Date() } : {}),
     })
     .returning();
+  await saveReaders(db, item.id, input);
   return item;
 }
 
@@ -232,6 +273,7 @@ export async function updateNews(db: Db, actor: SessionUser | null, id: string, 
     })
     .where(eq(news.id, id))
     .returning();
+  await saveReaders(db, id, input);
   return item;
 }
 
@@ -370,4 +412,27 @@ export function renderReviewMail(
     `Blockchainist lab · bạn nhận email này vì đã gửi bài trên ${esc(siteHost(siteUrl))}`,
   );
   return { to: to.email, subject, text, html };
+}
+
+/**
+ * For a visitor who is not signed in: is there a live post at this address that only members
+ * (or picked readers) may read? Then the page asks them to sign in instead of showing a 404.
+ */
+export async function needsSignIn(db: Db, slug: string) {
+  const [row] = await db
+    .select({ id: news.id })
+    .from(news)
+    .where(and(eq(news.slug, slug), live(), ne(news.audience, "public")))
+    .limit(1);
+  return !!row;
+}
+
+/** Whether any live tutorial is hidden from visitors (members only or picked readers). */
+export async function hasPrivateTutorials(db: Db) {
+  const [row] = await db
+    .select({ id: news.id })
+    .from(news)
+    .where(and(eq(news.kind, TUTORIAL), live(), ne(news.audience, "public")))
+    .limit(1);
+  return !!row;
 }
