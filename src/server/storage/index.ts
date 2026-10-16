@@ -66,7 +66,10 @@ export function s3Storage(cfg: S3Config, signedTtlSeconds = 300): Storage {
     return new URL(`${cfg.endpoint.replace(/\/+$/, "")}/${cfg.bucket}/${key}`);
   };
   const call = async (key: string, init: RequestInit, okMissing = false) => {
-    const res = await aws.fetch(objectUrl(key).toString(), init);
+    // Sign, then send the raw bytes ourselves: handing the signed Request to Next's patched fetch
+    // streams the body chunked with no Content-Length, which R2 rejects with 411.
+    const signed = await aws.sign(objectUrl(key).toString(), init);
+    const res = await fetch(signed.url, { method: signed.method, headers: signed.headers, body: init.body, cache: "no-store" });
     if (okMissing && res.status === 404) return null;
     if (!res.ok) throw new Error(`Storage ${init.method ?? "GET"} failed: ${res.status}`);
     return res;
