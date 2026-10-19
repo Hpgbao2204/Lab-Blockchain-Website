@@ -47,7 +47,7 @@ export function PostArticle({ item, user }: { item: PostView; user: SessionUser 
   const canEdit = !!user && (user.role === "admin" || (user.id === item.authorId && item.status !== "published"));
 
   return (
-    <article className="wrap page grid max-w-3xl gap-6" style={{ "--c": k.c } as React.CSSProperties}>
+    <article className="wrap page grid gap-6" style={{ "--c": k.c } as React.CSSProperties}>
       <Link href={tutorial ? "/tutorials" : "/news"} className="btn btn-sm w-fit">
         <ArrowLeft size={16} aria-hidden /> {tutorial ? "All tutorials" : "All posts"}
       </Link>
@@ -79,7 +79,7 @@ export function PostArticle({ item, user }: { item: PostView; user: SessionUser 
           </time>
           {item.body && <span className="mono text-sm text-muted">· {readingMinutes(item.body)} min read</span>}
         </p>
-        <h1 className="display text-[clamp(30px,4.4vw,52px)] leading-[1.05]!">{item.title}</h1>
+        <h1 className="display text-[clamp(30px,3.2vw,46px)] leading-[1.08]! text-balance">{item.title}</h1>
         <p className="text-lg text-ink-2">{item.summary}</p>
         <p className="flex flex-wrap items-center gap-3 text-sm">
           <span>
@@ -106,7 +106,7 @@ export function PostArticle({ item, user }: { item: PostView; user: SessionUser 
         <img src={item.cover} alt="" className="w-full rounded-[14px] border-2 border-ink shadow-[var(--shadow-lg)]" />
       )}
       {item.body && (
-        <div className="card p-6 sm:p-8">
+        <div className="card p-6 sm:p-8 lg:px-14 lg:py-12">
           <Markdown source={item.body} />
         </div>
       )}

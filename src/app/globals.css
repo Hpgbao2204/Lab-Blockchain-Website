@@ -424,6 +424,7 @@ html:has(.portfolio-frame) {
 
   /* Markdown body of a post */
   .prose-post { font-size: 17.5px; line-height: 1.75; overflow-wrap: anywhere; }
+  @media (min-width: 1024px) { .prose-post { font-size: 18.5px; } }
   .prose-post > :first-child { margin-top: 0; }
   .prose-post > :last-child { margin-bottom: 0; }
   .prose-post p, .prose-post ul, .prose-post ol, .prose-post blockquote, .prose-post pre, .prose-post .prose-table, .prose-post figure { margin: 0 0 1.1em; }
