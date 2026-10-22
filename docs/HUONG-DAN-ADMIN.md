@@ -69,6 +69,12 @@ Trang chủ giờ là blog: hero giao thức ở trên, bên dưới là bài m�
 - **Hide / Show**: ẩn bài không muốn hiện (bài Crossref chỉ ẩn được, không sửa được). Bài thêm tay thì **Edit** / **Delete** được.
 - Ô lọc giúp tìm nhanh theo tiêu đề, tác giả, năm.
 
+## 6b. Venues: tra cứu hội nghị và tạp chí
+
+- Trang công khai `/venues` cho mọi người tìm hội nghị (CORE, CCF) và tạp chí (Q, impact factor, SCIE…). Dữ liệu lấy từ 2 file `conferences.csv` và `journals.csv`.
+- Cập nhật: vào **Venues** trong menu admin, chọn file CSV (site tự nhận ra file hội nghị hay tạp chí), bấm *Import*. File tạp chí lớn (~13 MB) mất khoảng 1 phút, đừng đóng tab khi đang chạy. Giữ tick *Remove … not in this file* nếu file mới là danh sách đầy đủ.
+- Link tới trang từng venue không đổi sau mỗi lần cập nhật. Nên cập nhật mỗi năm một lần, sau khi có impact factor mới (khoảng tháng 6).
+
 ## 7. Report và Monday email
 
 - **Report**: báo cáo tháng theo nhóm và thành viên (việc xong, trễ hạn, còn mở), tải CSV hoặc in ra PDF.
