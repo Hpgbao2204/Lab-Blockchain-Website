@@ -28,6 +28,7 @@ Class component nằm trong `@layer components` để utility của Tailwind v�
 | `/join` | Lý do, các bước ứng tuyển, liên hệ PI |
 | `/developers` | Danh sách endpoint + "try it" gọi API thật |
 | `/login` | Giữ chỗ (M2) |
+| `/venues` | Tra cứu conference/journal: ô search lớn (phím `/`), chip chủ đề, tab có số đếm, cột lọc bên trái (trên điện thoại là nút *Filters*), thẻ venue có ô hạng lớn bên trái (A*/Q1 hồng, A/Q2 cam, B/Q3 vàng, C/Q4 xanh ngọc), viền trái xanh = conference, vàng = journal |
 
 ## Hero 3D (`src/components/hero/`)
 

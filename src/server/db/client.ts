@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import * as schema from "./schema";
@@ -19,7 +20,8 @@ export async function createDb(opts: { url?: string; dir?: string }): Promise<Db
     return drizzle(sql, { schema }) as unknown as Db;
   }
   if (opts.dir) mkdirSync(opts.dir, { recursive: true });
-  const client = new PGlite(opts.dir);
+  // pg_trgm backs the fuzzy venue search; hosted Postgres (Neon, Supabase) ships it too
+  const client = new PGlite({ dataDir: opts.dir, extensions: { pg_trgm } });
   const db = drizzlePglite(client, { schema });
   await migratePglite(db, { migrationsFolder });
   return db;

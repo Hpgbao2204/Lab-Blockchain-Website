@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, PenLine } from "lucide-react";
+import { ArrowUpRight, PenLine, Search } from "lucide-react";
 import { Hero } from "@/components/hero/hero";
 import { PublicationCard } from "@/components/pubs/publication-card";
 import { Reveal } from "@/components/site/reveal";
@@ -10,6 +10,8 @@ import { getDb } from "@/server/db";
 import { getCurrentUser } from "@/server/auth/current";
 import { countLiveByKind, listNews } from "@/server/services/news";
 import { allPublications } from "@/server/services/publications";
+import { venueFacets } from "@/server/services/venues";
+import { VENUE_TOPICS } from "@/lib/venues/topics";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +21,10 @@ export const dynamic = "force-dynamic";
  */
 export default async function Home() {
   const db = await getDb();
-  const [posts, counts] = await Promise.all([
+  const [posts, counts, venues] = await Promise.all([
     listNews(db, null, { limit: 7 }).catch(() => []),
     countLiveByKind(db).catch(() => ({}) as Partial<Record<NewsKind, number>>),
+    venueFacets(db).catch(() => null),
   ]);
   const kinds = (Object.keys(NEWS_KIND) as NewsKind[]).filter((k) => counts[k]);
   const signedIn = !!(await getCurrentUser().catch(() => null));
@@ -72,6 +75,39 @@ export default async function Home() {
               <PublicationCard key={p.id} pub={p} no={i + 1} />
             ))}
           </ol>
+        </section>
+      )}
+
+      {venues && venues.total.conference + venues.total.journal > 0 && (
+        <section className="wrap section" aria-labelledby="venues-title">
+          <SectionHead id="venues-title" no={next()} title="Find where to publish">
+            <Link href="/venues" className="btn btn-sm more">
+              All venues <ArrowUpRight size={16} aria-hidden />
+            </Link>
+          </SectionHead>
+          <div className="card grid gap-4 p-5 sm:p-7">
+            <p className="m-0 text-ink-2">
+              Look up any of {venues.total.conference.toLocaleString("en-US")} computer science conferences and {venues.total.journal.toLocaleString("en-US")} journals: CORE and CCF ranks,
+              quartiles, impact factors and similar venues.
+            </p>
+            <form action="/venues" className="venue-search flex gap-3" role="search">
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">Search conferences and journals</span>
+                <Search size={20} aria-hidden />
+                <input name="q" type="search" className="field" placeholder="CVPR, IEEE Access, 2169-3536…" />
+              </label>
+              <button type="submit" className="btn btn-ink">
+                Search
+              </button>
+            </form>
+            <nav aria-label="Browse venues by topic" className="filters">
+              {VENUE_TOPICS.filter((t) => venues.topics[t.slug]).map((t) => (
+                <Link key={t.slug} href={`/venues?topic=${t.slug}`} className="chip" style={{ "--c": `var(--color-${t.c})` } as React.CSSProperties}>
+                  {t.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </section>
       )}
 

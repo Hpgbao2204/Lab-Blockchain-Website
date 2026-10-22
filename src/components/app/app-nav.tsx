@@ -14,6 +14,7 @@ const ITEMS: { href: string; label: string; admin?: boolean; member?: boolean }[
   { href: "/admin/tutorials", label: "Tutorials", admin: true },
   { href: "/admin/applications", label: "Applications", admin: true },
   { href: "/admin/publications", label: "Publications", admin: true },
+  { href: "/admin/venues", label: "Venues", admin: true },
   { href: "/admin/reports", label: "Report", admin: true },
   { href: "/admin/reminders", label: "Monday email", admin: true },
   { href: "/account/profile", label: "My profile" },

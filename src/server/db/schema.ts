@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("user_role", ["admin", "member"]);
 export const groupRoleEnum = pgEnum("group_role", ["lead", "member"]);
@@ -508,3 +508,60 @@ export const deskRuns = pgTable(
   (t) => [index("desk_runs_day_idx").on(t.day)],
 );
 export type DeskRun = typeof deskRuns.$inferSelect;
+
+export const venueKindEnum = pgEnum("venue_kind", ["conference", "journal"]);
+
+/**
+ * Conferences and journals for the public venue search (/venues). Rows come from the CSV files an
+ * admin imports at /admin/venues (or `npm run venues:import`); `id` is the id column of that file,
+ * so a newer file updates the same rows. The columns are what search filters and sorts on; every
+ * other figure from the file sits in `data`.
+ */
+export const venues = pgTable(
+  "venues",
+  {
+    id: text("id").primaryKey(),
+    kind: venueKindEnum("kind").notNull(),
+    /** set on the first import and never changed, so links keep working */
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    /** conferences: CVPR, S&P, … */
+    acronym: text("acronym"),
+    issn: text("issn"),
+    eissn: text("eissn"),
+    publisher: text("publisher"),
+    country: text("country"),
+    /** conferences: CORE rank A*, A, B or C */
+    rank: text("rank"),
+    /** conferences: CCF A, B or C */
+    ccf: text("ccf"),
+    /** journals: best Web of Science quartile, else the SCImago quartile */
+    quartile: text("quartile"),
+    /** sort key for "best first": CORE A* = 4 … C = 1; journals Q1 = 4 … Q4 = 1; 0 = unranked */
+    rankScore: integer("rank_score").notNull().default(0),
+    /** journals: impact factor */
+    impact: real("impact"),
+    /** journals: h-index; conferences: h5-index */
+    hIndex: real("h_index"),
+    topTier: boolean("top_tier").notNull().default(false),
+    /** journals: scie, ssci, ahci, esci, oa, diamond, review, warned */
+    flags: jsonb("flags").$type<string[]>().notNull().default([]),
+    /** conferences: subfields; journals: subject areas */
+    areas: jsonb("areas").$type<string[]>().notNull().default([]),
+    /** cross-kind topics (src/lib/venues/topics.ts), worked out at import */
+    topics: jsonb("topics").$type<string[]>().notNull().default([]),
+    /** lower-cased name, acronym, ISSNs and publisher, for search */
+    search: text("search").notNull(),
+    data: jsonb("data").$type<Record<string, unknown>>().notNull().default({}),
+    /** the import that last wrote this row; rows a later full import did not touch are removed */
+    importRun: text("import_run"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    ...timestamps,
+  },
+  (t) => [
+    unique("venues_kind_slug").on(t.kind, t.slug),
+    index("venues_kind_rank_idx").on(t.kind, t.rankScore),
+    index("venues_search_trgm_idx").using("gin", t.search.op("gin_trgm_ops")),
+  ],
+);
+export type Venue = typeof venues.$inferSelect;
