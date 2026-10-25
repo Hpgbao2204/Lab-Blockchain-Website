@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description: "Blockchainist is a blockchain research group at UIT – VNU-HCM working on cross-chain interoperability, zero-knowledge proofs, decentralized identity and smart contract security.",
   icons: { icon: "/favicon.svg" },
   openGraph: { siteName: "Blockchainist", type: "website" },
+  other: { "google-adsense-account": "ca-pub-5559525015691631" },
 };
 
 export const viewport: Viewport = { themeColor: "#f6f3ec" };
