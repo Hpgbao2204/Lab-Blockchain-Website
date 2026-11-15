@@ -1,12 +1,26 @@
 import type { Metadata, Viewport } from "next";
-// Self-hosted fonts, imported here so Next.js resolves them (not the Tailwind CSS pipeline).
+// Self-hosted fonts (latin + latin-ext + vietnamese subsets, so Vietnamese posts render in the same face), imported here so Next.js resolves them (not the Tailwind CSS pipeline).
 import "@fontsource/unbounded/latin-600.css";
+import "@fontsource/unbounded/latin-ext-600.css";
+import "@fontsource/unbounded/vietnamese-600.css";
 import "@fontsource/unbounded/latin-800.css";
+import "@fontsource/unbounded/latin-ext-800.css";
+import "@fontsource/unbounded/vietnamese-800.css";
 import "@fontsource/space-grotesk/latin-400.css";
+import "@fontsource/space-grotesk/latin-ext-400.css";
+import "@fontsource/space-grotesk/vietnamese-400.css";
 import "@fontsource/space-grotesk/latin-500.css";
+import "@fontsource/space-grotesk/latin-ext-500.css";
+import "@fontsource/space-grotesk/vietnamese-500.css";
 import "@fontsource/space-grotesk/latin-700.css";
+import "@fontsource/space-grotesk/latin-ext-700.css";
+import "@fontsource/space-grotesk/vietnamese-700.css";
 import "@fontsource/jetbrains-mono/latin-400.css";
+import "@fontsource/jetbrains-mono/latin-ext-400.css";
+import "@fontsource/jetbrains-mono/vietnamese-400.css";
 import "@fontsource/jetbrains-mono/latin-700.css";
+import "@fontsource/jetbrains-mono/latin-ext-700.css";
+import "@fontsource/jetbrains-mono/vietnamese-700.css";
 import "./globals.css";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
