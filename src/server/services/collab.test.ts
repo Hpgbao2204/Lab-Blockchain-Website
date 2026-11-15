@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type Db } from "../db/client";
-import { tasks } from "../db/schema";
+import { groups, tasks } from "../db/schema";
 import { createSession, userFromToken, type SessionUser } from "../auth/sessions";
 import { memoryStorage } from "../storage";
 import { authenticate, createUser, ensureAdmin } from "./users";
@@ -178,6 +178,11 @@ describe("monday digest", () => {
 });
 
 describe("monthly report", () => {
+  // The report only counts groups created before the month ends; pin the group into October 2026 so the test does not depend on today's date.
+  beforeAll(async () => {
+    await db.update(groups).set({ createdAt: new Date("2026-10-01T08:00:00+07:00") }).where(eq(groups.id, group));
+  });
+
   it("is admin only", async () => {
     await expect(monthlyReport(db, lead, "2026-10")).rejects.toMatchObject({ code: "forbidden" });
   });
